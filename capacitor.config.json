@@ -1,0 +1,9 @@
+{
+  "appId": "com.atelierpro.app",
+  "appName": "AtelierPro",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
