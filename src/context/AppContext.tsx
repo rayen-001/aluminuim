@@ -563,21 +563,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .order('created_at', { ascending: false });
 
         // ════════════════════════════════════════════════════════════
-        // AUTO-CLEAN & SANITIZE TEST/CORRUPT DATA:
-        // 1. Remove duplicate/erroneous test payments for FAC-2026-323162
-        // 2. Remove any payments that exceed invoice total
-        // 3. Keep caisse and factures in 100% mathematical harmony
+        // AUTO-CLEAN, RECONCILIATION & SANITIZATION ENGINE:
+        // 1. Properly categorize all caisse movements
+        // 2. Remove orphaned caisse movements (e.g. advance deleted from RH)
+        // 3. Keep caisse, RH, factures and fournisseurs in 100% harmony
         // ════════════════════════════════════════════════════════════
+        const orphanedMovementIds: string[] = [];
+
         let sanitizedCaisse: CaisseMovement[] = (remoteCaisse ? [...remoteCaisse] : []).map((m: any) => {
           const heure = m.heure || (m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '10:00');
-          let categorie = m.categorie;
-          if (!categorie) {
+          let categorie: CaisseMovementCategory = m.categorie;
+          let source_id = m.source_id;
+
+          const lowerMotif = (m.motif || '').toLowerCase();
+          if (!categorie || categorie === 'frais_divers' || categorie === 'autre') {
             if (m.type === 'entree') {
               categorie = 'client_reglement';
             } else {
-              const lowerMotif = (m.motif || '').toLowerCase();
               if (lowerMotif.includes('avance')) categorie = 'rh_avance';
               else if (lowerMotif.includes('salaire')) categorie = 'rh_salaire';
+              else if (lowerMotif.includes('dette fournisseur')) categorie = 'fournisseur_reglement';
               else if (lowerMotif.includes('fournisseur') || lowerMotif.includes('achat') || lowerMotif.includes('profilé') || lowerMotif.includes('matière')) categorie = 'fournisseur_achat';
               else if (lowerMotif.includes('loyer')) categorie = 'frais_loyer';
               else if (lowerMotif.includes('steg') || lowerMotif.includes('electr')) categorie = 'frais_steg';
@@ -586,35 +591,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               else categorie = 'frais_divers';
             }
           }
-          return { ...m, heure, categorie };
-        });
 
-        let sanitizedFactures = remoteFactures ? [...remoteFactures] : [];
-        const badMovementIds: string[] = [];
-
-        // Identify test movements for FAC-2026-323162 to delete
-        sanitizedCaisse.forEach(m => {
-          if (m.motif && m.motif.includes('FAC-2026-323162')) {
-            badMovementIds.push(m.id);
+          // Detect orphaned RH Advances (advance was deleted from RH, but caisse movement stayed behind)
+          if (categorie === 'rh_avance' || lowerMotif.includes('avance')) {
+            const hasMatchingAvance = (remoteAvances || []).some((a: any) => 
+              (source_id && a.id === source_id) ||
+              ((a.employe_nom || '').toLowerCase() === (m.client_ou_tiers || '').toLowerCase() && Math.abs(Number(a.montant) - Number(m.montant)) < 0.01 && a.date === m.date)
+            );
+            if (!hasMatchingAvance) {
+              orphanedMovementIds.push(m.id);
+            }
           }
+
+          // Legacy test cleanup
+          if (m.motif && m.motif.includes('FAC-2026-323162')) {
+            orphanedMovementIds.push(m.id);
+          }
+
+          return { ...m, heure, categorie, source_id };
         });
 
-        // Filter out bad test movements
-        if (badMovementIds.length > 0) {
-          sanitizedCaisse = sanitizedCaisse.filter(m => !badMovementIds.includes(m.id));
+        // Filter out orphaned / bad movements
+        if (orphanedMovementIds.length > 0) {
+          sanitizedCaisse = sanitizedCaisse.filter(m => !orphanedMovementIds.includes(m.id));
           if (user?.id) {
             supabase.from('caisse_movements')
               .delete()
-              .in('id', badMovementIds)
+              .in('id', orphanedMovementIds)
               .eq('user_id', user.id)
               .then(({ error }) => {
-                if (error) console.error('Supabase auto-clean bad movements error:', error);
-                else console.log('Successfully cleaned test caisse movements:', badMovementIds);
+                if (error) console.error('Supabase auto-clean orphaned caisse movements error:', error);
+                else console.log('Successfully cleaned orphaned caisse movements:', orphanedMovementIds);
               });
           }
         }
 
         // Reconcile all factures with valid caisse movements
+        let sanitizedFactures = remoteFactures ? [...remoteFactures] : [];
         sanitizedFactures = sanitizedFactures.map(f => {
           if (f.numero === 'FAC-2026-323162') {
             // Reset this test invoice to unpaid
@@ -1916,15 +1929,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteAvanceSalaire = (id: string) => {
+    const targetAv = avancesSalaire.find(x => x.id === id);
     setAvancesSalaire(prev => prev.filter(x => x.id !== id));
-    // Remove linked caisse movement
-    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+
+    // Remove linked caisse movement by source_id OR by matching attributes (robust fallback)
+    const targetEmpNom = targetAv?.employe_nom || employes.find(e => e.id === targetAv?.employe_id)?.nom;
+    const targetMontant = targetAv ? Number(targetAv.montant) : 0;
+    const targetDate = targetAv?.date;
+
+    const matchedMovements = caisseMovements.filter(m => {
+      if (m.source_id && m.source_id === id) return true;
+      if (targetAv && (m.categorie === 'rh_avance' || (m.motif || '').toLowerCase().includes('avance'))) {
+        const matchEmp = !targetEmpNom || (m.client_ou_tiers && m.client_ou_tiers.toLowerCase() === targetEmpNom.toLowerCase()) || (m.motif && targetEmpNom && m.motif.toLowerCase().includes(targetEmpNom.toLowerCase()));
+        const matchAmt = Math.abs(m.montant - targetMontant) < 0.01;
+        const matchDate = !targetDate || m.date === targetDate;
+        return matchEmp && matchAmt && matchDate;
+      }
+      return false;
+    });
+
+    const movementIdsToDelete = matchedMovements.map(m => m.id);
+    setCaisseMovements(prev => prev.filter(m => !movementIdsToDelete.includes(m.id) && m.source_id !== id));
 
     if (user?.id) {
       supabase.from('avances_salaire').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('deleteAvanceSalaire error:', error); });
+      
       supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('delete linked caisse movement error:', error); });
+
+      if (movementIdsToDelete.length > 0) {
+        supabase.from('caisse_movements').delete().in('id', movementIdsToDelete).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('delete matched caisse movement error:', error); });
+      }
     }
   };
 
@@ -2147,15 +2184,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteBulletinPaie = (id: string) => {
+    const bul = bulletinsPaie.find(b => b.id === id);
     setBulletinsPaie(prev => prev.filter(x => x.id !== id));
-    // Remove linked caisse movement
-    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+    
+    const targetEmpNom = bul?.employe_nom || employes.find(e => e.id === bul?.employe_id)?.nom;
+    const targetMois = bul?.mois;
+
+    const matchedMovements = caisseMovements.filter(m => {
+      if (m.source_id && m.source_id === id) return true;
+      if (bul && (m.categorie === 'rh_salaire' || (m.motif || '').toLowerCase().includes('salaire'))) {
+        const matchEmp = !targetEmpNom || (m.client_ou_tiers && m.client_ou_tiers.toLowerCase() === targetEmpNom.toLowerCase()) || (m.motif && targetEmpNom && m.motif.toLowerCase().includes(targetEmpNom.toLowerCase()));
+        const matchMois = !targetMois || (m.motif && m.motif.includes(targetMois));
+        return matchEmp && matchMois;
+      }
+      return false;
+    });
+
+    const movementIdsToDelete = matchedMovements.map(m => m.id);
+    setCaisseMovements(prev => prev.filter(m => !movementIdsToDelete.includes(m.id) && m.source_id !== id));
 
     if (user?.id) {
       supabase.from('bulletins_paie').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('deleteBulletinPaie error:', error); });
       supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('delete linked salary caisse movement error:', error); });
+      if (movementIdsToDelete.length > 0) {
+        supabase.from('caisse_movements').delete().in('id', movementIdsToDelete).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('delete matched salary caisse movement error:', error); });
+      }
     }
   };
 
@@ -2178,6 +2234,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         montant: item.montant,
         motif: item.motif,
         date: item.date,
+        heure: item.heure,
+        categorie: item.categorie,
+        source_id: item.source_id || null,
         mode_paiement: item.mode_paiement || 'especes',
         client_ou_tiers: item.client_ou_tiers || '',
         facture_id: item.facture_id || null
@@ -2189,8 +2248,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const mov = caisseMovements.find(m => m.id === id);
     setCaisseMovements(prev => prev.filter(m => m.id !== id));
 
-    // If movement is linked to a facture, adjust the facture's montant_paye and status
-    if (mov?.facture_id && mov.type === 'entree') {
+    if (!mov) return;
+
+    // 1. If movement is linked to a facture, adjust the facture's montant_paye and status
+    if (mov.facture_id && mov.type === 'entree') {
       setFactures(prev => prev.map(f => {
         if (f.id === mov.facture_id) {
           const newPaye = Math.max(0, (f.montant_paye || 0) - mov.montant);
@@ -2206,6 +2267,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return f;
       }));
+    }
+
+    // 2. If movement is an RH Avance, remove the corresponding advance from RH
+    if (mov.categorie === 'rh_avance' || (mov.motif || '').toLowerCase().includes('avance')) {
+      const targetEmpNom = mov.client_ou_tiers;
+      const targetAv = avancesSalaire.find(a => 
+        (mov.source_id && a.id === mov.source_id) ||
+        (targetEmpNom && a.employe_nom && a.employe_nom.toLowerCase() === targetEmpNom.toLowerCase() && Math.abs(a.montant - mov.montant) < 0.01 && a.date === mov.date)
+      );
+      if (targetAv) {
+        setAvancesSalaire(prev => prev.filter(a => a.id !== targetAv.id));
+        if (user?.id) {
+          supabase.from('avances_salaire').delete().eq('id', targetAv.id).eq('user_id', user.id)
+            .then(({ error }) => { if (error) console.error('Supabase delete linked avance error:', error); });
+        }
+      }
+    }
+
+    // 3. If movement is an RH Salaire payment, reset the bulletin to non_paye
+    if (mov.categorie === 'rh_salaire' || (mov.motif || '').toLowerCase().includes('salaire')) {
+      const targetEmpNom = mov.client_ou_tiers;
+      const targetBul = bulletinsPaie.find(b => 
+        (mov.source_id && b.id === mov.source_id) ||
+        (targetEmpNom && b.employe_nom && b.employe_nom.toLowerCase() === targetEmpNom.toLowerCase() && mov.motif && mov.motif.includes(b.mois))
+      );
+      if (targetBul) {
+        setBulletinsPaie(prev => prev.map(b => b.id === targetBul.id ? { ...b, statut_paiement: 'non_paye' } : b));
+        if (user?.id) {
+          supabase.from('bulletins_paie').update({ statut_paiement: 'non_paye' }).eq('id', targetBul.id).eq('user_id', user.id)
+            .then(({ error }) => { if (error) console.error('Supabase reset bulletin error:', error); });
+        }
+      }
+    }
+
+    // 4. If movement is a Supplier Payment, restore debt
+    if (mov.categorie === 'fournisseur_reglement' || (mov.motif || '').toLowerCase().includes('dette fournisseur')) {
+      const targetPaiement = paiementsFournisseur.find(p => mov.source_id && p.id === mov.source_id);
+      if (targetPaiement) {
+        setPaiementsFournisseur(prev => prev.filter(p => p.id !== targetPaiement.id));
+        setFournisseurs(prev => prev.map(f => f.id === targetPaiement.fournisseur_id ? { ...f, solde_dette: (f.solde_dette || 0) + mov.montant } : f));
+        if (user?.id) {
+          supabase.from('paiements_fournisseur').delete().eq('id', targetPaiement.id).eq('user_id', user.id)
+            .then(({ error }) => { if (error) console.error('Supabase delete paiement fournisseur error:', error); });
+          const fObj = fournisseurs.find(f => f.id === targetPaiement.fournisseur_id);
+          if (fObj) {
+            supabase.from('fournisseurs').update({ solde_dette: (fObj.solde_dette || 0) + mov.montant }).eq('id', fObj.id).eq('user_id', user.id)
+              .then(({ error }) => { if (error) console.error('Supabase update dette error:', error); });
+          }
+        }
+      }
     }
 
     if (user?.id) {

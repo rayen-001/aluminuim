@@ -74,28 +74,49 @@ export const CaisseView: React.FC = () => {
 
   // Category counts
   const rhCount = useMemo(() => {
-    return caisseMovements.filter(m => m.categorie === 'rh_avance' || m.categorie === 'rh_salaire').length;
+    return caisseMovements.filter(m => {
+      const lower = (m.motif || '').toLowerCase();
+      return m.categorie === 'rh_avance' || m.categorie === 'rh_salaire' || lower.includes('avance') || lower.includes('salaire');
+    }).length;
   }, [caisseMovements]);
 
   const fournisseurCount = useMemo(() => {
-    return caisseMovements.filter(m => m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement').length;
+    return caisseMovements.filter(m => {
+      const lower = (m.motif || '').toLowerCase();
+      return m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement' || lower.includes('fournisseur') || lower.includes('achat') || lower.includes('matière') || lower.includes('profilé');
+    }).length;
   }, [caisseMovements]);
 
   const fraisCount = useMemo(() => {
-    return caisseMovements.filter(m => 
-      m.categorie && ['frais_loyer', 'frais_steg', 'frais_outillage', 'frais_transport', 'frais_divers', 'autre'].includes(m.categorie)
-    ).length;
+    return caisseMovements.filter(m => {
+      const lower = (m.motif || '').toLowerCase();
+      const isRH = m.categorie === 'rh_avance' || m.categorie === 'rh_salaire' || lower.includes('avance') || lower.includes('salaire');
+      const isFournisseur = m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement' || lower.includes('fournisseur') || lower.includes('achat');
+      const isClient = m.type === 'entree' || m.categorie === 'client_reglement' || lower.includes('facture') || lower.includes('client');
+      return !isRH && !isFournisseur && !isClient;
+    }).length;
   }, [caisseMovements]);
 
   // Filtered movements
   const filteredMovements = useMemo(() => {
     return caisseMovements.filter(m => {
       let matchCat = true;
-      if (filterCategory === 'entree') matchCat = m.type === 'entree';
-      else if (filterCategory === 'sortie') matchCat = m.type === 'sortie';
-      else if (filterCategory === 'rh') matchCat = m.categorie === 'rh_avance' || m.categorie === 'rh_salaire';
-      else if (filterCategory === 'fournisseur') matchCat = m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement';
-      else if (filterCategory === 'frais') matchCat = !m.categorie || ['frais_loyer', 'frais_steg', 'frais_outillage', 'frais_transport', 'frais_divers', 'autre'].includes(m.categorie);
+      const lowerMotif = (m.motif || '').toLowerCase();
+
+      if (filterCategory === 'entree') {
+        matchCat = m.type === 'entree';
+      } else if (filterCategory === 'sortie') {
+        matchCat = m.type === 'sortie';
+      } else if (filterCategory === 'rh') {
+        matchCat = m.categorie === 'rh_avance' || m.categorie === 'rh_salaire' || lowerMotif.includes('avance') || lowerMotif.includes('salaire');
+      } else if (filterCategory === 'fournisseur') {
+        matchCat = m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement' || lowerMotif.includes('fournisseur') || lowerMotif.includes('achat');
+      } else if (filterCategory === 'frais') {
+        const isRH = m.categorie === 'rh_avance' || m.categorie === 'rh_salaire' || lowerMotif.includes('avance') || lowerMotif.includes('salaire');
+        const isFournisseur = m.categorie === 'fournisseur_achat' || m.categorie === 'fournisseur_reglement' || lowerMotif.includes('fournisseur') || lowerMotif.includes('achat');
+        const isClient = m.type === 'entree' || m.categorie === 'client_reglement';
+        matchCat = !isRH && !isFournisseur && !isClient;
+      }
 
       const search = searchTerm.toLowerCase();
       const matchSearch = !searchTerm ||
@@ -110,7 +131,7 @@ export const CaisseView: React.FC = () => {
   }, [caisseMovements, filterCategory, searchTerm]);
 
   // Render category badge
-  const renderCategoryBadge = (cat?: CaisseMovementCategory, type?: 'entree' | 'sortie') => {
+  const renderCategoryBadge = (cat?: CaisseMovementCategory, type?: 'entree' | 'sortie', motif?: string) => {
     if (type === 'entree' || cat === 'client_reglement') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -119,7 +140,20 @@ export const CaisseView: React.FC = () => {
       );
     }
 
-    switch (cat) {
+    const lowerMotif = (motif || '').toLowerCase();
+    const effectiveCat = cat && cat !== 'frais_divers' && cat !== 'autre'
+      ? cat
+      : (lowerMotif.includes('avance') ? 'rh_avance' :
+         lowerMotif.includes('salaire') ? 'rh_salaire' :
+         lowerMotif.includes('dette fournisseur') ? 'fournisseur_reglement' :
+         lowerMotif.includes('fournisseur') || lowerMotif.includes('achat') || lowerMotif.includes('matière') ? 'fournisseur_achat' :
+         lowerMotif.includes('loyer') ? 'frais_loyer' :
+         lowerMotif.includes('steg') || lowerMotif.includes('electr') ? 'frais_steg' :
+         lowerMotif.includes('outil') || lowerMotif.includes('lame') ? 'frais_outillage' :
+         lowerMotif.includes('transport') || lowerMotif.includes('carburant') ? 'frais_transport' :
+         cat || 'frais_divers');
+
+    switch (effectiveCat) {
       case 'rh_avance':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
@@ -359,7 +393,7 @@ export const CaisseView: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
-                      {renderCategoryBadge(m.categorie, m.type)}
+                      {renderCategoryBadge(m.categorie, m.type, m.motif)}
                     </td>
                     <td className="px-5 py-3.5">
                       <p className="font-bold text-gray-900">{m.motif}</p>
