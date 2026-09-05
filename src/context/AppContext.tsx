@@ -64,6 +64,7 @@ export interface AvanceSalaire {
   date: string;
   montant: number;
   motif: string;
+  mois_imputation?: string;
   created_at: string;
 }
 
@@ -1887,12 +1888,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Automatically create real cash Outflow in Caisse
     const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const empNom = newA.employe_nom || employes.find(e => e.id === newA.employe_id)?.nom || 'Employé';
+    const targetMoisLabel = newA.mois_imputation ? ` (Mois: ${newA.mois_imputation})` : '';
     addCaisseMovement({
       date: newA.date || new Date().toISOString().split('T')[0],
       heure: currentHeure,
       type: 'sortie',
       montant: Number(newA.montant) || 0,
-      motif: `Avance sur salaire — ${empNom}`,
+      motif: `Avance sur salaire${targetMoisLabel} — ${empNom}${newA.motif ? ` (${newA.motif})` : ''}`,
       mode_paiement: 'especes',
       client_ou_tiers: empNom,
       categorie: 'rh_avance',
@@ -1907,7 +1909,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         employe_nom: newA.employe_nom || '',
         date: newA.date || new Date().toISOString().split('T')[0],
         montant: Number(newA.montant) || 0,
-        motif: newA.motif || ''
+        motif: newA.motif || '',
+        mois_imputation: newA.mois_imputation || null
       }).then(({ error }) => { if (error) console.error('addAvanceSalaire error:', error); });
     }
   };
@@ -2034,7 +2037,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Calculate advances for target month
     const avancesMonth = avancesSalaire
-      .filter(a => a.employe_id === employeId && a.date.startsWith(targetMois))
+      .filter(a => a.employe_id === employeId && (a.mois_imputation ? a.mois_imputation === targetMois : a.date.startsWith(targetMois)))
       .reduce((s, a) => s + a.montant, 0);
 
     const salaireBase = Number(emp.salaire_base) || 0;
@@ -2119,7 +2122,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: crypto.randomUUID(),
         employe_id: employeId,
         employe_nom: empNom,
-        date: nextDate,
+        date: paymentDate,
+        mois_imputation: nextMois,
         montant: excedent,
         motif: `Report trop-perçu salaire (${targetMois})`,
         created_at: new Date().toISOString()
@@ -2135,7 +2139,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           employe_nom: newAdvance.employe_nom,
           date: newAdvance.date,
           montant: newAdvance.montant,
-          motif: newAdvance.motif
+          motif: newAdvance.motif,
+          mois_imputation: nextMois
         }).then(({ error }) => { if (error) console.error('Supabase upsert rollover advance error:', error); });
       }
     }

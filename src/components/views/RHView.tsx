@@ -24,6 +24,24 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
   const currentMonthStr = new Date().toISOString().slice(0, 7); // "YYYY-MM"
   const currentMonthName = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date());
 
+  const getNextMonthStr = (monthStr: string) => {
+    const [yStr, mStr] = monthStr.split('-');
+    const y = parseInt(yStr, 10);
+    const m = parseInt(mStr, 10);
+    if (m === 12) return `${y + 1}-01`;
+    return `${y}-${String(m + 1).padStart(2, '0')}`;
+  };
+
+  const nextMonthStr = getNextMonthStr(currentMonthStr);
+  const nextMonthName = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(
+    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+  );
+
+  // Unified helper for month attribution
+  const isAvanceForMonth = (a: AvanceSalaire, targetMois: string) => {
+    return a.mois_imputation ? a.mois_imputation === targetMois : a.date.startsWith(targetMois);
+  };
+
   // Selected Employee for Fiche Détaillée
   const [selectedEmp, setSelectedEmp] = useState<Employe | null>(null);
   const [empActiveTab, setEmpActiveTab] = useState<'avances' | 'conges' | 'paies' | 'journal'>('avances');
@@ -51,6 +69,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
   const [avanceModal, setAvanceModal] = useState(false);
   const [avEmpId, setAvEmpId] = useState('');
   const [avDate, setAvDate] = useState(new Date().toISOString().split('T')[0]);
+  const [avMoisImputation, setAvMoisImputation] = useState(currentMonthStr);
   const [avMontant, setAvMontant] = useState('');
   const [avMotif, setAvMotif] = useState('');
 
@@ -105,8 +124,15 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
   // ── Avances handler ───────────────────────────────────────────────
   const openNewAvanceForEmp = (empId?: string) => {
-    setAvEmpId(empId || (employes[0]?.id || ''));
+    const targetId = empId || (employes[0]?.id || '');
+    setAvEmpId(targetId);
     setAvDate(new Date().toISOString().split('T')[0]);
+    
+    // Auto-detect if current month is already paid
+    const bulCeMois = bulletinsPaie.find(b => b.employe_id === targetId && b.mois === currentMonthStr);
+    const isPaid = bulCeMois?.statut_paiement === 'paye';
+    setAvMoisImputation(isPaid ? nextMonthStr : currentMonthStr);
+
     setAvMontant('');
     setAvMotif('');
     setAvanceModal(true);
@@ -121,6 +147,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
       employe_id: avEmpId,
       employe_nom: emp.nom,
       date: avDate,
+      mois_imputation: avMoisImputation || currentMonthStr,
       montant: parseFloat(avMontant) || 0,
       motif: avMotif.trim()
     });
@@ -174,9 +201,9 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
       return;
     }
 
-    // Sum avances for this month
+    // Sum avances for this month using isAvanceForMonth
     const avancesMonth = avancesSalaire
-      .filter(a => a.employe_id === blEmpId && a.date.startsWith(blMois))
+      .filter(a => a.employe_id === blEmpId && isAvanceForMonth(a, blMois))
       .reduce((s, a) => s + a.montant, 0);
     const net = Math.max(0, emp.salaire_base - avancesMonth);
 
@@ -200,9 +227,9 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     setPayMode('especes');
     setPayNotes('');
 
-    // Calculate advances and remainder for this month
+    // Calculate advances and remainder for this month using isAvanceForMonth
     const empAv = avancesSalaire
-      .filter(a => a.employe_id === e.id && a.date.startsWith(moisToPay))
+      .filter(a => a.employe_id === e.id && isAvanceForMonth(a, moisToPay))
       .reduce((s, a) => s + a.montant, 0);
     const bul = bulletinsPaie.find(b => b.employe_id === e.id && b.mois === moisToPay);
     const netTotal = Math.max(0, (e.salaire_base || 0) - empAv);
@@ -253,7 +280,10 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     // Calculations for this employee
     const totalAvancesHistorique = empAvances.reduce((s, a) => s + a.montant, 0);
     const avancesCeMois = empAvances
-      .filter(a => a.date.startsWith(currentMonthStr))
+      .filter(a => isAvanceForMonth(a, currentMonthStr))
+      .reduce((s, a) => s + a.montant, 0);
+    const avancesMoisProchain = empAvances
+      .filter(a => isAvanceForMonth(a, nextMonthStr))
       .reduce((s, a) => s + a.montant, 0);
 
     const totalBulletinsPayes = empBulletins
@@ -521,33 +551,42 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                     <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
                       <tr>
                         <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3">Mois Déduit</th>
                         <th className="px-4 py-3">Motif & Justificatif</th>
                         <th className="px-4 py-3 text-right">Montant</th>
                         <th className="px-4 py-3 text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {empAvances.map(a => (
-                        <tr key={a.id} className="hover:bg-gray-50/50">
-                          <td className="px-4 py-3 text-gray-600 font-medium">{a.date}</td>
-                          <td className="px-4 py-3 text-gray-800">{a.motif || 'Avance sur salaire'}</td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-amber-700">
-                            -{a.montant.toFixed(2)} DT
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => { if (confirm('Supprimer cette avance ?')) deleteAvanceSalaire(a.id); }}
-                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {empAvances.map(a => {
+                        const mImp = a.mois_imputation || a.date.slice(0, 7);
+                        return (
+                          <tr key={a.id} className="hover:bg-gray-50/50">
+                            <td className="px-4 py-3 text-gray-600 font-medium">{a.date}</td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                                {mImp}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-gray-800">{a.motif || 'Avance sur salaire'}</td>
+                            <td className="px-4 py-3 text-right font-mono font-bold text-amber-700">
+                              -{a.montant.toFixed(2)} DT
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => { if (confirm('Supprimer cette avance ?')) deleteAvanceSalaire(a.id); }}
+                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                     <tfoot className="bg-amber-50 border-t border-amber-100">
                       <tr>
-                        <td colSpan={2} className="px-4 py-2.5 text-xs font-bold text-amber-900">TOTAL CUMULÉ DES AVANCES</td>
+                        <td colSpan={3} className="px-4 py-2.5 text-xs font-bold text-amber-900">TOTAL CUMULÉ DES AVANCES</td>
                         <td className="px-4 py-2.5 text-right font-mono font-extrabold text-amber-900">
                           -{totalAvancesHistorique.toFixed(2)} DT
                         </td>
@@ -831,7 +870,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               <div>
                 <p className="text-xs text-gray-500 font-semibold">Avances {currentMonthName}</p>
                 <p className="text-lg font-bold text-amber-800 font-mono">
-                  -{avancesSalaire.filter(a => a.date.startsWith(currentMonthStr)).reduce((s, a) => s + a.montant, 0).toFixed(2)} DT
+                  -{avancesSalaire.filter(a => isAvanceForMonth(a, currentMonthStr)).reduce((s, a) => s + a.montant, 0).toFixed(2)} DT
                 </p>
               </div>
             </div>
@@ -874,18 +913,17 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   <tbody className="divide-y divide-gray-100">
                     {filteredEmployes.map(e => {
                       const empAvCeMois = avancesSalaire
-                        .filter(a => a.employe_id === e.id && a.date.startsWith(currentMonthStr))
+                        .filter(a => a.employe_id === e.id && isAvanceForMonth(a, currentMonthStr))
                         .reduce((s, a) => s + a.montant, 0);
                       const empBulCeMois = bulletinsPaie.find(b => b.employe_id === e.id && b.mois === currentMonthStr);
                       const isCeMoisPaye = empBulCeMois?.statut_paiement === 'paye';
                       const netTheorique = Math.max(0, e.salaire_base - empAvCeMois);
                       const resteAPayer = isCeMoisPaye ? 0 : netTheorique;
 
-                      // Check for rollover advance on next month
-                      const [yStr, mStr] = currentMonthStr.split('-');
-                      const nextMois = mStr === '12' ? `${parseInt(yStr, 10)+1}-01` : `${yStr}-${String(parseInt(mStr, 10)+1).padStart(2,'0')}`;
-                      const rolloverAdv = avancesSalaire.find(a => a.employe_id === e.id && a.date.startsWith(nextMois) && (a.motif || '').includes('Report trop-perçu'));
-                      const rolloverAmt = rolloverAdv ? Number(rolloverAdv.montant) || 0 : 0;
+                      // Check for advances on next month
+                      const nextMonthAdvances = avancesSalaire
+                        .filter(a => a.employe_id === e.id && isAvanceForMonth(a, nextMonthStr))
+                        .reduce((s, a) => s + a.montant, 0);
 
                       return (
                         <tr
@@ -918,9 +956,9 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                                 <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
                                   <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Payé (0.00 DT)
                                 </span>
-                                {rolloverAmt > 0 && (
+                                {nextMonthAdvances > 0 && (
                                   <span className="text-[10px] text-blue-600 font-bold mt-0.5">
-                                    +{rolloverAmt.toFixed(2)} DT reporté sur {nextMois}
+                                    -{nextMonthAdvances.toFixed(2)} DT avance sur {nextMonthStr}
                                   </span>
                                 )}
                               </div>
@@ -1001,29 +1039,38 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <table className="w-full text-left text-xs sm:text-sm">
                   <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                     <tr>
-                      <th className="px-5 py-3">Date</th>
+                      <th className="px-5 py-3">Date Décaissement</th>
                       <th className="px-5 py-3">Employé</th>
-                      <th className="px-5 py-3">Motif</th>
+                      <th className="px-5 py-3">Mois Concerné</th>
+                      <th className="px-5 py-3">Motif & Justificatif</th>
                       <th className="px-5 py-3 text-right">Montant</th>
                       <th className="px-5 py-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {avancesSalaire.map(a => (
-                      <tr key={a.id} className="hover:bg-gray-50/50">
-                        <td className="px-5 py-3 text-gray-600 font-medium">{a.date}</td>
-                        <td className="px-5 py-3 font-bold text-gray-900">{a.employe_nom}</td>
-                        <td className="px-5 py-3 text-gray-600">{a.motif || '—'}</td>
-                        <td className="px-5 py-3 text-right font-mono font-bold text-amber-700">-{a.montant.toFixed(2)} DT</td>
-                        <td className="px-5 py-3 text-right">
-                          <button onClick={() => { if (confirm('Supprimer cette avance ?')) deleteAvanceSalaire(a.id); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </td>
-                      </tr>
-                    ))}
+                    {avancesSalaire.map(a => {
+                      const mImp = a.mois_imputation || a.date.slice(0, 7);
+                      return (
+                        <tr key={a.id} className="hover:bg-gray-50/50">
+                          <td className="px-5 py-3 text-gray-600 font-medium">{a.date}</td>
+                          <td className="px-5 py-3 font-bold text-gray-900">{a.employe_nom}</td>
+                          <td className="px-5 py-3">
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                              {mImp}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-gray-600">{a.motif || '—'}</td>
+                          <td className="px-5 py-3 text-right font-mono font-bold text-amber-700">-{a.montant.toFixed(2)} DT</td>
+                          <td className="px-5 py-3 text-right">
+                            <button onClick={() => { if (confirm('Supprimer cette avance ?')) deleteAvanceSalaire(a.id); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot className="bg-amber-50 border-t border-amber-100">
                     <tr>
-                      <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-amber-700">TOTAL AVANCES ENREGISTRÉES</td>
+                      <td colSpan={4} className="px-5 py-2.5 text-xs font-bold text-amber-700">TOTAL AVANCES ENREGISTRÉES</td>
                       <td className="px-5 py-2.5 text-right font-mono font-extrabold text-amber-800">
                         -{avancesSalaire.reduce((s, a) => s + a.montant, 0).toFixed(2)} DT
                       </td>
@@ -1238,35 +1285,121 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               <h3 className="text-base font-bold text-gray-900">Nouvelle Avance sur Salaire</h3>
               <button onClick={() => setAvanceModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSaveAvance} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Employé *</label>
-                <select required value={avEmpId} onChange={e => setAvEmpId(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-500">
-                  <option value="">-- Sélectionner un employé --</option>
-                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom} ({e.poste || 'Employé'})</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Date *</label>
-                <input type="date" required value={avDate} onChange={e => setAvDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Montant (DT) *</label>
-                <input type="number" required step="0.01" min="0.01" value={avMontant} onChange={e => setAvMontant(e.target.value)}
-                  placeholder="0.00" className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm font-mono focus:ring-2 focus:ring-amber-500" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Motif</label>
-                <input type="text" value={avMotif} onChange={e => setAvMotif(e.target.value)} placeholder="Avance sur salaire du mois..."
-                  className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500" />
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-                <button type="button" onClick={() => setAvanceModal(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold">Enregistrer l'avance</button>
-              </div>
-            </form>
+            {(() => {
+              const bulCeMois = bulletinsPaie.find(b => b.employe_id === avEmpId && b.mois === currentMonthStr);
+              const isCurMonthPaid = bulCeMois?.statut_paiement === 'paye';
+              return (
+                <form onSubmit={handleSaveAvance} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Employé *</label>
+                    <select
+                      required
+                      value={avEmpId}
+                      onChange={e => {
+                        const newId = e.target.value;
+                        setAvEmpId(newId);
+                        const bul = bulletinsPaie.find(b => b.employe_id === newId && b.mois === currentMonthStr);
+                        const isPaid = bul?.statut_paiement === 'paye';
+                        setAvMoisImputation(isPaid ? nextMonthStr : currentMonthStr);
+                      }}
+                      className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="">-- Sélectionner un employé --</option>
+                      {employes.map(e => <option key={e.id} value={e.id}>{e.nom} ({e.poste || 'Employé'})</option>)}
+                    </select>
+                  </div>
+
+                  {isCurMonthPaid && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-blue-900 shadow-xs">
+                      <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5">
+                        <p className="font-bold">Salaire de {currentMonthName} déjà soldé & payé</p>
+                        <p className="text-[11px] text-blue-700 leading-relaxed">
+                          La sortie de caisse se fera aujourd'hui (<strong>{avDate}</strong>), et cette avance sera automatiquement déduite du salaire d'<strong>{nextMonthName}</strong> (mois {nextMonthStr}).
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Mois d'imputation (Salaire à déduire) *</label>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setAvMoisImputation(currentMonthStr)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          avMoisImputation === currentMonthStr
+                            ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-500/20'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        Ce mois ({currentMonthStr})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAvMoisImputation(nextMonthStr)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          avMoisImputation === nextMonthStr
+                            ? 'bg-blue-100 text-blue-900 border-blue-300 ring-2 ring-blue-500/20'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        Mois prochain ({nextMonthStr})
+                      </button>
+                    </div>
+                    <input
+                      type="month"
+                      required
+                      value={avMoisImputation}
+                      onChange={e => setAvMoisImputation(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Date Décaissement *</label>
+                      <input
+                        type="date"
+                        required
+                        value={avDate}
+                        onChange={e => setAvDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Montant (DT) *</label>
+                      <input
+                        type="number"
+                        required
+                        step="0.01"
+                        min="0.01"
+                        value={avMontant}
+                        onChange={e => setAvMontant(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm font-mono focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Motif / Justification</label>
+                    <input
+                      type="text"
+                      value={avMotif}
+                      onChange={e => setAvMotif(e.target.value)}
+                      placeholder="Ex: Avance exceptionnelle pour fournitures..."
+                      className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                    <button type="button" onClick={() => setAvanceModal(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 cursor-pointer">Annuler</button>
+                    <button type="submit" className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs">Enregistrer l'avance</button>
+                  </div>
+                </form>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1352,7 +1485,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               </div>
               {blEmpId && blMois && (() => {
                 const emp = employes.find(e => e.id === blEmpId);
-                const avancesM = avancesSalaire.filter(a => a.employe_id === blEmpId && a.date.startsWith(blMois)).reduce((s, a) => s + a.montant, 0);
+                const avancesM = avancesSalaire.filter(a => a.employe_id === blEmpId && isAvanceForMonth(a, blMois)).reduce((s, a) => s + a.montant, 0);
                 if (!emp) return null;
                 return (
                   <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-1.5 text-xs">
@@ -1374,7 +1507,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
       {/* ══════ MODAL PAIEMENT SALAIRE RAPIDE ══════ */}
       {payModal && payEmp && (() => {
         const empAv = avancesSalaire
-          .filter(a => a.employe_id === payEmp.id && a.date.startsWith(payMois))
+          .filter(a => a.employe_id === payEmp.id && isAvanceForMonth(a, payMois))
           .reduce((s, a) => s + a.montant, 0);
         const bul = bulletinsPaie.find(b => b.employe_id === payEmp.id && b.mois === payMois);
         const isPaid = bul ? bul.statut_paiement === 'paye' : false;
