@@ -347,13 +347,20 @@ export function renderAlumDrawing(params: DrawingParams): string {
 
   let mL: number, mR: number, mT: number, mB: number;
   if (cotations) {
-    mL = 30; mR = 84; mT = 24; mB = grounded ? 96 : 78;
+    if (svgW < 320 || svgH < 260) {
+      mL = Math.max(12, svgW * 0.08);
+      mR = Math.max(25, svgW * 0.18);
+      mT = Math.max(10, svgH * 0.08);
+      mB = grounded ? Math.max(30, svgH * 0.22) : Math.max(25, svgH * 0.18);
+    } else {
+      mL = 30; mR = 84; mT = 24; mB = grounded ? 96 : 78;
+    }
   } else {
     mL = 6; mR = 6; mT = 6; mB = grounded ? 12 : 6;
   }
 
-  const drawW = svgW - mL - mR;
-  const drawH = svgH - mT - mB;
+  const drawW = Math.max(10, svgW - mL - mR);
+  const drawH = Math.max(10, svgH - mT - mB);
   const scale = Math.min(drawW / (largeur || 100), drawH / (hauteur || 100));
   const winW = (largeur || 100) * scale, winH = (hauteur || 100) * scale;
   const ox = mL + (drawW - winW) / 2;

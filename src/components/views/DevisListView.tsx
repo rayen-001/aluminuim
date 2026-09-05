@@ -4,6 +4,7 @@ import { DevisPrintModal } from './DevisPrintModal';
 import { FicheAtelierModal } from './FicheAtelierModal';
 import { FAMILIES, getProductTypesForFamily, REMPLISSAGES, MOTIFS } from '../../data/productCatalog';
 import { renderAlumDrawing } from '../../utils/productDrawing';
+import { ProductVisualizer } from '../common/ProductVisualizer';
 import { 
   Plus, 
   Search, 
@@ -384,31 +385,6 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                   const remplissage = REMPLISSAGES.find(r => r.id === it.remplissage_id);
                                   const motif = MOTIFS.find(m => m.id === it.motif_id);
 
-                                  // Mini Drawing
-                                  let svg = '';
-                                  if (!it.is_manual && it.family_id && it.product_type_id) {
-                                    let drawType = fam?.drawType || 'francaise';
-                                    if (typeDef?.category === 'chassi_fix') drawType = 'fixe';
-                                    if (typeDef?.category === 'garde_corps') drawType = 'garde_corps';
-                                    if (typeDef?.category === 'standalone_store') drawType = 'store';
-                                    if (typeDef?.category === 'standalone_mousti') drawType = 'mousti';
-
-                                    svg = renderAlumDrawing({
-                                      drawType,
-                                      largeur: parseFloat(String(it.largeur)) || 100,
-                                      hauteur: parseFloat(String(it.hauteur)) || 100,
-                                      couleur: it.couleur,
-                                      estPorte: typeDef?.category === 'porte',
-                                      partieFixeType: it.partie_fixe_type,
-                                      pfDim1: parseFloat(String(it.pf_dim_1)) || 0,
-                                      pfDim2: parseFloat(String(it.pf_dim_2)) || 0,
-                                      cotations: true,
-                                      svgW: 130,
-                                      svgH: 100,
-                                      responsive: false
-                                    });
-                                  }
-
                                   const surfaceM2 = (parseFloat(String(it.largeur || 0)) / 100) * (parseFloat(String(it.hauteur || 0)) / 100);
 
                                   return (
@@ -500,14 +476,16 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                         </div>
                                       </div>
 
-                                      {/* Center: Mini Vector Drawing */}
-                                      {svg && (
-                                        <div 
-                                          className="shrink-0 bg-gray-50/80 rounded-xl p-1.5 border border-gray-200 flex items-center justify-center self-center"
-                                          title={`Aperçu technique ${typeDef?.name || ''}`}
-                                          dangerouslySetInnerHTML={{ __html: svg }}
+                                      {/* Center: High-Definition Realistic Product Visualizer */}
+                                      <div className="shrink-0 flex items-center justify-center self-center">
+                                        <ProductVisualizer 
+                                          item={it} 
+                                          width={175} 
+                                          height={130} 
+                                          showDimensions={true}
+                                          interactive={true}
                                         />
-                                      )}
+                                      </div>
 
                                       {/* Right: Item Cost breakdown */}
                                       <div className="w-full md:w-44 shrink-0 bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-right space-y-1">
