@@ -584,18 +584,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAccessories(INITIAL_ACCESSORIES);
     setClients([]);
     setFournisseurs([]);
+    setAchatsFournisseur([]);
+    setPaiementsFournisseur([]);
     setDevisList([]);
     setBonsLivraison([]);
     setFactures([]);
     setCaisseMovements([]);
-    localStorage.removeItem('atelierpro_articles');
-    localStorage.removeItem('atelierpro_accessories');
-    localStorage.removeItem('atelierpro_clients');
-    localStorage.removeItem('atelierpro_fournisseurs');
-    localStorage.removeItem('atelierpro_devis');
-    localStorage.removeItem('atelierpro_bl');
-    localStorage.removeItem('atelierpro_factures');
-    localStorage.removeItem('atelierpro_caisse');
+    setEmployes([]);
+    setAvancesSalaire([]);
+    setConges([]);
+    setBulletinsPaie([]);
+    localStorage.clear();
   };
 
   // Article operations
@@ -1052,7 +1051,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateDevisStatus(devisId, 'converti');
 
     if (devis.client_id) {
-      setClients(prev => prev.map(c => c.id === devis.client_id ? { ...c, solde_creance: c.solde_creance + fac.total_ttc } : c));
+      const clientObj = clients.find(c => c.id === devis.client_id);
+      const newSolde = (clientObj?.solde_creance || 0) + fac.total_ttc;
+      setClients(prev => prev.map(c => c.id === devis.client_id ? { ...c, solde_creance: newSolde } : c));
+      if (user?.id) {
+        supabase.from('clients').update({ solde_creance: newSolde }).eq('id', devis.client_id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase client solde update error:', error); });
+      }
     }
 
     if (user?.id) {
@@ -1098,11 +1103,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (fac.devis_id) {
       const devis = devisList.find(d => d.id === fac.devis_id);
       if (devis?.client_id) {
+        const clientObj = clients.find(c => c.id === devis.client_id);
+        const newClientSolde = Math.max(0, (clientObj?.solde_creance || 0) - montantReel);
         setClients(prev => prev.map(c =>
-          c.id === devis.client_id
-            ? { ...c, solde_creance: Math.max(0, c.solde_creance - montantReel) }
-            : c
+          c.id === devis.client_id ? { ...c, solde_creance: newClientSolde } : c
         ));
+        if (user?.id) {
+          supabase.from('clients').update({ solde_creance: newClientSolde }).eq('id', devis.client_id).eq('user_id', user.id)
+            .then(({ error }) => { if (error) console.error('Supabase client solde decrease error:', error); });
+        }
       }
     }
 
@@ -1116,12 +1125,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       facture_id: factureId
     });
 
-    // Fix: update by id only, RLS handles the user isolation
-    supabase.from('factures').update({
-      montant_paye: newPaye,
-      status: newStatus
-    }).eq('id', factureId)
-      .then(({ error }) => { if (error) console.error('Supabase payment update error:', error); });
+    if (user?.id) {
+      supabase.from('factures').update({
+        montant_paye: newPaye,
+        status: newStatus
+      }).eq('id', factureId).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase payment update error:', error); });
+    }
   };
 
   // ─── RH CRUD ──────────────────────────────────────────────────
@@ -1129,71 +1139,125 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newE: Employe = { ...e, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setEmployes(prev => [...prev, newE]);
     if (user?.id) {
-      supabase.from('employes').insert({ ...newE, user_id: user.id })
-        .then(({ error }) => { if (error) console.error('addEmploye error:', error); });
+      supabase.from('employes').insert({
+        id: newE.id,
+        user_id: user.id,
+        nom: newE.nom,
+        poste: newE.poste || '',
+        telephone: newE.telephone || '',
+        salaire_base: newE.salaire_base || 0,
+        date_embauche: newE.date_embauche || '',
+        actif: newE.actif ?? true
+      }).then(({ error }) => { if (error) console.error('addEmploye error:', error); });
     }
   };
 
   const updateEmploye = (id: string, e: Partial<Employe>) => {
     setEmployes(prev => prev.map(x => x.id === id ? { ...x, ...e } : x));
-    if (user?.id) supabase.from('employes').update(e).eq('id', id);
+    if (user?.id) {
+      supabase.from('employes').update(e).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('updateEmploye error:', error); });
+    }
   };
 
   const deleteEmploye = (id: string) => {
     setEmployes(prev => prev.filter(x => x.id !== id));
-    supabase.from('employes').delete().eq('id', id);
+    if (user?.id) {
+      supabase.from('employes').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('deleteEmploye error:', error); });
+    }
   };
 
   const addAvanceSalaire = (a: Omit<AvanceSalaire, 'id' | 'created_at'>) => {
     const newA: AvanceSalaire = { ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setAvancesSalaire(prev => [newA, ...prev]);
     if (user?.id) {
-      supabase.from('avances_salaire').insert({ ...newA, user_id: user.id })
-        .then(({ error }) => { if (error) console.error('addAvanceSalaire error:', error); });
+      supabase.from('avances_salaire').insert({
+        id: newA.id,
+        user_id: user.id,
+        employe_id: newA.employe_id,
+        employe_nom: newA.employe_nom || '',
+        date: newA.date,
+        montant: newA.montant || 0,
+        motif: newA.motif || ''
+      }).then(({ error }) => { if (error) console.error('addAvanceSalaire error:', error); });
     }
   };
 
   const deleteAvanceSalaire = (id: string) => {
     setAvancesSalaire(prev => prev.filter(x => x.id !== id));
-    supabase.from('avances_salaire').delete().eq('id', id);
+    if (user?.id) {
+      supabase.from('avances_salaire').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('deleteAvanceSalaire error:', error); });
+    }
   };
 
   const addConge = (c: Omit<Conge, 'id' | 'created_at'>) => {
     const newC: Conge = { ...c, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setConges(prev => [newC, ...prev]);
     if (user?.id) {
-      supabase.from('conges').insert({ ...newC, user_id: user.id })
-        .then(({ error }) => { if (error) console.error('addConge error:', error); });
+      supabase.from('conges').insert({
+        id: newC.id,
+        user_id: user.id,
+        employe_id: newC.employe_id,
+        employe_nom: newC.employe_nom || '',
+        date_debut: newC.date_debut,
+        date_fin: newC.date_fin,
+        type: newC.type || 'paye',
+        status: newC.status || 'attente',
+        notes: newC.notes || ''
+      }).then(({ error }) => { if (error) console.error('addConge error:', error); });
     }
   };
 
   const updateCongeStatus = (id: string, status: Conge['status']) => {
     setConges(prev => prev.map(x => x.id === id ? { ...x, status } : x));
-    supabase.from('conges').update({ status }).eq('id', id);
+    if (user?.id) {
+      supabase.from('conges').update({ status }).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('updateCongeStatus error:', error); });
+    }
   };
 
   const deleteConge = (id: string) => {
     setConges(prev => prev.filter(x => x.id !== id));
-    supabase.from('conges').delete().eq('id', id);
+    if (user?.id) {
+      supabase.from('conges').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('deleteConge error:', error); });
+    }
   };
 
   const addBulletinPaie = (b: Omit<BulletinPaie, 'id' | 'created_at'>) => {
     const newB: BulletinPaie = { ...b, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setBulletinsPaie(prev => [newB, ...prev]);
     if (user?.id) {
-      supabase.from('bulletins_paie').insert({ ...newB, user_id: user.id })
-        .then(({ error }) => { if (error) console.error('addBulletinPaie error:', error); });
+      supabase.from('bulletins_paie').insert({
+        id: newB.id,
+        user_id: user.id,
+        employe_id: newB.employe_id,
+        employe_nom: newB.employe_nom || '',
+        mois: newB.mois,
+        salaire_base: newB.salaire_base || 0,
+        avances_deduites: newB.avances_deduites || 0,
+        net_a_payer: newB.net_a_payer || 0,
+        statut_paiement: newB.statut_paiement || 'non_paye'
+      }).then(({ error }) => { if (error) console.error('addBulletinPaie error:', error); });
     }
   };
 
   const updateBulletinStatut = (id: string, statut_paiement: BulletinPaie['statut_paiement']) => {
     setBulletinsPaie(prev => prev.map(x => x.id === id ? { ...x, statut_paiement } : x));
-    supabase.from('bulletins_paie').update({ statut_paiement }).eq('id', id);
+    if (user?.id) {
+      supabase.from('bulletins_paie').update({ statut_paiement }).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('updateBulletinStatut error:', error); });
+    }
   };
 
   const deleteBulletinPaie = (id: string) => {
     setBulletinsPaie(prev => prev.filter(x => x.id !== id));
-    supabase.from('bulletins_paie').delete().eq('id', id);
+    if (user?.id) {
+      supabase.from('bulletins_paie').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('deleteBulletinPaie error:', error); });
+    }
   };
 
   const addCaisseMovement = (m: Omit<CaisseMovement, 'id' | 'created_at'>) => {
@@ -1213,7 +1277,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         motif: item.motif,
         date: item.date,
         mode_paiement: item.mode_paiement || 'especes',
-        client_ou_tiers: item.client_ou_tiers || null,
+        client_ou_tiers: item.client_ou_tiers || '',
         facture_id: item.facture_id || null
       }).then(({ error }) => { if (error) console.error('Supabase addCaisseMovement error:', error); });
     }
