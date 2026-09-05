@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { useApp, Employe, AvanceSalaire, Conge } from '../../context/AppContext';
+import { useApp, Employe, AvanceSalaire, Conge, BulletinPaie } from '../../context/AppContext';
 import {
   UserCheck, DollarSign, Calendar, FileText, Plus, Trash2, X,
-  Edit2, CheckCircle, XCircle, Clock, Users, ChevronDown
+  Edit2, CheckCircle, XCircle, Clock, Users, ArrowLeft,
+  Phone, Briefcase, TrendingDown, CreditCard, AlertCircle,
+  CalendarCheck, ChevronRight, Printer, Wallet, Search
 } from 'lucide-react';
 
 interface RHViewProps {
@@ -17,7 +19,15 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     bulletinsPaie, addBulletinPaie, updateBulletinStatut, deleteBulletinPaie
   } = useApp();
 
-  // ── Employes state ──────────────────────────────────────────────
+  const currentMonthStr = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const currentMonthName = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date());
+
+  // Selected Employee for Fiche Détaillée
+  const [selectedEmp, setSelectedEmp] = useState<Employe | null>(null);
+  const [empActiveTab, setEmpActiveTab] = useState<'avances' | 'conges' | 'paies' | 'journal'>('avances');
+  const [searchEmp, setSearchEmp] = useState('');
+
+  // ── Employes Modal state ──────────────────────────────────────────
   const [empModal, setEmpModal] = useState(false);
   const [editingEmp, setEditingEmp] = useState<Employe | null>(null);
   const [empNom, setEmpNom] = useState('');
@@ -26,14 +36,14 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
   const [empSalaire, setEmpSalaire] = useState('800');
   const [empDate, setEmpDate] = useState('');
 
-  // ── Avances state ───────────────────────────────────────────────
+  // ── Avances Modal state ───────────────────────────────────────────
   const [avanceModal, setAvanceModal] = useState(false);
   const [avEmpId, setAvEmpId] = useState('');
   const [avDate, setAvDate] = useState(new Date().toISOString().split('T')[0]);
   const [avMontant, setAvMontant] = useState('');
   const [avMotif, setAvMotif] = useState('');
 
-  // ── Congés state ────────────────────────────────────────────────
+  // ── Congés Modal state ────────────────────────────────────────────
   const [congeModal, setCongeModal] = useState(false);
   const [cgEmpId, setCgEmpId] = useState('');
   const [cgDebut, setCgDebut] = useState(new Date().toISOString().split('T')[0]);
@@ -41,12 +51,12 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
   const [cgType, setCgType] = useState<Conge['type']>('paye');
   const [cgNotes, setCgNotes] = useState('');
 
-  // ── Bulletins state ─────────────────────────────────────────────
+  // ── Bulletins Modal state ─────────────────────────────────────────
   const [bulletinModal, setBulletinModal] = useState(false);
   const [blEmpId, setBlEmpId] = useState('');
-  const [blMois, setBlMois] = useState(new Date().toISOString().slice(0, 7));
+  const [blMois, setBlMois] = useState(currentMonthStr);
 
-  // ── Employes handlers ───────────────────────────────────────────
+  // ── Employes handlers ─────────────────────────────────────────────
   const openNewEmp = () => {
     setEditingEmp(null);
     setEmpNom(''); setEmpPoste(''); setEmpTel(''); setEmpSalaire('800'); setEmpDate('');
@@ -55,57 +65,110 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
   const openEditEmp = (e: Employe) => {
     setEditingEmp(e);
-    setEmpNom(e.nom); setEmpPoste(e.poste); setEmpTel(e.telephone);
-    setEmpSalaire(String(e.salaire_base)); setEmpDate(e.date_embauche || '');
+    setEmpNom(e.nom); setEmpPoste(e.poste || ''); setEmpTel(e.telephone || '');
+    setEmpSalaire(String(e.salaire_base || 0)); setEmpDate(e.date_embauche || '');
     setEmpModal(true);
   };
 
   const handleSaveEmp = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!empNom.trim()) return;
-    const data = { nom: empNom, poste: empPoste, telephone: empTel, salaire_base: parseFloat(empSalaire) || 0, date_embauche: empDate, actif: true };
+    const data = {
+      nom: empNom.trim(),
+      poste: empPoste.trim(),
+      telephone: empTel.trim(),
+      salaire_base: parseFloat(empSalaire) || 0,
+      date_embauche: empDate,
+      actif: true
+    };
     if (editingEmp) {
       updateEmploye(editingEmp.id, data);
+      if (selectedEmp?.id === editingEmp.id) {
+        setSelectedEmp(prev => prev ? { ...prev, ...data } : null);
+      }
     } else {
       addEmploye(data);
     }
     setEmpModal(false);
   };
 
-  // ── Avances handler ─────────────────────────────────────────────
+  // ── Avances handler ───────────────────────────────────────────────
+  const openNewAvanceForEmp = (empId?: string) => {
+    setAvEmpId(empId || (employes[0]?.id || ''));
+    setAvDate(new Date().toISOString().split('T')[0]);
+    setAvMontant('');
+    setAvMotif('');
+    setAvanceModal(true);
+  };
+
   const handleSaveAvance = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!avEmpId || !avMontant) return;
     const emp = employes.find(e => e.id === avEmpId);
     if (!emp) return;
-    addAvanceSalaire({ employe_id: avEmpId, employe_nom: emp.nom, date: avDate, montant: parseFloat(avMontant) || 0, motif: avMotif });
+    addAvanceSalaire({
+      employe_id: avEmpId,
+      employe_nom: emp.nom,
+      date: avDate,
+      montant: parseFloat(avMontant) || 0,
+      motif: avMotif.trim()
+    });
     setAvMontant(''); setAvMotif(''); setAvanceModal(false);
   };
 
-  // ── Congés handler ──────────────────────────────────────────────
+  // ── Congés handler ────────────────────────────────────────────────
+  const openNewCongeForEmp = (empId?: string) => {
+    setCgEmpId(empId || (employes[0]?.id || ''));
+    setCgDebut(new Date().toISOString().split('T')[0]);
+    setCgFin(new Date().toISOString().split('T')[0]);
+    setCgType('paye');
+    setCgNotes('');
+    setCongeModal(true);
+  };
+
   const handleSaveConge = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!cgEmpId) return;
     const emp = employes.find(e => e.id === cgEmpId);
     if (!emp) return;
-    addConge({ employe_id: cgEmpId, employe_nom: emp.nom, date_debut: cgDebut, date_fin: cgFin, type: cgType, status: 'attente', notes: cgNotes });
+    addConge({
+      employe_id: cgEmpId,
+      employe_nom: emp.nom,
+      date_debut: cgDebut,
+      date_fin: cgFin,
+      type: cgType,
+      status: 'attente',
+      notes: cgNotes.trim()
+    });
     setCgNotes(''); setCongeModal(false);
   };
 
-  // ── Bulletins handler ───────────────────────────────────────────
+  // ── Bulletins handler ─────────────────────────────────────────────
+  const openNewBulletinForEmp = (empId?: string) => {
+    setBlEmpId(empId || (employes[0]?.id || ''));
+    setBlMois(currentMonthStr);
+    setBulletinModal(true);
+  };
+
   const handleGenerateBulletin = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!blEmpId || !blMois) return;
     const emp = employes.find(e => e.id === blEmpId);
     if (!emp) return;
+    
     // Check if bulletin already exists for this month
     const existing = bulletinsPaie.find(b => b.employe_id === blEmpId && b.mois === blMois);
-    if (existing) { alert(`Un bulletin existe déjà pour ${emp.nom} en ${blMois}`); return; }
+    if (existing) {
+      alert(`Un bulletin de paie existe déjà pour ${emp.nom} pour le mois ${blMois}`);
+      return;
+    }
+
     // Sum avances for this month
     const avancesMonth = avancesSalaire
       .filter(a => a.employe_id === blEmpId && a.date.startsWith(blMois))
       .reduce((s, a) => s + a.montant, 0);
     const net = Math.max(0, emp.salaire_base - avancesMonth);
+
     addBulletinPaie({
       employe_id: blEmpId,
       employe_nom: emp.nom,
@@ -123,12 +186,517 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     return Math.max(1, Math.round((d2.getTime() - d1.getTime()) / 86400000) + 1);
   };
 
+  // Next pay date estimation (end of current month)
+  const getNextPayDate = () => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return lastDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   const titleMap = {
     rh_employes: 'Employés & Équipe',
     rh_avances: 'Avances sur Salaire',
     rh_conges: 'Gestion des Congés',
     rh_paies: 'Bulletins de Paie'
   };
+
+  // ══════════════════════════════════════════════════════════════════
+  // FICHE EMPLOYÉ ULTRA-DÉTAILLÉE
+  // ══════════════════════════════════════════════════════════════════
+  if (selectedEmp && subTab === 'rh_employes') {
+    const empAvances = avancesSalaire.filter(a => a.employe_id === selectedEmp.id);
+    const empConges = conges.filter(c => c.employe_id === selectedEmp.id);
+    const empBulletins = bulletinsPaie.filter(b => b.employe_id === selectedEmp.id);
+
+    // Calculations for this employee
+    const totalAvancesHistorique = empAvances.reduce((s, a) => s + a.montant, 0);
+    const avancesCeMois = empAvances
+      .filter(a => a.date.startsWith(currentMonthStr))
+      .reduce((s, a) => s + a.montant, 0);
+
+    const totalBulletinsPayes = empBulletins
+      .filter(b => b.statut_paiement === 'paye')
+      .reduce((s, b) => s + b.net_a_payer, 0);
+
+    const totalDebourseHistorique = totalBulletinsPayes + totalAvancesHistorique;
+    const netCeMois = Math.max(0, selectedEmp.salaire_base - avancesCeMois);
+
+    const totalJoursCongesApprouves = empConges
+      .filter(c => c.status === 'approuve')
+      .reduce((s, c) => s + calcNbJours(c.date_debut, c.date_fin), 0);
+
+    // Combined Journal Chronologique
+    const journalTimeline = [
+      ...empAvances.map(a => ({
+        id: a.id,
+        date: a.date,
+        type: 'avance' as const,
+        title: `Avance sur salaire (-${a.montant.toFixed(2)} DT)`,
+        details: a.motif || 'Avance accordée',
+        badgeColor: 'bg-amber-50 text-amber-700 border-amber-200'
+      })),
+      ...empConges.map(c => ({
+        id: c.id,
+        date: c.date_debut,
+        type: 'conge' as const,
+        title: `Congé (${c.type}) — ${calcNbJours(c.date_debut, c.date_fin)} jour(s)`,
+        details: `Du ${c.date_debut} au ${c.date_fin} • Statut : ${c.status}`,
+        badgeColor: c.status === 'approuve' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+      })),
+      ...empBulletins.map(b => ({
+        id: b.id,
+        date: `${b.mois}-01`,
+        type: 'bulletin' as const,
+        title: `Bulletin de paie mois ${b.mois} (${b.net_a_payer.toFixed(2)} DT)`,
+        details: `Salaire base: ${b.salaire_base.toFixed(2)} DT • Avances: -${b.avances_deduites.toFixed(2)} DT • ${b.statut_paiement === 'paye' ? 'Payé' : 'En attente'}`,
+        badgeColor: b.statut_paiement === 'paye' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'
+      }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return (
+      <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => setSelectedEmp(null)}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 font-semibold transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Retour à la liste des employés</span>
+        </button>
+
+        {/* Header Profil Employé */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-2xl font-black shadow-md shrink-0">
+              {selectedEmp.nom.charAt(0).toUpperCase()}
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-extrabold text-gray-900">{selectedEmp.nom}</h1>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Actif
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs sm:text-sm text-gray-500">
+                <span className="flex items-center gap-1.5 font-medium text-gray-700">
+                  <Briefcase className="w-4 h-4 text-blue-600" />
+                  {selectedEmp.poste || 'Poste non spécifié'}
+                </span>
+                {selectedEmp.telephone && (
+                  <a href={`tel:${selectedEmp.telephone}`} className="flex items-center gap-1.5 text-blue-600 hover:underline">
+                    <Phone className="w-4 h-4" />
+                    {selectedEmp.telephone}
+                  </a>
+                )}
+                {selectedEmp.date_embauche && (
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    Embauché le {selectedEmp.date_embauche}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => openNewAvanceForEmp(selectedEmp.id)}
+              className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nouvelle Avance</span>
+            </button>
+            <button
+              onClick={() => openNewCongeForEmp(selectedEmp.id)}
+              className="flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
+            >
+              <CalendarCheck className="w-3.5 h-3.5" />
+              <span>Poser un Congé</span>
+            </button>
+            <button
+              onClick={() => openNewBulletinForEmp(selectedEmp.id)}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Générer Bulletin</span>
+            </button>
+            <button
+              onClick={() => openEditEmp(selectedEmp)}
+              className="p-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-50 transition"
+              title="Modifier les coordonnées"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* KPIs / Statistiques Financières de l'Employé */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-gray-500 text-xs font-semibold uppercase tracking-wider">
+              <span>Salaire de Base</span>
+              <DollarSign className="w-4 h-4 text-blue-600" />
+            </div>
+            <p className="text-2xl font-extrabold text-gray-900 font-mono">
+              {selectedEmp.salaire_base.toFixed(2)} <span className="text-sm font-normal text-gray-500">DT/mois</span>
+            </p>
+            <p className="text-xs text-gray-400">Rémunération contractuelle</p>
+          </div>
+
+          <div className="bg-amber-50/70 rounded-2xl border border-amber-200/90 p-5 shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-amber-800 text-xs font-semibold uppercase tracking-wider">
+              <span>Avances {currentMonthName}</span>
+              <TrendingDown className="w-4 h-4 text-amber-600" />
+            </div>
+            <p className="text-2xl font-extrabold text-amber-900 font-mono">
+              -{avancesCeMois.toFixed(2)} <span className="text-sm font-normal text-amber-700">DT</span>
+            </p>
+            <p className="text-xs text-amber-700">
+              Total historique : -{totalAvancesHistorique.toFixed(2)} DT
+            </p>
+          </div>
+
+          <div className="bg-emerald-50/70 rounded-2xl border border-emerald-200/90 p-5 shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+              <span>Net à Payer (Ce Mois)</span>
+              <CreditCard className="w-4 h-4 text-emerald-600" />
+            </div>
+            <p className="text-2xl font-extrabold text-emerald-900 font-mono">
+              {netCeMois.toFixed(2)} <span className="text-sm font-normal text-emerald-700">DT</span>
+            </p>
+            <p className="text-xs text-emerald-700 flex items-center gap-1 font-medium">
+              <Clock className="w-3 h-3" /> Échéance : {getNextPayDate()}
+            </p>
+          </div>
+
+          <div className="bg-purple-50/70 rounded-2xl border border-purple-200/90 p-5 shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-purple-800 text-xs font-semibold uppercase tracking-wider">
+              <span>Congés Approuvés</span>
+              <CalendarCheck className="w-4 h-4 text-purple-600" />
+            </div>
+            <p className="text-2xl font-extrabold text-purple-900 font-mono">
+              {totalJoursCongesApprouves} <span className="text-sm font-normal text-purple-700">jour(s)</span>
+            </p>
+            <p className="text-xs text-purple-700">
+              {empConges.length} demande(s) enregistrée(s)
+            </p>
+          </div>
+        </div>
+
+        {/* Onglets de Détails pour cet Employé */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+          {/* Navigation sub-tabs */}
+          <div className="flex items-center border-b border-gray-200 bg-gray-50/80 px-4 overflow-x-auto">
+            <button
+              onClick={() => setEmpActiveTab('avances')}
+              className={`py-3.5 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
+                empActiveTab === 'avances'
+                  ? 'border-amber-600 text-amber-700 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <DollarSign className="w-4 h-4" />
+              <span>Avances sur Salaire ({empAvances.length})</span>
+            </button>
+            <button
+              onClick={() => setEmpActiveTab('conges')}
+              className={`py-3.5 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
+                empActiveTab === 'conges'
+                  ? 'border-purple-600 text-purple-700 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Congés & Absences ({empConges.length})</span>
+            </button>
+            <button
+              onClick={() => setEmpActiveTab('paies')}
+              className={`py-3.5 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
+                empActiveTab === 'paies'
+                  ? 'border-emerald-600 text-emerald-700 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Bulletins de Paie ({empBulletins.length})</span>
+            </button>
+            <button
+              onClick={() => setEmpActiveTab('journal')}
+              className={`py-3.5 px-4 text-xs font-bold border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
+                empActiveTab === 'journal'
+                  ? 'border-blue-600 text-blue-700 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              <span>Journal Complet ({journalTimeline.length})</span>
+            </button>
+          </div>
+
+          {/* TAB 1: AVANCES DE CET EMPLOYÉ */}
+          {empActiveTab === 'avances' && (
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-900">Historique des avances accordées</h3>
+                <button
+                  onClick={() => openNewAvanceForEmp(selectedEmp.id)}
+                  className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Ajouter une avance</span>
+                </button>
+              </div>
+
+              {empAvances.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 space-y-1">
+                  <DollarSign className="w-10 h-10 mx-auto text-gray-300 stroke-1" />
+                  <p className="text-xs font-semibold text-gray-600">Aucune avance pour cet employé</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
+                      <tr>
+                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3">Motif & Justificatif</th>
+                        <th className="px-4 py-3 text-right">Montant</th>
+                        <th className="px-4 py-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {empAvances.map(a => (
+                        <tr key={a.id} className="hover:bg-gray-50/50">
+                          <td className="px-4 py-3 text-gray-600 font-medium">{a.date}</td>
+                          <td className="px-4 py-3 text-gray-800">{a.motif || 'Avance sur salaire'}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-amber-700">
+                            -{a.montant.toFixed(2)} DT
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => { if (confirm('Supprimer cette avance ?')) deleteAvanceSalaire(a.id); }}
+                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-amber-50 border-t border-amber-100">
+                      <tr>
+                        <td colSpan={2} className="px-4 py-2.5 text-xs font-bold text-amber-900">TOTAL CUMULÉ DES AVANCES</td>
+                        <td className="px-4 py-2.5 text-right font-mono font-extrabold text-amber-900">
+                          -{totalAvancesHistorique.toFixed(2)} DT
+                        </td>
+                        <td />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: CONGÉS DE CET EMPLOYÉ */}
+          {empActiveTab === 'conges' && (
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-900">Historique des congés et absences</h3>
+                <button
+                  onClick={() => openNewCongeForEmp(selectedEmp.id)}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nouvelle demande de congé</span>
+                </button>
+              </div>
+
+              {empConges.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 space-y-1">
+                  <Calendar className="w-10 h-10 mx-auto text-gray-300 stroke-1" />
+                  <p className="text-xs font-semibold text-gray-600">Aucun congé enregistré pour cet employé</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
+                      <tr>
+                        <th className="px-4 py-3">Période (Du / Au)</th>
+                        <th className="px-4 py-3 text-center">Durée</th>
+                        <th className="px-4 py-3 text-center">Type</th>
+                        <th className="px-4 py-3">Notes</th>
+                        <th className="px-4 py-3 text-center">Statut</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {empConges.map(c => (
+                        <tr key={c.id} className="hover:bg-gray-50/50">
+                          <td className="px-4 py-3 font-medium text-gray-800">
+                            Du {c.date_debut} au {c.date_fin}
+                          </td>
+                          <td className="px-4 py-3 text-center font-mono font-bold text-purple-900">
+                            {calcNbJours(c.date_debut, c.date_fin)} jour(s)
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
+                              c.type === 'paye' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                              c.type === 'maladie' ? 'bg-red-50 text-red-700 border-red-200' :
+                              'bg-gray-50 text-gray-600 border-gray-200'
+                            }`}>
+                              {c.type === 'paye' ? 'Payé' : c.type === 'maladie' ? 'Maladie' : 'Sans solde'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{c.notes || '—'}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md border ${
+                              c.status === 'approuve' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                              c.status === 'refuse' ? 'bg-red-50 text-red-700 border-red-200' :
+                              'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              {c.status === 'approuve' ? '✓ Approuvé' : c.status === 'refuse' ? '✗ Refusé' : '⏳ En attente'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              {c.status === 'attente' && (
+                                <>
+                                  <button onClick={() => updateCongeStatus(c.id, 'approuve')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Approuver"><CheckCircle className="w-4 h-4" /></button>
+                                  <button onClick={() => updateCongeStatus(c.id, 'refuse')} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Refuser"><XCircle className="w-4 h-4" /></button>
+                                </>
+                              )}
+                              <button onClick={() => { if (confirm('Supprimer ce congé ?')) deleteConge(c.id); }} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: BULLETINS DE PAIE DE CET EMPLOYÉ */}
+          {empActiveTab === 'paies' && (
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-900">Bulletins de paie & Règlements mensuels</h3>
+                <button
+                  onClick={() => openNewBulletinForEmp(selectedEmp.id)}
+                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Générer bulletin</span>
+                </button>
+              </div>
+
+              {empBulletins.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 space-y-1">
+                  <FileText className="w-10 h-10 mx-auto text-gray-300 stroke-1" />
+                  <p className="text-xs font-semibold text-gray-600">Aucun bulletin de paie généré pour cet employé</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
+                      <tr>
+                        <th className="px-4 py-3">Mois</th>
+                        <th className="px-4 py-3 text-right">Salaire Base</th>
+                        <th className="px-4 py-3 text-right">Avances Déduites</th>
+                        <th className="px-4 py-3 text-right">Net à Payer</th>
+                        <th className="px-4 py-3 text-center">Statut</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {empBulletins.map(b => (
+                        <tr key={b.id} className="hover:bg-gray-50/50">
+                          <td className="px-4 py-3 font-mono font-bold text-gray-800">{b.mois}</td>
+                          <td className="px-4 py-3 text-right font-mono text-gray-700">{b.salaire_base.toFixed(2)} DT</td>
+                          <td className="px-4 py-3 text-right font-mono text-amber-700">-{b.avances_deduites.toFixed(2)} DT</td>
+                          <td className="px-4 py-3 text-right font-mono font-extrabold text-emerald-800">{b.net_a_payer.toFixed(2)} DT</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md border ${
+                              b.statut_paiement === 'paye'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-red-50 text-red-700 border-red-200'
+                            }`}>
+                              {b.statut_paiement === 'paye' ? '✓ Payé' : 'Non payé'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              {b.statut_paiement === 'non_paye' && (
+                                <button
+                                  onClick={() => updateBulletinStatut(b.id, 'paye')}
+                                  className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+                                >
+                                  Marquer payé
+                                </button>
+                              )}
+                              <button
+                                onClick={() => { if (confirm('Supprimer ce bulletin ?')) deleteBulletinPaie(b.id); }}
+                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: JOURNAL CHRONOLOGIQUE GLOBAL */}
+          {empActiveTab === 'journal' && (
+            <div className="p-4 sm:p-6 space-y-4">
+              <h3 className="text-sm font-bold text-gray-900">Historique chronologique de tous les flux</h3>
+              {journalTimeline.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 space-y-1">
+                  <Clock className="w-10 h-10 mx-auto text-gray-300 stroke-1" />
+                  <p className="text-xs font-semibold text-gray-600">Aucune activité enregistrée</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {journalTimeline.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3.5 bg-gray-50/70 border border-gray-100 rounded-xl">
+                      <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0 text-gray-600">
+                        {item.type === 'avance' ? <DollarSign className="w-4 h-4 text-amber-600" /> :
+                         item.type === 'conge' ? <Calendar className="w-4 h-4 text-purple-600" /> :
+                         <FileText className="w-4 h-4 text-emerald-600" />}
+                      </div>
+                      <div className="flex-1 space-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold text-gray-900">{item.title}</p>
+                          <span className="text-xs font-mono text-gray-400">{item.date}</span>
+                        </div>
+                        <p className="text-xs text-gray-600">{item.details}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // LISTES GLOBALES DES 4 SOUS-ONGLETS
+  // ══════════════════════════════════════════════════════════════════
+  const filteredEmployes = employes.filter(e =>
+    e.nom.toLowerCase().includes(searchEmp.toLowerCase()) ||
+    (e.poste || '').toLowerCase().includes(searchEmp.toLowerCase()) ||
+    (e.telephone || '').includes(searchEmp)
+  );
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
@@ -144,78 +712,171 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
           </button>
         )}
         {subTab === 'rh_avances' && (
-          <button onClick={() => setAvanceModal(true)} disabled={employes.length === 0}
+          <button onClick={() => openNewAvanceForEmp()} disabled={employes.length === 0}
             className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition w-fit">
             <Plus className="w-4 h-4" /><span>Nouvelle Avance</span>
           </button>
         )}
         {subTab === 'rh_conges' && (
-          <button onClick={() => setCongeModal(true)} disabled={employes.length === 0}
+          <button onClick={() => openNewCongeForEmp()} disabled={employes.length === 0}
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition w-fit">
             <Plus className="w-4 h-4" /><span>Demande de Congé</span>
           </button>
         )}
         {subTab === 'rh_paies' && (
-          <button onClick={() => setBulletinModal(true)} disabled={employes.length === 0}
+          <button onClick={() => openNewBulletinForEmp()} disabled={employes.length === 0}
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition w-fit">
             <Plus className="w-4 h-4" /><span>Générer Bulletin</span>
           </button>
         )}
       </div>
 
-      {/* ══════════════ EMPLOYÉS ══════════════ */}
+      {/* ══════════════ EMPLOYÉS LIST VIEW ══════════════ */}
       {subTab === 'rh_employes' && (
-        <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden">
-          {employes.length === 0 ? (
-            <div className="p-12 text-center text-gray-400 space-y-2">
-              <UserCheck className="w-12 h-12 mx-auto stroke-1 text-gray-300" />
-              <p className="text-sm font-semibold text-gray-700">Aucun employé enregistré</p>
-              <p className="text-xs text-gray-400">Commencez par ajouter vos collaborateurs.</p>
+        <div className="space-y-4">
+          {/* Summary KPIs bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-semibold">Total Employés</p>
+                <p className="text-lg font-bold text-gray-900">{employes.length} collaborateur(s)</p>
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
-                  <tr>
-                    <th className="px-5 py-3">Nom & Prénom</th>
-                    <th className="px-5 py-3">Poste</th>
-                    <th className="px-5 py-3">Téléphone</th>
-                    <th className="px-5 py-3">Date Embauche</th>
-                    <th className="px-5 py-3 text-right">Salaire Base</th>
-                    <th className="px-5 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {employes.map(e => (
-                    <tr key={e.id} className="hover:bg-gray-50/50">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
-                            {e.nom.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="font-bold text-gray-900">{e.nom}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-gray-700">{e.poste || '—'}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{e.telephone || '—'}</td>
-                      <td className="px-5 py-3.5 text-gray-500">{e.date_embauche || '—'}</td>
-                      <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900">{e.salaire_base.toFixed(2)} DT</td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button onClick={() => openEditEmp(e)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => { if (confirm(`Supprimer ${e.nom} ?`)) deleteEmploye(e.id); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-semibold">Masse Salariale Base</p>
+                <p className="text-lg font-bold text-emerald-900 font-mono">
+                  {employes.reduce((s, e) => s + (e.salaire_base || 0), 0).toFixed(2)} DT
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <TrendingDown className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-semibold">Avances {currentMonthName}</p>
+                <p className="text-lg font-bold text-amber-800 font-mono">
+                  -{avancesSalaire.filter(a => a.date.startsWith(currentMonthStr)).reduce((s, a) => s + a.montant, 0).toFixed(2)} DT
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative max-w-md">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={searchEmp}
+              onChange={e => setSearchEmp(e.target.value)}
+              placeholder="Rechercher par nom, poste, téléphone..."
+              className="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-xs">
+            {filteredEmployes.length === 0 ? (
+              <div className="p-12 text-center text-gray-400 space-y-2">
+                <UserCheck className="w-12 h-12 mx-auto stroke-1 text-gray-300" />
+                <p className="text-sm font-semibold text-gray-700">Aucun employé trouvé</p>
+                <p className="text-xs text-gray-400">Commencez par ajouter vos collaborateurs.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
+                    <tr>
+                      <th className="px-5 py-3">Employé</th>
+                      <th className="px-5 py-3">Poste</th>
+                      <th className="px-5 py-3">Téléphone</th>
+                      <th className="px-5 py-3 text-right">Salaire Base</th>
+                      <th className="px-5 py-3 text-right">Avances ({currentMonthName})</th>
+                      <th className="px-5 py-3 text-right">Net Estimé</th>
+                      <th className="px-5 py-3 text-right">Fiche & Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredEmployes.map(e => {
+                      const empAvCeMois = avancesSalaire
+                        .filter(a => a.employe_id === e.id && a.date.startsWith(currentMonthStr))
+                        .reduce((s, a) => s + a.montant, 0);
+                      const netEstime = Math.max(0, e.salaire_base - empAvCeMois);
+
+                      return (
+                        <tr
+                          key={e.id}
+                          className="hover:bg-blue-50/40 transition cursor-pointer"
+                          onClick={() => setSelectedEmp(e)}
+                        >
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-blue-600 text-white text-xs font-black flex items-center justify-center shadow-xs">
+                                {e.nom.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className="font-bold text-gray-900 hover:text-blue-600 block">{e.nom}</span>
+                                {e.date_embauche && <span className="text-[11px] text-gray-400">Depuis {e.date_embauche}</span>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-gray-700 font-medium">{e.poste || '—'}</td>
+                          <td className="px-5 py-3.5 text-gray-600 font-mono">{e.telephone || '—'}</td>
+                          <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900">
+                            {e.salaire_base.toFixed(2)} DT
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-mono font-bold text-amber-700">
+                            {empAvCeMois > 0 ? `-${empAvCeMois.toFixed(2)} DT` : '0.00 DT'}
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-mono font-extrabold text-emerald-700">
+                            {netEstime.toFixed(2)} DT
+                          </td>
+                          <td className="px-5 py-3.5 text-right" onClick={ev => ev.stopPropagation()}>
+                            <div className="flex justify-end items-center gap-1.5">
+                              <button
+                                onClick={() => setSelectedEmp(e)}
+                                className="flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-lg text-xs font-semibold transition"
+                              >
+                                <span>Fiche</span>
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => openEditEmp(e)}
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg"
+                                title="Modifier"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => { if (confirm(`Supprimer ${e.nom} ?`)) deleteEmploye(e.id); }}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* ══════════════ AVANCES ══════════════ */}
+      {/* ══════════════ AVANCES GLOBALES ══════════════ */}
       {subTab === 'rh_avances' && (
         <>
           {employes.length === 0 && (
@@ -223,7 +884,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               ⚠️ Ajoutez d'abord des employés dans l'onglet "Employés".
             </div>
           )}
-          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-xs">
             {avancesSalaire.length === 0 ? (
               <div className="p-12 text-center text-gray-400 space-y-2">
                 <DollarSign className="w-12 h-12 mx-auto stroke-1 text-gray-300" />
@@ -245,7 +906,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   <tbody className="divide-y divide-gray-100">
                     {avancesSalaire.map(a => (
                       <tr key={a.id} className="hover:bg-gray-50/50">
-                        <td className="px-5 py-3 text-gray-600">{a.date}</td>
+                        <td className="px-5 py-3 text-gray-600 font-medium">{a.date}</td>
                         <td className="px-5 py-3 font-bold text-gray-900">{a.employe_nom}</td>
                         <td className="px-5 py-3 text-gray-600">{a.motif || '—'}</td>
                         <td className="px-5 py-3 text-right font-mono font-bold text-amber-700">-{a.montant.toFixed(2)} DT</td>
@@ -257,7 +918,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   </tbody>
                   <tfoot className="bg-amber-50 border-t border-amber-100">
                     <tr>
-                      <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-amber-700">TOTAL AVANCES</td>
+                      <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-amber-700">TOTAL AVANCES ENREGISTRÉES</td>
                       <td className="px-5 py-2.5 text-right font-mono font-extrabold text-amber-800">
                         -{avancesSalaire.reduce((s, a) => s + a.montant, 0).toFixed(2)} DT
                       </td>
@@ -271,7 +932,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
         </>
       )}
 
-      {/* ══════════════ CONGÉS ══════════════ */}
+      {/* ══════════════ CONGÉS GLOBAUX ══════════════ */}
       {subTab === 'rh_conges' && (
         <>
           {employes.length === 0 && (
@@ -279,7 +940,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               ⚠️ Ajoutez d'abord des employés dans l'onglet "Employés".
             </div>
           )}
-          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-xs">
             {conges.length === 0 ? (
               <div className="p-12 text-center text-gray-400 space-y-2">
                 <Calendar className="w-12 h-12 mx-auto stroke-1 text-gray-300" />
@@ -346,7 +1007,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
         </>
       )}
 
-      {/* ══════════════ BULLETINS ══════════════ */}
+      {/* ══════════════ BULLETINS GLOBAUX ══════════════ */}
       {subTab === 'rh_paies' && (
         <>
           {employes.length === 0 && (
@@ -354,7 +1015,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               ⚠️ Ajoutez d'abord des employés dans l'onglet "Employés".
             </div>
           )}
-          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-xs">
             {bulletinsPaie.length === 0 ? (
               <div className="p-12 text-center text-gray-400 space-y-2">
                 <FileText className="w-12 h-12 mx-auto stroke-1 text-gray-300" />
@@ -414,7 +1075,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
       {/* ══════ MODAL Employé ══════ */}
       {empModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="text-base font-bold text-gray-900">{editingEmp ? 'Modifier Employé' : 'Nouvel Employé'}</h3>
@@ -428,12 +1089,12 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Poste / Fonction</label>
-                <input type="text" value={empPoste} onChange={e => setEmpPoste(e.target.value)} placeholder="Ex: Poseur aluminium"
+                <input type="text" value={empPoste} onChange={e => setEmpPoste(e.target.value)} placeholder="Ex: Poseur aluminium / Chef d'atelier"
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Téléphone</label>
-                <input type="text" value={empTel} onChange={e => setEmpTel(e.target.value)} placeholder="Ex: 98 123 456"
+                <input type="text" value={empTel} onChange={e => setEmpTel(e.target.value)} placeholder="Ex: +216 98 123 456"
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -459,7 +1120,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
       {/* ══════ MODAL Avance ══════ */}
       {avanceModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="text-base font-bold text-gray-900">Nouvelle Avance sur Salaire</h3>
@@ -471,7 +1132,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <select required value={avEmpId} onChange={e => setAvEmpId(e.target.value)}
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-500">
                   <option value="">-- Sélectionner un employé --</option>
-                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}
+                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom} ({e.poste || 'Employé'})</option>)}
                 </select>
               </div>
               <div>
@@ -491,7 +1152,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
               </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                 <button type="button" onClick={() => setAvanceModal(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold">Enregistrer</button>
+                <button type="submit" className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold">Enregistrer l'avance</button>
               </div>
             </form>
           </div>
@@ -500,7 +1161,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
       {/* ══════ MODAL Congé ══════ */}
       {congeModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="text-base font-bold text-gray-900">Demande de Congé</h3>
@@ -537,18 +1198,18 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Notes</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Notes / Motif</label>
                 <input type="text" value={cgNotes} onChange={e => setCgNotes(e.target.value)} placeholder="Optionnel"
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-purple-500" />
               </div>
               {cgDebut && cgFin && (
                 <p className="text-xs text-purple-700 font-semibold bg-purple-50 px-3 py-2 rounded-lg">
-                  Durée: {calcNbJours(cgDebut, cgFin)} jour(s)
+                  Durée estimée : {calcNbJours(cgDebut, cgFin)} jour(s)
                 </p>
               )}
               <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                 <button type="button" onClick={() => setCongeModal(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700">Annuler</button>
-                <button type="submit" className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold">Enregistrer</button>
+                <button type="submit" className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold">Enregistrer la demande</button>
               </div>
             </form>
           </div>
@@ -557,7 +1218,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
       {/* ══════ MODAL Bulletin ══════ */}
       {bulletinModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="text-base font-bold text-gray-900">Générer Bulletin de Paie</h3>
@@ -569,11 +1230,11 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <select required value={blEmpId} onChange={e => setBlEmpId(e.target.value)}
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500">
                   <option value="">-- Sélectionner un employé --</option>
-                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom} — {e.salaire_base.toFixed(2)} DT</option>)}
+                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom} — Salaire: {e.salaire_base.toFixed(2)} DT</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Mois *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Mois de Paie *</label>
                 <input type="month" required value={blMois} onChange={e => setBlMois(e.target.value)}
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
               </div>
@@ -582,10 +1243,10 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 const avancesM = avancesSalaire.filter(a => a.employe_id === blEmpId && a.date.startsWith(blMois)).reduce((s, a) => s + a.montant, 0);
                 if (!emp) return null;
                 return (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1.5 text-xs">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-1.5 text-xs">
                     <div className="flex justify-between"><span className="text-gray-600">Salaire de base</span><span className="font-mono font-bold">{emp.salaire_base.toFixed(2)} DT</span></div>
                     <div className="flex justify-between"><span className="text-amber-700">Avances du mois</span><span className="font-mono font-bold text-amber-700">-{avancesM.toFixed(2)} DT</span></div>
-                    <div className="flex justify-between border-t border-emerald-200 pt-1.5"><span className="font-bold text-emerald-800">Net à payer</span><span className="font-mono font-extrabold text-emerald-800">{Math.max(0, emp.salaire_base - avancesM).toFixed(2)} DT</span></div>
+                    <div className="flex justify-between border-t border-emerald-200 pt-1.5"><span className="font-bold text-emerald-800">Net à verser</span><span className="font-mono font-extrabold text-emerald-800 text-sm">{Math.max(0, emp.salaire_base - avancesM).toFixed(2)} DT</span></div>
                   </div>
                 );
               })()}
