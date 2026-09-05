@@ -30,6 +30,8 @@ export interface AchatFournisseur {
   date: string;
   designation: string;
   montant: number;
+  montant_paye?: number;
+  mode_paiement?: 'especes' | 'cheque' | 'virement';
   notes?: string;
   created_at: string;
 }
@@ -158,15 +160,31 @@ export interface FactureRecord {
   created_at: string;
 }
 
+export type CaisseMovementCategory =
+  | 'client_reglement'
+  | 'rh_avance'
+  | 'rh_salaire'
+  | 'fournisseur_achat'
+  | 'fournisseur_reglement'
+  | 'frais_loyer'
+  | 'frais_steg'
+  | 'frais_outillage'
+  | 'frais_transport'
+  | 'frais_divers'
+  | 'autre';
+
 export interface CaisseMovement {
   id: string;
   date: string;
+  heure?: string;
   type: 'entree' | 'sortie';
   montant: number;
   motif: string;
   mode_paiement: 'especes' | 'cheque' | 'virement';
   client_ou_tiers?: string;
   facture_id?: string;
+  categorie?: CaisseMovementCategory;
+  source_id?: string;
   created_at: string;
 }
 
@@ -270,6 +288,7 @@ interface AppContextType {
   bulletinsPaie: BulletinPaie[];
   addBulletinPaie: (b: Omit<BulletinPaie, 'id' | 'created_at'>) => void;
   updateBulletinStatut: (id: string, statut: BulletinPaie['statut_paiement']) => void;
+  paySalaryBulletin: (bulletinId: string, montantNet: number, mode: 'especes' | 'cheque' | 'virement', date?: string) => void;
   deleteBulletinPaie: (id: string) => void;
 }
 
@@ -1128,6 +1147,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAchatsFournisseur(prev => [newA, ...prev]);
 
+    const fNom = fournisseurs.find(f => f.id === a.fournisseur_id)?.nom || 'Fournisseur';
+    const totalMontant = Number(newA.montant) || 0;
+    const montantPaye = Math.min(totalMontant, Math.max(0, Number(newA.montant_paye ?? 0)));
+    const resteDette = Math.max(0, totalMontant - montantPaye);
+
+    // If an initial payment/acompte was made at purchase time, create Caisse Sortie
+    if (montantPaye > 0) {
+      const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      addCaisseMovement({
+        date: newA.date || new Date().toISOString().split('T')[0],
+        heure: currentHeure,
+        type: 'sortie',
+        montant: montantPaye,
+        motif: `Achat matière/profilés (${newA.designation || 'Marchandise'}) — ${fNom}`,
+        mode_paiement: newA.mode_paiement || 'especes',
+        client_ou_tiers: fNom,
+        categorie: 'fournisseur_achat',
+        source_id: newA.id
+      });
+    }
+
+    // Update supplier debt
+    const fournisseurObj = fournisseurs.find(f => f.id === a.fournisseur_id);
+    const newDette = (fournisseurObj?.solde_dette || 0) + resteDette;
+    setFournisseurs(prev => prev.map(f => f.id === a.fournisseur_id ? { ...f, solde_dette: newDette } : f));
+
     if (user?.id) {
       supabase.from('achats_fournisseur').upsert({
         id: newA.id,
@@ -1135,17 +1180,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fournisseur_id: newA.fournisseur_id,
         date: newA.date || new Date().toISOString().split('T')[0],
         designation: newA.designation,
-        montant: Number(newA.montant) || 0,
+        montant: totalMontant,
         notes: newA.notes || ''
       }).then(({ error }) => { if (error) console.error('Supabase addAchatFournisseur error:', error); });
+
+      if (resteDette !== 0) {
+        supabase.from('fournisseurs').update({ solde_dette: newDette }).eq('id', a.fournisseur_id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase update supplier dette error:', error); });
+      }
     }
   };
 
   const deleteAchatFournisseur = (id: string) => {
+    const achat = achatsFournisseur.find(a => a.id === id);
     setAchatsFournisseur(prev => prev.filter(a => a.id !== id));
+    // Remove linked caisse movement if exists
+    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+
+    if (achat) {
+      const fObj = fournisseurs.find(f => f.id === achat.fournisseur_id);
+      const totalMontant = Number(achat.montant) || 0;
+      const montantPaye = Number(achat.montant_paye ?? 0);
+      const addedDette = Math.max(0, totalMontant - montantPaye);
+      const newDette = Math.max(0, (fObj?.solde_dette || 0) - addedDette);
+      setFournisseurs(prev => prev.map(f => f.id === achat.fournisseur_id ? { ...f, solde_dette: newDette } : f));
+      if (user?.id) {
+        supabase.from('fournisseurs').update({ solde_dette: newDette }).eq('id', achat.fournisseur_id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase deleteAchatFournisseur dette update error:', error); });
+      }
+    }
+
     if (user?.id) {
       supabase.from('achats_fournisseur').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('Supabase deleteAchatFournisseur error:', error); });
+      supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase delete linked movement error:', error); });
     }
   };
 
@@ -1158,24 +1227,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setPaiementsFournisseur(prev => [newP, ...prev]);
 
+    const fNom = fournisseurs.find(f => f.id === p.fournisseur_id)?.nom || 'Fournisseur';
+    const montantVal = Number(newP.montant) || 0;
+
+    // Create Caisse Sortie
+    const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    addCaisseMovement({
+      date: newP.date || new Date().toISOString().split('T')[0],
+      heure: currentHeure,
+      type: 'sortie',
+      montant: montantVal,
+      motif: `Règlement dette fournisseur — ${fNom}`,
+      mode_paiement: newP.mode_paiement || 'especes',
+      client_ou_tiers: fNom,
+      categorie: 'fournisseur_reglement',
+      source_id: newP.id
+    });
+
+    // Reduce supplier debt
+    const fournisseurObj = fournisseurs.find(f => f.id === p.fournisseur_id);
+    const newDette = Math.max(0, (fournisseurObj?.solde_dette || 0) - montantVal);
+    setFournisseurs(prev => prev.map(f => f.id === p.fournisseur_id ? { ...f, solde_dette: newDette } : f));
+
     if (user?.id) {
       supabase.from('paiements_fournisseur').upsert({
         id: newP.id,
         user_id: user.id,
         fournisseur_id: newP.fournisseur_id,
         date: newP.date || new Date().toISOString().split('T')[0],
-        montant: Number(newP.montant) || 0,
+        montant: montantVal,
         mode_paiement: newP.mode_paiement || 'especes',
         notes: newP.notes || ''
       }).then(({ error }) => { if (error) console.error('Supabase addPaiementFournisseur error:', error); });
+
+      supabase.from('fournisseurs').update({ solde_dette: newDette }).eq('id', p.fournisseur_id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase update supplier dette on payment error:', error); });
     }
   };
 
   const deletePaiementFournisseur = (id: string) => {
+    const pmt = paiementsFournisseur.find(p => p.id === id);
     setPaiementsFournisseur(prev => prev.filter(p => p.id !== id));
+    // Remove linked caisse movement
+    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+
+    if (pmt) {
+      const fObj = fournisseurs.find(f => f.id === pmt.fournisseur_id);
+      const newDette = (fObj?.solde_dette || 0) + (Number(pmt.montant) || 0);
+      setFournisseurs(prev => prev.map(f => f.id === pmt.fournisseur_id ? { ...f, solde_dette: newDette } : f));
+      if (user?.id) {
+        supabase.from('fournisseurs').update({ solde_dette: newDette }).eq('id', pmt.fournisseur_id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase update supplier dette on delete payment error:', error); });
+      }
+    }
+
     if (user?.id) {
       supabase.from('paiements_fournisseur').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('Supabase deletePaiementFournisseur error:', error); });
+      supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase delete linked payment movement error:', error); });
     }
   };
 
@@ -1594,6 +1704,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addAvanceSalaire = (a: Omit<AvanceSalaire, 'id' | 'created_at'>) => {
     const newA: AvanceSalaire = { ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setAvancesSalaire(prev => [newA, ...prev]);
+
+    // Automatically create real cash Outflow in Caisse
+    const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const empNom = newA.employe_nom || employes.find(e => e.id === newA.employe_id)?.nom || 'Employé';
+    addCaisseMovement({
+      date: newA.date || new Date().toISOString().split('T')[0],
+      heure: currentHeure,
+      type: 'sortie',
+      montant: Number(newA.montant) || 0,
+      motif: `Avance sur salaire — ${empNom}`,
+      mode_paiement: 'especes',
+      client_ou_tiers: empNom,
+      categorie: 'rh_avance',
+      source_id: newA.id
+    });
+
     if (user?.id) {
       supabase.from('avances_salaire').upsert({
         id: newA.id,
@@ -1609,9 +1735,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteAvanceSalaire = (id: string) => {
     setAvancesSalaire(prev => prev.filter(x => x.id !== id));
+    // Remove linked caisse movement
+    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+
     if (user?.id) {
       supabase.from('avances_salaire').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('deleteAvanceSalaire error:', error); });
+      supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('delete linked caisse movement error:', error); });
     }
   };
 
@@ -1675,18 +1806,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const paySalaryBulletin = (bulletinId: string, montantNet: number, mode: 'especes' | 'cheque' | 'virement', date?: string) => {
+    const bul = bulletinsPaie.find(b => b.id === bulletinId);
+    if (!bul) return;
+
+    const netAPayer = montantNet > 0 ? montantNet : bul.net_a_payer;
+    setBulletinsPaie(prev => prev.map(b => b.id === bulletinId ? { ...b, statut_paiement: 'paye' } : b));
+
+    const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const empNom = bul.employe_nom || employes.find(e => e.id === bul.employe_id)?.nom || 'Employé';
+
+    // Register Outflow for the remaining salary balance
+    addCaisseMovement({
+      date: date || new Date().toISOString().split('T')[0],
+      heure: currentHeure,
+      type: 'sortie',
+      montant: netAPayer,
+      motif: `Règlement solde salaire (${bul.mois}) — ${empNom}`,
+      mode_paiement: mode || 'especes',
+      client_ou_tiers: empNom,
+      categorie: 'rh_salaire',
+      source_id: bul.id
+    });
+
+    if (user?.id) {
+      supabase.from('bulletins_paie').update({ statut_paiement: 'paye' }).eq('id', bulletinId).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('paySalaryBulletin error:', error); });
+    }
+  };
+
   const deleteBulletinPaie = (id: string) => {
     setBulletinsPaie(prev => prev.filter(x => x.id !== id));
+    // Remove linked caisse movement
+    setCaisseMovements(prev => prev.filter(m => m.source_id !== id));
+
     if (user?.id) {
       supabase.from('bulletins_paie').delete().eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('deleteBulletinPaie error:', error); });
+      supabase.from('caisse_movements').delete().eq('source_id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('delete linked salary caisse movement error:', error); });
     }
   };
 
   const addCaisseMovement = (m: Omit<CaisseMovement, 'id' | 'created_at'>) => {
+    const currentHeure = m.heure || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const item: CaisseMovement = {
       ...m,
       id: crypto.randomUUID(),
+      heure: currentHeure,
+      categorie: m.categorie || (m.type === 'entree' ? 'client_reglement' : 'frais_divers'),
       created_at: new Date().toISOString()
     };
     setCaisseMovements(prev => [item, ...prev]);
@@ -1827,6 +1995,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bulletinsPaie,
         addBulletinPaie,
         updateBulletinStatut,
+        paySalaryBulletin,
         deleteBulletinPaie
       }}
     >

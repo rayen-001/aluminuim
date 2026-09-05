@@ -16,7 +16,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     employes, addEmploye, updateEmploye, deleteEmploye,
     avancesSalaire, addAvanceSalaire, deleteAvanceSalaire,
     conges, addConge, updateCongeStatus, deleteConge,
-    bulletinsPaie, addBulletinPaie, updateBulletinStatut, deleteBulletinPaie
+    bulletinsPaie, addBulletinPaie, updateBulletinStatut, paySalaryBulletin, deleteBulletinPaie
   } = useApp();
 
   const currentMonthStr = new Date().toISOString().slice(0, 7); // "YYYY-MM"
@@ -630,10 +630,14 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                             <div className="flex justify-end gap-1.5">
                               {b.statut_paiement === 'non_paye' && (
                                 <button
-                                  onClick={() => updateBulletinStatut(b.id, 'paye')}
-                                  className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+                                  onClick={() => {
+                                    if (confirm(`Régler le solde de salaire (${b.net_a_payer.toFixed(2)} DT) pour ${selectedEmp?.nom} ? Une sortie de caisse sera créée.`)) {
+                                      paySalaryBulletin(b.id, b.net_a_payer, 'especes');
+                                    }
+                                  }}
+                                  className="text-xs font-bold px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs transition cursor-pointer"
                                 >
-                                  Marquer payé
+                                  Payer solde ({b.net_a_payer.toFixed(2)} DT)
                                 </button>
                               )}
                               <button
@@ -1056,8 +1060,15 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                         <td className="px-5 py-3 text-right">
                           <div className="flex justify-end gap-1.5">
                             {b.statut_paiement === 'non_paye' && (
-                              <button onClick={() => updateBulletinStatut(b.id, 'paye')} className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
-                                Marquer payé
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Régler le solde de salaire (${b.net_a_payer.toFixed(2)} DT) pour ${b.employe_nom} ? Une sortie de caisse sera créée.`)) {
+                                    paySalaryBulletin(b.id, b.net_a_payer, 'especes');
+                                  }
+                                }}
+                                className="text-xs font-bold px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs transition cursor-pointer"
+                              >
+                                Payer solde ({b.net_a_payer.toFixed(2)} DT)
                               </button>
                             )}
                             <button onClick={() => { if (confirm('Supprimer ce bulletin ?')) deleteBulletinPaie(b.id); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>

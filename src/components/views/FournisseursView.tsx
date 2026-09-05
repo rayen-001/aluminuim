@@ -28,6 +28,9 @@ export const FournisseursView: React.FC = () => {
   const [achatDate, setAchatDate] = useState(new Date().toISOString().split('T')[0]);
   const [achatDesignation, setAchatDesignation] = useState('');
   const [achatMontant, setAchatMontant] = useState('');
+  const [achatPayType, setAchatPayType] = useState<'credit' | 'comptant' | 'acompte'>('credit');
+  const [achatAcompte, setAchatAcompte] = useState('');
+  const [achatMode, setAchatMode] = useState<'especes' | 'cheque' | 'virement'>('especes');
   const [achatNotes, setAchatNotes] = useState('');
 
   // Paiement modal states
@@ -67,16 +70,32 @@ export const FournisseursView: React.FC = () => {
   // --- Achat submit ---
   const handleSaveAchat = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedF || !achatDesignation.trim() || !achatMontant) return;
+    const totalM = parseFloat(achatMontant) || 0;
+    if (!selectedF || !achatDesignation.trim() || totalM <= 0) return;
+
+    let montantPaye = 0;
+    if (achatPayType === 'comptant') {
+      montantPaye = totalM;
+    } else if (achatPayType === 'acompte') {
+      montantPaye = Math.min(totalM, parseFloat(achatAcompte) || 0);
+    }
+
     addAchatFournisseur({
       fournisseur_id: selectedF.id,
       date: achatDate,
       designation: achatDesignation,
-      montant: parseFloat(achatMontant) || 0,
+      montant: totalM,
+      montant_paye: montantPaye,
+      mode_paiement: achatMode,
       notes: achatNotes
     });
+
     setAchatDate(new Date().toISOString().split('T')[0]);
-    setAchatDesignation(''); setAchatMontant(''); setAchatNotes('');
+    setAchatDesignation('');
+    setAchatMontant('');
+    setAchatPayType('credit');
+    setAchatAcompte('');
+    setAchatNotes('');
     setAchatModalOpen(false);
   };
 
@@ -102,9 +121,13 @@ export const FournisseursView: React.FC = () => {
   );
 
   const totalDetteAll = fournisseurs.reduce((acc, f) => {
-    const achats = achatsFournisseur.filter(a => a.fournisseur_id === f.id).reduce((s, a) => s + a.montant, 0);
-    const paies = paiementsFournisseur.filter(p => p.fournisseur_id === f.id).reduce((s, p) => s + p.montant, 0);
-    return acc + Math.max(0, achats - paies);
+    const fA = achatsFournisseur.filter(a => a.fournisseur_id === f.id);
+    const fP = paiementsFournisseur.filter(p => p.fournisseur_id === f.id);
+    const totalA = fA.reduce((s, a) => s + a.montant, 0);
+    const totalPayeAcomptes = fA.reduce((s, a) => s + (a.montant_paye || 0), 0);
+    const totalP = fP.reduce((s, p) => s + p.montant, 0);
+    const detteCalculee = Math.max(0, totalA - (totalPayeAcomptes + totalP));
+    return acc + (f.solde_dette !== undefined ? f.solde_dette : detteCalculee);
   }, 0);
 
   // ─── FICHE FOURNISSEUR ──────────────────────────────────────────
@@ -112,8 +135,10 @@ export const FournisseursView: React.FC = () => {
     const achats = achatsFournisseur.filter(a => a.fournisseur_id === selectedF.id);
     const paiements = paiementsFournisseur.filter(p => p.fournisseur_id === selectedF.id);
     const totalAchete = achats.reduce((s, a) => s + a.montant, 0);
-    const totalPaye = paiements.reduce((s, p) => s + p.montant, 0);
-    const solde = Math.max(0, totalAchete - totalPaye);
+    const totalPayeAcomptes = achats.reduce((s, a) => s + (a.montant_paye || 0), 0);
+    const totalPayeReglements = paiements.reduce((s, p) => s + p.montant, 0);
+    const totalPaye = totalPayeAcomptes + totalPayeReglements;
+    const solde = selectedF.solde_dette !== undefined ? selectedF.solde_dette : Math.max(0, totalAchete - totalPaye);
 
     return (
       <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
@@ -201,32 +226,53 @@ export const FournisseursView: React.FC = () => {
                   <tr>
                     <th className="px-5 py-2.5">Date</th>
                     <th className="px-5 py-2.5">Désignation</th>
+                    <th className="px-5 py-2.5">Règlement Initial</th>
                     <th className="px-5 py-2.5">Notes</th>
-                    <th className="px-5 py-2.5 text-right">Montant</th>
+                    <th className="px-5 py-2.5 text-right">Montant Total</th>
                     <th className="px-5 py-2.5 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {achats.map(a => (
-                    <tr key={a.id} className="hover:bg-gray-50/50">
-                      <td className="px-5 py-3 text-gray-600 whitespace-nowrap">{a.date}</td>
-                      <td className="px-5 py-3 font-semibold text-gray-900">{a.designation}</td>
-                      <td className="px-5 py-3 text-gray-400 text-xs">{a.notes || '—'}</td>
-                      <td className="px-5 py-3 text-right font-mono font-bold text-blue-700">{a.montant.toFixed(2)} DT</td>
-                      <td className="px-5 py-3 text-right">
-                        <button
-                          onClick={() => { if (confirm('Supprimer cet achat ?')) deleteAchatFournisseur(a.id); }}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {achats.map(a => {
+                    const paye = Number(a.montant_paye || 0);
+                    const isFull = paye >= a.montant && a.montant > 0;
+                    const isPartial = paye > 0 && paye < a.montant;
+                    return (
+                      <tr key={a.id} className="hover:bg-gray-50/50">
+                        <td className="px-5 py-3 text-gray-600 whitespace-nowrap">{a.date}</td>
+                        <td className="px-5 py-3 font-semibold text-gray-900">{a.designation}</td>
+                        <td className="px-5 py-3">
+                          {isFull ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              ✓ Comptant ({paye.toFixed(2)} DT)
+                            </span>
+                          ) : isPartial ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                              ⚡ Acompte ({paye.toFixed(2)} DT)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
+                              À Crédit (0 DT)
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-gray-400 text-xs">{a.notes || '—'}</td>
+                        <td className="px-5 py-3 text-right font-mono font-bold text-blue-700">{a.montant.toFixed(2)} DT</td>
+                        <td className="px-5 py-3 text-right">
+                          <button
+                            onClick={() => { if (confirm('Supprimer cet achat ?')) deleteAchatFournisseur(a.id); }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
                 <tfoot className="bg-blue-50 border-t border-blue-100">
                   <tr>
-                    <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-blue-700">TOTAL ACHATS</td>
+                    <td colSpan={4} className="px-5 py-2.5 text-xs font-bold text-blue-700">TOTAL ACHATS</td>
                     <td className="px-5 py-2.5 text-right font-mono font-extrabold text-blue-800">{totalAchete.toFixed(2)} DT</td>
                     <td />
                   </tr>
@@ -240,10 +286,10 @@ export const FournisseursView: React.FC = () => {
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-sm font-bold text-gray-900">Historique Paiements ({paiements.length})</h3>
+            <h3 className="text-sm font-bold text-gray-900">Historique Règlements Dettes ({paiements.length})</h3>
           </div>
           {paiements.length === 0 ? (
-            <div className="py-8 text-center text-gray-400 text-sm">Aucun paiement enregistré</div>
+            <div className="py-8 text-center text-gray-400 text-sm">Aucun règlement enregistré</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs sm:text-sm text-left">
@@ -284,8 +330,8 @@ export const FournisseursView: React.FC = () => {
                 </tbody>
                 <tfoot className="bg-emerald-50 border-t border-emerald-100">
                   <tr>
-                    <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-emerald-700">TOTAL PAYÉ</td>
-                    <td className="px-5 py-2.5 text-right font-mono font-extrabold text-emerald-800">{totalPaye.toFixed(2)} DT</td>
+                    <td colSpan={3} className="px-5 py-2.5 text-xs font-bold text-emerald-700">TOTAL RÈGLEMENTS</td>
+                    <td className="px-5 py-2.5 text-right font-mono font-extrabold text-emerald-800">{totalPayeReglements.toFixed(2)} DT</td>
                     <td />
                   </tr>
                 </tfoot>
@@ -297,12 +343,12 @@ export const FournisseursView: React.FC = () => {
         {/* Achat Modal */}
         {achatModalOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <h3 className="text-base font-bold text-gray-900">Nouvel Achat — {selectedF.nom}</h3>
                 <button onClick={() => setAchatModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
               </div>
-              <form onSubmit={handleSaveAchat} className="space-y-3">
+              <form onSubmit={handleSaveAchat} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Date *</label>
                   <input type="date" required value={achatDate} onChange={e => setAchatDate(e.target.value)}
@@ -311,24 +357,115 @@ export const FournisseursView: React.FC = () => {
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Désignation *</label>
                   <input type="text" required value={achatDesignation} onChange={e => setAchatDesignation(e.target.value)}
-                    placeholder="Ex: Profilé 6060 blanc 50m"
+                    placeholder="Ex: Profilés TPR 6060 blanc 50m"
                     className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Montant (DT) *</label>
-                  <input type="number" required step="0.001" min="0" value={achatMontant} onChange={e => setAchatMontant(e.target.value)}
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Montant Total (DT) *</label>
+                  <input type="number" required step="0.001" min="0.001" value={achatMontant} onChange={e => setAchatMontant(e.target.value)}
                     placeholder="0.000"
                     className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500" />
                 </div>
+
+                {/* Mode de règlement à l'achat */}
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5">
+                  <label className="block text-xs font-bold text-gray-800">Règlement à l'achat</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setAchatPayType('credit')}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition ${
+                        achatPayType === 'credit'
+                          ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      À Crédit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAchatPayType('comptant')}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition ${
+                        achatPayType === 'comptant'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      Comptant
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAchatPayType('acompte')}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition ${
+                        achatPayType === 'acompte'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      Acompte
+                    </button>
+                  </div>
+
+                  {achatPayType === 'acompte' && (
+                    <div className="pt-1">
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">Montant Acompte Payé (DT)</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        min="0.001"
+                        max={achatMontant || undefined}
+                        value={achatAcompte}
+                        onChange={e => setAchatAcompte(e.target.value)}
+                        placeholder="Ex: 500.000"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:ring-2 focus:ring-blue-500 bg-white"
+                      />
+                    </div>
+                  )}
+
+                  {achatPayType !== 'credit' && (
+                    <div className="pt-1">
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">Mode de sortie caisse</label>
+                      <select
+                        value={achatMode}
+                        onChange={e => setAchatMode(e.target.value as any)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs bg-white focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="especes">Espèces (Caisse)</option>
+                        <option value="cheque">Chèque</option>
+                        <option value="virement">Virement bancaire</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Impact Summary */}
+                  <div className="text-[11px] bg-white border border-gray-200 rounded-lg p-2.5 text-gray-600 space-y-1">
+                    {achatPayType === 'credit' && (
+                      <p className="text-red-700 font-medium">
+                        🔴 <strong>Sortie Caisse: 0.00 DT</strong>. La dette fournisseur augmentera de <strong>{(parseFloat(achatMontant) || 0).toFixed(2)} DT</strong>.
+                      </p>
+                    )}
+                    {achatPayType === 'comptant' && (
+                      <p className="text-emerald-700 font-medium">
+                        🟢 <strong>Sortie Caisse: {(parseFloat(achatMontant) || 0).toFixed(2)} DT</strong>. Dette fournisseur créée: <strong>0.00 DT</strong>.
+                      </p>
+                    )}
+                    {achatPayType === 'acompte' && (
+                      <p className="text-blue-700 font-medium">
+                        🔵 <strong>Sortie Caisse: {(parseFloat(achatAcompte) || 0).toFixed(2)} DT</strong>. Dette fournisseur restante: <strong>{Math.max(0, (parseFloat(achatMontant) || 0) - (parseFloat(achatAcompte) || 0)).toFixed(2)} DT</strong>.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Notes</label>
                   <input type="text" value={achatNotes} onChange={e => setAchatNotes(e.target.value)}
-                    placeholder="Optionnel"
+                    placeholder="Optionnel (N° bon de livraison fournisseur...)"
                     className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                   <button type="button" onClick={() => setAchatModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700">Annuler</button>
-                  <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold">Enregistrer</button>
+                  <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold">Enregistrer l'Achat</button>
                 </div>
               </form>
             </div>
