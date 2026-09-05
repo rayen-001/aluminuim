@@ -570,6 +570,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [caisseMovements]);
 
   useEffect(() => {
+    localStorage.setItem('atelierpro_achats', JSON.stringify(achatsFournisseur));
+  }, [achatsFournisseur]);
+
+  useEffect(() => {
+    localStorage.setItem('atelierpro_paiements_f', JSON.stringify(paiementsFournisseur));
+  }, [paiementsFournisseur]);
+
+  useEffect(() => {
+    localStorage.setItem('atelierpro_employes', JSON.stringify(employes));
+  }, [employes]);
+
+  useEffect(() => {
+    localStorage.setItem('atelierpro_avances', JSON.stringify(avancesSalaire));
+  }, [avancesSalaire]);
+
+  useEffect(() => {
+    localStorage.setItem('atelierpro_conges', JSON.stringify(conges));
+  }, [conges]);
+
+  useEffect(() => {
+    localStorage.setItem('atelierpro_bulletins', JSON.stringify(bulletinsPaie));
+  }, [bulletinsPaie]);
+
+  useEffect(() => {
     localStorage.setItem('atelierpro_settings', JSON.stringify(settings));
   }, [settings]);
 
