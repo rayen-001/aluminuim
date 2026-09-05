@@ -195,8 +195,6 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
     // Default Profile References based on selected series
     const dormantRef = item.comp_dormant_ref || (isCoulissant ? '67101' : '40100');
     const ouvrantRef = item.comp_ouvrant_ref || (isCoulissant ? '67104' : '40401');
-    const chicaneRef = '67105';
-    const traverseOuvrantRef = '67106';
     const parcloseRef = item.comp_parclose_ref || (isCoulissant ? '80116' : '40110');
 
     // -------------------------------------------------------------
@@ -218,7 +216,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_h',
         profilRef: dormantHautRef,
-        profilDesignation: `Dormant Montant (${dormantHautRef})`,
+        profilDesignation: `Dormant Montant vertical (${dormantHautRef})`,
         lengthCm: H,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -233,7 +231,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: dormantHautRef,
-        profilDesignation: `Dormant Traverse (${dormantHautRef})`,
+        profilDesignation: `Dormant Traverse horizontale (${dormantHautRef})`,
         lengthCm: L,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -255,7 +253,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'ouvrant_h',
         profilRef: ouvrantCoulRef,
-        profilDesignation: `Montant Ouvrant (${ouvrantCoulRef})`,
+        profilDesignation: `Ouvrant Montant latéral (${ouvrantCoulRef})`,
         lengthCm: hOuvrant,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '90°',
@@ -271,7 +269,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'chicane',
         profilRef: chicaneProfilRef,
-        profilDesignation: `Chicane Centrale (${chicaneProfilRef})`,
+        profilDesignation: `Chicane Centrale de renfort (${chicaneProfilRef})`,
         lengthCm: hChicane,
         quantity: nbChicanesPerUnit * qty,
         angleLeft: '90°',
@@ -286,7 +284,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'traverse',
         profilRef: travOuvrRef,
-        profilDesignation: `Traverse Ouvrant (${travOuvrRef})`,
+        profilDesignation: `Ouvrant Traverse horizontale (${travOuvrRef})`,
         lengthCm: lOuvrant,
         quantity: nbVantaux * 2 * qty,
         angleLeft: '90°',
@@ -302,7 +300,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'parclose',
         profilRef: parcRef,
-        profilDesignation: `Pareclose Montant (${parcRef})`,
+        profilDesignation: `Parclose Montant verticale (${parcRef})`,
         lengthCm: hParclose,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '90°',
@@ -358,7 +356,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_h',
         profilRef: 'CSQ_Coulisse',
-        profilDesignation: 'Coulisse de guidage Store',
+        profilDesignation: 'Coulisse latérale de guidage Volet',
         lengthCm: H,
         quantity: 2 * qty,
         angleLeft: '90°',
@@ -373,7 +371,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: 'CSQ_Coffre',
-        profilDesignation: 'Coffre / Caisson Store',
+        profilDesignation: 'Coffre supérieur d’enroulement Volet',
         lengthCm: L,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -389,7 +387,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'traverse',
         profilRef: 'Axe_60',
-        profilDesignation: 'Tube axe d’enroulement octogonal',
+        profilDesignation: 'Tube Axe d’enroulement octogonal Ø60',
         lengthCm: lAxe,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -405,7 +403,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'traverse',
         profilRef: 'Lame_Finale',
-        profilDesignation: 'Lame finale renforcée',
+        profilDesignation: 'Lame finale basse avec joint arrêt',
         lengthCm: lLame,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -421,7 +419,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'lame_volet',
         profilRef: 'Lame_Alu_45',
-        profilDesignation: 'Lames aluminium injecté 45/55',
+        profilDesignation: 'Lames aluminium injecté (Tablier complet)',
         lengthCm: lLame,
         quantity: nbLames * qty,
         angleLeft: '90°',
@@ -445,7 +443,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: '2984',
-        profilDesignation: 'Main courante supérieure (2984)',
+        profilDesignation: 'Main courante tubulaire supérieure (2984)',
         lengthCm: L,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -460,7 +458,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_h',
         profilRef: '4085',
-        profilDesignation: 'Poteau vertical de support (4085)',
+        profilDesignation: 'Poteau vertical de fixation (4085)',
         lengthCm: H > 0 ? H : 100,
         quantity: nbPoteaux * qty,
         angleLeft: '90°',
@@ -505,7 +503,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: 'MOUSTI_Coffre',
-        profilDesignation: 'Caisson d’enroulement Moustiquaire',
+        profilDesignation: 'Caisson d’enroulement supérieur Moustiquaire',
         lengthCm: L,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -517,7 +515,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'traverse',
         profilRef: 'MOUSTI_Tirage',
-        profilDesignation: 'Barre de tirage basse',
+        profilDesignation: 'Barre de tirage basse Moustiquaire',
         lengthCm: Math.max(10, L - 3.0),
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -538,7 +536,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_h',
         profilRef: cadreRef,
-        profilDesignation: `Cadre Fixe Montant (${cadreRef})`,
+        profilDesignation: `Cadre Fixe Montant vertical (${cadreRef})`,
         lengthCm: H,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -551,7 +549,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: cadreRef,
-        profilDesignation: `Cadre Fixe Traverse (${cadreRef})`,
+        profilDesignation: `Cadre Fixe Traverse horizontale (${cadreRef})`,
         lengthCm: L,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -566,7 +564,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'parclose',
         profilRef: parcFixeRef,
-        profilDesignation: `Parclose Montant (${parcFixeRef})`,
+        profilDesignation: `Parclose Fixe Montant vertical (${parcFixeRef})`,
         lengthCm: Math.max(10, H - 8.0),
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -578,7 +576,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'parclose',
         profilRef: parcFixeRef,
-        profilDesignation: `Parclose Traverse (${parcFixeRef})`,
+        profilDesignation: `Parclose Fixe Traverse horizontale (${parcFixeRef})`,
         lengthCm: Math.max(10, L - 8.0),
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -594,7 +592,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'traverse',
           profilRef: mRef,
-          profilDesignation: `Meneau / Montant Intermédiaire (${mRef})`,
+          profilDesignation: `Meneau intermédiaire vertical (${mRef})`,
           lengthCm: H - 4.0,
           quantity: item.chassi_montant_qty * qty,
           angleLeft: '90°',
@@ -611,7 +609,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'traverse',
           profilRef: tRef,
-          profilDesignation: `Traverse Intermédiaire (${tRef})`,
+          profilDesignation: `Traverse intermédiaire fixe (${tRef})`,
           lengthCm: L - 4.0,
           quantity: item.chassi_traverse_qty * qty,
           angleLeft: '90°',
@@ -657,7 +655,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_h',
         profilRef: dormantFrappeRef,
-        profilDesignation: `Dormant Montant (${dormantFrappeRef})`,
+        profilDesignation: `Dormant Montant vertical (${dormantFrappeRef})`,
         lengthCm: H,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -672,7 +670,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'dormant_l',
         profilRef: dormantFrappeRef,
-        profilDesignation: `Dormant Traverse (${dormantFrappeRef})`,
+        profilDesignation: `Dormant Traverse horizontale (${dormantFrappeRef})`,
         lengthCm: L,
         quantity: 2 * qty,
         angleLeft: '45°',
@@ -693,7 +691,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'ouvrant_h',
         profilRef: ouvrantFrappeRef,
-        profilDesignation: `Ouvrant Montant (${ouvrantFrappeRef})`,
+        profilDesignation: `Ouvrant Montant battant (${ouvrantFrappeRef})`,
         lengthCm: hOuvrant,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -708,7 +706,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'ouvrant_l',
         profilRef: ouvrantFrappeRef,
-        profilDesignation: `Ouvrant Traverse (${ouvrantFrappeRef})`,
+        profilDesignation: `Ouvrant Traverse battant (${ouvrantFrappeRef})`,
         lengthCm: lOuvrant,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -724,7 +722,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'chicane',
           profilRef: battementRef,
-          profilDesignation: `Battement Central (${battementRef})`,
+          profilDesignation: `Battement Central de fermeture (${battementRef})`,
           lengthCm: hOuvrant,
           quantity: 1 * qty,
           angleLeft: '90°',
@@ -743,7 +741,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'parclose',
         profilRef: parcloseFrappeRef,
-        profilDesignation: `Pareclose Montant (${parcloseFrappeRef})`,
+        profilDesignation: `Parclose Montant verticale (${parcloseFrappeRef})`,
         lengthCm: hParc,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -757,7 +755,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel,
         pieceType: 'parclose',
         profilRef: parcloseFrappeRef,
-        profilDesignation: `Pareclose Traverse (${parcloseFrappeRef})`,
+        profilDesignation: `Parclose Traverse horizontale (${parcloseFrappeRef})`,
         lengthCm: lParc,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -778,7 +776,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'traverse',
           profilRef: traverseFrappeRef,
-          profilDesignation: `Traverse ${traverseLabel} (${traverseFrappeRef})`,
+          profilDesignation: `Traverse intermédiaire (${traverseFrappeRef})`,
           lengthCm: Math.max(10, lOuvrant - 2.0),
           quantity: nbVantaux * qty,
           angleLeft: '90°',
@@ -796,7 +794,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'couvre_joint',
           profilRef: cjRef,
-          profilDesignation: `Couvre Joint H (${cjRef})`,
+          profilDesignation: `Couvre-joint Montant (${cjRef})`,
           lengthCm: parseFloat((H + 3.5).toFixed(1)),
           quantity: 2 * qty,
           angleLeft: '45°',
@@ -809,7 +807,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
           elementLabel,
           pieceType: 'couvre_joint',
           profilRef: cjRef,
-          profilDesignation: `Couvre Joint L (${cjRef})`,
+          profilDesignation: `Couvre-joint Traverse (${cjRef})`,
           lengthCm: parseFloat((L + 3.5).toFixed(1)),
           quantity: 2 * qty,
           angleLeft: '45°',
@@ -865,7 +863,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'dormant_h',
         profilRef: 'CSQ_Coulisse',
-        profilDesignation: 'Coulisse Volet Intégré',
+        profilDesignation: 'Coulisse latérale de guidage Volet',
         lengthCm: H,
         quantity: 2 * qty,
         angleLeft: '90°',
@@ -878,7 +876,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'dormant_l',
         profilRef: 'CSQ_Coffre',
-        profilDesignation: 'Coffre / Caisson Volet Intégré',
+        profilDesignation: 'Coffre supérieur d’enroulement Volet',
         lengthCm: L,
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -891,7 +889,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'traverse',
         profilRef: 'Axe_60',
-        profilDesignation: 'Tube axe d’enroulement',
+        profilDesignation: 'Tube Axe d’enroulement octogonal Ø60',
         lengthCm: Math.max(10, L - 7.0),
         quantity: 1 * qty,
         angleLeft: '90°',
@@ -904,13 +902,12 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'traverse',
         profilRef: 'Lame_Finale',
-        profilDesignation: 'Lame finale renforcée',
+        profilDesignation: 'Lame finale basse avec joint arrêt',
         lengthCm: Math.max(10, L - 5.0),
         quantity: 1 * qty,
         angleLeft: '90°',
         angleRight: '90°'
       });
-      // Tablier lames
       // Tablier lames
       const nbLames = Math.ceil(H / 4.5);
       cuttingPieces.push({
@@ -971,6 +968,44 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
     }
   });
 
+  // Standard extrusion profile designations to prevent repetition of cut names in bar summaries
+  const PROFILE_EXTRUSION_NAMES: Record<string, string> = {
+    // Frappe (Série 40 / TPR)
+    '40100': 'Profilé Dormant Cadre (40100)',
+    '40401': 'Profilé Ouvrant Battant (40401)',
+    '40154': 'Profilé Battement Central (40154)',
+    '40110': 'Profilé Parclose Frappe (40110)',
+    '40135': 'Profilé Traverse Intermédiaire (40135)',
+    '40155': 'Profilé Meneau Fixe (40155)',
+    '40104': 'Profilé Traverse Fixe (40104)',
+    '40402': 'Profilé Couvre-joint Tapée (40402)',
+
+    // Coulissant (Série 67 / TPR / EX60)
+    '67101': 'Profilé Dormant Coulissant (67101)',
+    '67104': 'Profilé Ouvrant Coulissant (67104)',
+    '67105': 'Profilé Chicane Renfort (67105)',
+    '67106': 'Profilé Traverse Ouvrant (67106)',
+    '80116': 'Profilé Parclose Coulissant (80116)',
+
+    // Volet Roulant / Store
+    'CSQ_Coulisse': 'Profilé Coulisses Volet Roulant',
+    'CSQ_Coffre': 'Caisson / Coffre Volet Roulant',
+    'Axe_60': 'Tube Axe Octogonal Ø60 Volet',
+    'Lame_Finale': 'Lame Finale Basse Volet',
+    'Lame_Alu_45': 'Lames Tablier Volet Roulant 45mm',
+
+    // Moustiquaire
+    'MOUSTI_Coulisse': 'Profilé Coulisses Moustiquaire',
+    'MOUSTI_Coffre': 'Caisson Enroulement Moustiquaire',
+    'MOUSTI_Tirage': 'Barre de Tirage Basse Moustiquaire',
+
+    // Garde-corps
+    '2984': 'Profilé Main Courante (2984)',
+    '4080': 'Profilé Main Courante (4080)',
+    '4085': 'Profilé Poteau Fixation (4085)',
+    '2878': 'Profilé Lisse Sécurité (2878)'
+  };
+
   // Group cutting pieces by Profile Reference
   const piecesByRef: { 
     [ref: string]: { 
@@ -983,9 +1018,10 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
   cuttingPieces.forEach(cp => {
     const isSlat = cp.pieceType === 'lame_volet';
     if (!piecesByRef[cp.profilRef]) {
+      const standardName = PROFILE_EXTRUSION_NAMES[cp.profilRef] || cp.profilDesignation;
       piecesByRef[cp.profilRef] = { 
         pieces: [], 
-        designation: cp.profilDesignation,
+        designation: standardName,
         isProfileBar: !isSlat
       };
     }
@@ -993,7 +1029,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
       piecesByRef[cp.profilRef].pieces.push({
         pieceId: `${cp.id}_${i}`,
         lengthCm: cp.lengthCm,
-        label: `${cp.elementLabel} - ${cp.pieceType}`
+        label: cp.profilDesignation
       });
     }
   });
