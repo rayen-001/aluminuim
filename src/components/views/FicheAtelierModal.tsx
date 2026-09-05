@@ -69,7 +69,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
     couleur: string;
     remplissage_id: string;
   }>({
-    family_id: '67',
+    family_id: '60',
     product_type_id: 'coul_2v',
     designation: 'Fenêtre Coulissante 2 Vantaux',
     largeur: 120,
@@ -194,10 +194,11 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
 
   // Add new item from Quick Add Modal
   const handleSaveAddItem = () => {
-    const isCoulissant = addForm.family_id === '67' || addForm.product_type_id.includes('coul');
-    const isChassi = addForm.family_id === 'chassis_fixe' || addForm.product_type_id.includes('fixe');
-    const isStore = addForm.family_id === 'store_monobloc';
-    const isGardeCorps = addForm.family_id === 'garde_corps';
+    const isCoulissant = addForm.family_id === '60' || addForm.family_id === '61' || addForm.family_id === '62' || addForm.family_id === '65' || addForm.family_id === '66' || addForm.product_type_id.includes('coul');
+    const isChassi = addForm.product_type_id.includes('fixe');
+    const isStore = addForm.family_id === '67' || addForm.product_type_id.includes('store');
+    const isMousti = addForm.family_id === '68' || addForm.product_type_id.includes('mousti');
+    const isGardeCorps = addForm.family_id === '46' || addForm.product_type_id.includes('gc');
 
     const newItem: DevisItemState = {
       _uid: `item_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -1064,22 +1065,23 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <optgroup label="Série 67 Coulissant (EX60 / TPR)">
-                    <option value="67|coul_2v">Fenêtre Coulissante 2 Vantaux</option>
-                    <option value="67|coul_3v">Fenêtre Coulissante 3 Vantaux</option>
-                    <option value="67|coul_4v">Baie Coulissante 4 Vantaux</option>
-                    <option value="67|porte_fenetre_coul">Porte-Fenêtre Coulissante 2V</option>
+                    <option value="60|coul_2v">Fenêtre Coulissante 2 Vantaux</option>
+                    <option value="60|coul_3v">Fenêtre Coulissante 3 Vantaux</option>
+                    <option value="60|coul_4v">Baie Coulissante 4 Vantaux</option>
+                    <option value="60|porte_fenetre_coul">Porte-Fenêtre Coulissante 2V</option>
                   </optgroup>
                   <optgroup label="Série 40 Frappe (Portes & Battants)">
-                    <option value="40|porte_frappe_2v">Porte à la française 2 Vantaux</option>
-                    <option value="40|porte_frappe_1v">Porte à la française 1 Vantail</option>
-                    <option value="40|fenetre_frappe_2v">Fenêtre Battante 2 Vantaux</option>
-                    <option value="40|fenetre_frappe_1v">Fenêtre Battante 1 Vantail</option>
-                    <option value="40|soufflet">Châssis à Soufflet / Abattant</option>
+                    <option value="50|porte_frappe_2v">Porte à la française 2 Vantaux</option>
+                    <option value="50|porte_frappe_1v">Porte à la française 1 Vantail</option>
+                    <option value="50|fenetre_frappe_2v">Fenêtre Battante 2 Vantaux</option>
+                    <option value="50|fenetre_frappe_1v">Fenêtre Battante 1 Vantail</option>
+                    <option value="50|soufflet">Châssis à Soufflet / Abattant</option>
                   </optgroup>
-                  <optgroup label="Châssis Fixes & Stores">
-                    <option value="chassis_fixe|fixe_standard">Châssis Fixe Vitré</option>
-                    <option value="store_monobloc|store_auto">Store Roulant Aluminium</option>
-                    <option value="garde_corps|gc_standard">Garde-Corps Aluminium</option>
+                  <optgroup label="Châssis Fixes, Stores & Garde-Corps">
+                    <option value="50|fixe_standard">Châssis Fixe Vitré</option>
+                    <option value="67|store_1">Store Rideau Roulant Aluminium</option>
+                    <option value="68|mousti_1">Moustiquaire</option>
+                    <option value="46|gc_1">Garde-Corps Aluminium</option>
                   </optgroup>
                 </select>
               </div>

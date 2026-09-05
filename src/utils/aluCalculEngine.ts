@@ -911,6 +911,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         angleRight: '90°'
       });
       // Tablier lames
+      // Tablier lames
       const nbLames = Math.ceil(H / 4.5);
       cuttingPieces.push({
         id: `cut_${itemIdx}_att_store_lames`,
@@ -925,6 +926,48 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         angleRight: '90°'
       });
       totalJointBrosseCm += 4 * H * qty;
+    }
+
+    // Attached Flyscreen (Moustiquaire Intégrée / Apparente)
+    const hasAttachedMousti = !isMousti && Boolean(item.mousti_enabled);
+    if (hasAttachedMousti) {
+      cuttingPieces.push({
+        id: `cut_${itemIdx}_att_mousti_coul`,
+        itemIndex: itemIdx,
+        elementLabel: `${elementLabel} - Moustiquaire`,
+        pieceType: 'dormant_h',
+        profilRef: 'MOUSTI_Coulisse',
+        profilDesignation: 'Coulisses latérales Moustiquaire',
+        lengthCm: H,
+        quantity: 2 * qty,
+        angleLeft: '90°',
+        angleRight: '90°'
+      });
+      cuttingPieces.push({
+        id: `cut_${itemIdx}_att_mousti_coffre`,
+        itemIndex: itemIdx,
+        elementLabel: `${elementLabel} - Moustiquaire`,
+        pieceType: 'dormant_l',
+        profilRef: 'MOUSTI_Coffre',
+        profilDesignation: 'Caisson d’enroulement Moustiquaire',
+        lengthCm: L,
+        quantity: 1 * qty,
+        angleLeft: '90°',
+        angleRight: '90°'
+      });
+      cuttingPieces.push({
+        id: `cut_${itemIdx}_att_mousti_barre`,
+        itemIndex: itemIdx,
+        elementLabel: `${elementLabel} - Moustiquaire`,
+        pieceType: 'traverse',
+        profilRef: 'MOUSTI_Tirage',
+        profilDesignation: 'Barre de tirage basse Moustiquaire',
+        lengthCm: Math.max(10, L - 3.0),
+        quantity: 1 * qty,
+        angleLeft: '90°',
+        angleRight: '90°'
+      });
+      totalJointBrosseCm += 2 * H * qty;
     }
   });
 
@@ -1245,6 +1288,130 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
       details: 'Clapets de drainage dormant bas'
     });
   }
+
+  // -------------------------------------------------------------
+  // Moteurs, Commandes & Sécurités de Volets Roulants
+  // -------------------------------------------------------------
+  items.forEach((item, itemIdx) => {
+    if (item.is_manual) return;
+    const qty = Math.max(1, parseInt(String(item.quantity)) || 1);
+    const H = parseFloat(String(item.hauteur)) || 0;
+    const L = parseFloat(String(item.largeur)) || 0;
+    const surfaceM2 = (L * H) / 10000;
+
+    const isStandaloneStore = (item.family_id === '67') || ((item.product_type_id || '').includes('store'));
+    const hasStore = isStandaloneStore || item.store_enabled;
+
+    if (hasStore) {
+      const manoeuvre = item.store_manoeuvre || 'moteur_filaire';
+
+      if (manoeuvre === 'moteur_filaire' || manoeuvre === 'moteur_radio') {
+        let motorNom = 'Moteur tubulaire 60 kg (2.5 à 4.5 m²)';
+        let motorRef = 'acc_moteur_60kg';
+        let motorPrice = 81.000;
+
+        if (item.store_moteur_id && item.store_moteur_id !== 'auto') {
+          if (item.store_moteur_id === 'acc_moteur_40kg') { motorNom = 'Moteur tubulaire 40 kg'; motorRef = 'acc_moteur_40kg'; motorPrice = 70.200; }
+          else if (item.store_moteur_id === 'acc_moteur_60kg') { motorNom = 'Moteur tubulaire 60 kg'; motorRef = 'acc_moteur_60kg'; motorPrice = 81.000; }
+          else if (item.store_moteur_id === 'acc_moteur_100kg') { motorNom = 'Moteur tubulaire 100 kg'; motorRef = 'acc_moteur_100kg'; motorPrice = 102.600; }
+          else if (item.store_moteur_id === 'acc_moteur_160kg') { motorNom = 'Moteur tubulaire 160 kg'; motorRef = 'acc_moteur_160kg'; motorPrice = 194.400; }
+          else if (item.store_moteur_id === 'acc_moteur_250kg') { motorNom = 'Moteur tubulaire 250 kg'; motorRef = 'acc_moteur_250kg'; motorPrice = 237.600; }
+        } else if (surfaceM2 > 0) {
+          if (surfaceM2 <= 2.2) { motorNom = 'Moteur tubulaire 40 kg'; motorRef = 'acc_moteur_40kg'; motorPrice = 70.200; }
+          else if (surfaceM2 <= 4.2) { motorNom = 'Moteur tubulaire 60 kg'; motorRef = 'acc_moteur_60kg'; motorPrice = 81.000; }
+          else if (surfaceM2 <= 7.0) { motorNom = 'Moteur tubulaire 100 kg'; motorRef = 'acc_moteur_100kg'; motorPrice = 102.600; }
+          else { motorNom = 'Moteur tubulaire 160 kg'; motorRef = 'acc_moteur_160kg'; motorPrice = 194.400; }
+        }
+
+        accessories.push({
+          id: `motor_${itemIdx}`,
+          designation: `${motorNom} (Ouvrage #${itemIdx + 1})`,
+          reference: motorRef,
+          category: 'moteur',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: motorPrice,
+          totalPriceHt: parseFloat((motorPrice * qty).toFixed(3)),
+          details: `Motorisation store ${manoeuvre === 'moteur_radio' ? 'Radio avec télécommande sans fil' : 'Filaire avec inverseur mural'}`
+        });
+      } else if (manoeuvre === 'manuel_sangle') {
+        const sanglePrice = getAccPrice('acc_sangle_gm', 2.160);
+        accessories.push({
+          id: `sangle_${itemIdx}`,
+          designation: `Enrouleur et sangle de manœuvre (Ouvrage #${itemIdx + 1})`,
+          reference: 'Sangle GM',
+          category: 'accessoire',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: sanglePrice,
+          totalPriceHt: parseFloat((sanglePrice * qty).toFixed(3)),
+          details: 'Manœuvre manuelle par sangle'
+        });
+      }
+
+      if (item.store_bloc_secu ?? true) {
+        const secuPrice = getAccPrice('acc_bloc_secu_60', 31.212);
+        accessories.push({
+          id: `secu_${itemIdx}`,
+          designation: `Blocs de sécurité anti-soulèvement (Ouvrage #${itemIdx + 1})`,
+          reference: 'Bloc sécu 60',
+          category: 'accessoire',
+          quantity: 2 * qty,
+          unit: 'unité',
+          unitPriceHt: secuPrice,
+          totalPriceHt: parseFloat((secuPrice * 2 * qty).toFixed(3)),
+          details: 'Attaches tablier rigides anti-effraction'
+        });
+      }
+    }
+
+    // Moustiquaires
+    const isMousti = (item.family_id === '68') || ((item.product_type_id || '').includes('mousti'));
+    const hasMousti = isMousti || item.mousti_enabled;
+    if (hasMousti) {
+      const typeLabel = item.mousti_type === 'plissee' ? 'Plissée Coulissante' : (item.mousti_type === 'fixe' ? 'Cadre Fixe' : (item.mousti_type === 'battante' ? 'Porte Battante' : 'Enroulable Verticale'));
+      accessories.push({
+        id: `mousti_kit_${itemIdx}`,
+        designation: `Kit Moustiquaire ${typeLabel} (Ouvrage #${itemIdx + 1})`,
+        reference: `MOUSTI_${(item.mousti_type || 'enroulable').toUpperCase()}`,
+        category: 'accessoire',
+        quantity: 1 * qty,
+        unit: 'unité',
+        unitPriceHt: 25.000,
+        totalPriceHt: parseFloat((25.000 * qty).toFixed(3)),
+        details: 'Toile fibre de verre enduite PVC et accessoires'
+      });
+    }
+
+    // Supplements (Groom, Serrure)
+    if (item.supplements?.includes('Ferme-porte Groom')) {
+      accessories.push({
+        id: `groom_${itemIdx}`,
+        designation: `Ferme-porte hydraulique aérien (Groom) (Ouvrage #${itemIdx + 1})`,
+        reference: 'Groom Hydraulique',
+        category: 'accessoire',
+        quantity: 1 * qty,
+        unit: 'unité',
+        unitPriceHt: 45.000,
+        totalPriceHt: parseFloat((45.000 * qty).toFixed(3)),
+        details: 'Ferme-porte à vitesse réglable'
+      });
+    }
+
+    if (item.supplements?.includes('Serrure à clé')) {
+      accessories.push({
+        id: `serrure_cle_${itemIdx}`,
+        designation: `Cylindre de sécurité européen à clé (Ouvrage #${itemIdx + 1})`,
+        reference: 'Cylindre Européen',
+        category: 'verrou',
+        quantity: 1 * qty,
+        unit: 'unité',
+        unitPriceHt: 18.000,
+        totalPriceHt: parseFloat((18.000 * qty).toFixed(3)),
+        details: 'Barillet 3 clés'
+      });
+    }
+  });
 
   const totalAccessoriesCostHt = parseFloat(accessories.reduce((sum, a) => sum + a.totalPriceHt, 0).toFixed(3));
   const totalGlassAreaM2 = parseFloat(glassItems.reduce((sum, g) => sum + g.totalAreaM2, 0).toFixed(3));
