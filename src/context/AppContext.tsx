@@ -828,7 +828,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setClients(prev => [newClient, ...prev]);
 
     if (user?.id) {
-      supabase.from('clients').insert({
+      supabase.from('clients').upsert({
         id: newClient.id,
         user_id: user.id,
         nom: newClient.nom,
@@ -836,7 +836,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adresse: newClient.adresse || '',
         email: newClient.email || '',
         matricule_fiscale: newClient.matricule_fiscale || '',
-        solde_creance: newClient.solde_creance || 0
+        solde_creance: Number(newClient.solde_creance) || 0
       }).then(({ error }) => { if (error) console.error('Supabase addClient error:', error); });
     }
 
@@ -847,7 +847,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setClients(prev => prev.map(item => item.id === id ? { ...item, ...c } : item));
 
     if (user?.id) {
-      supabase.from('clients').update(c).eq('id', id).eq('user_id', user.id);
+      supabase.from('clients').update(c).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase updateClient error:', error); });
     }
   };
 
@@ -855,7 +856,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setClients(prev => prev.filter(c => c.id !== id));
 
     if (user?.id) {
-      supabase.from('clients').delete().eq('id', id).eq('user_id', user.id);
+      supabase.from('clients').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteClient error:', error); });
     }
   };
 
@@ -865,13 +867,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setFournisseurs(prev => [newF, ...prev]);
 
     if (user?.id) {
-      supabase.from('fournisseurs').insert({
+      supabase.from('fournisseurs').upsert({
         id: newF.id,
         user_id: user.id,
         nom: newF.nom,
         telephone: newF.telephone || '',
         adresse: newF.adresse || '',
-        solde_dette: newF.solde_dette || 0
+        solde_dette: Number(newF.solde_dette) || 0
       }).then(({ error }) => { if (error) console.error('Supabase addFournisseur error:', error); });
     }
 
@@ -891,7 +893,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setFournisseurs(prev => prev.filter(f => f.id !== id));
 
     if (user?.id) {
-      supabase.from('fournisseurs').delete().eq('id', id).eq('user_id', user.id);
+      supabase.from('fournisseurs').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteFournisseur error:', error); });
     }
   };
 
@@ -905,13 +908,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAchatsFournisseur(prev => [newA, ...prev]);
 
     if (user?.id) {
-      supabase.from('achats_fournisseur').insert({
+      supabase.from('achats_fournisseur').upsert({
         id: newA.id,
         user_id: user.id,
         fournisseur_id: newA.fournisseur_id,
-        date: newA.date,
+        date: newA.date || new Date().toISOString().split('T')[0],
         designation: newA.designation,
-        montant: newA.montant,
+        montant: Number(newA.montant) || 0,
         notes: newA.notes || ''
       }).then(({ error }) => { if (error) console.error('Supabase addAchatFournisseur error:', error); });
     }
@@ -920,7 +923,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteAchatFournisseur = (id: string) => {
     setAchatsFournisseur(prev => prev.filter(a => a.id !== id));
     if (user?.id) {
-      supabase.from('achats_fournisseur').delete().eq('id', id).eq('user_id', user.id);
+      supabase.from('achats_fournisseur').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteAchatFournisseur error:', error); });
     }
   };
 
@@ -934,13 +938,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPaiementsFournisseur(prev => [newP, ...prev]);
 
     if (user?.id) {
-      supabase.from('paiements_fournisseur').insert({
+      supabase.from('paiements_fournisseur').upsert({
         id: newP.id,
         user_id: user.id,
         fournisseur_id: newP.fournisseur_id,
-        date: newP.date,
-        montant: newP.montant,
-        mode_paiement: newP.mode_paiement,
+        date: newP.date || new Date().toISOString().split('T')[0],
+        montant: Number(newP.montant) || 0,
+        mode_paiement: newP.mode_paiement || 'especes',
         notes: newP.notes || ''
       }).then(({ error }) => { if (error) console.error('Supabase addPaiementFournisseur error:', error); });
     }
@@ -949,7 +953,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deletePaiementFournisseur = (id: string) => {
     setPaiementsFournisseur(prev => prev.filter(p => p.id !== id));
     if (user?.id) {
-      supabase.from('paiements_fournisseur').delete().eq('id', id).eq('user_id', user.id);
+      supabase.from('paiements_fournisseur').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deletePaiementFournisseur error:', error); });
     }
   };
 
@@ -1225,14 +1230,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newE: Employe = { ...e, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setEmployes(prev => [...prev, newE]);
     if (user?.id) {
-      supabase.from('employes').insert({
+      supabase.from('employes').upsert({
         id: newE.id,
         user_id: user.id,
         nom: newE.nom,
         poste: newE.poste || '',
         telephone: newE.telephone || '',
-        salaire_base: newE.salaire_base || 0,
-        date_embauche: newE.date_embauche || '',
+        salaire_base: Number(newE.salaire_base) || 0,
+        date_embauche: (newE.date_embauche && newE.date_embauche.trim() !== '') ? newE.date_embauche : null,
         actif: newE.actif ?? true
       }).then(({ error }) => { if (error) console.error('addEmploye error:', error); });
     }
@@ -1241,7 +1246,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateEmploye = (id: string, e: Partial<Employe>) => {
     setEmployes(prev => prev.map(x => x.id === id ? { ...x, ...e } : x));
     if (user?.id) {
-      supabase.from('employes').update(e).eq('id', id).eq('user_id', user.id)
+      const payload: any = { ...e };
+      if ('date_embauche' in e) {
+        payload.date_embauche = (e.date_embauche && e.date_embauche.trim() !== '') ? e.date_embauche : null;
+      }
+      supabase.from('employes').update(payload).eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('updateEmploye error:', error); });
     }
   };
@@ -1258,13 +1267,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newA: AvanceSalaire = { ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setAvancesSalaire(prev => [newA, ...prev]);
     if (user?.id) {
-      supabase.from('avances_salaire').insert({
+      supabase.from('avances_salaire').upsert({
         id: newA.id,
         user_id: user.id,
         employe_id: newA.employe_id,
         employe_nom: newA.employe_nom || '',
-        date: newA.date,
-        montant: newA.montant || 0,
+        date: newA.date || new Date().toISOString().split('T')[0],
+        montant: Number(newA.montant) || 0,
         motif: newA.motif || ''
       }).then(({ error }) => { if (error) console.error('addAvanceSalaire error:', error); });
     }
@@ -1282,13 +1291,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newC: Conge = { ...c, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setConges(prev => [newC, ...prev]);
     if (user?.id) {
-      supabase.from('conges').insert({
+      supabase.from('conges').upsert({
         id: newC.id,
         user_id: user.id,
         employe_id: newC.employe_id,
         employe_nom: newC.employe_nom || '',
-        date_debut: newC.date_debut,
-        date_fin: newC.date_fin,
+        date_debut: newC.date_debut || new Date().toISOString().split('T')[0],
+        date_fin: newC.date_fin || new Date().toISOString().split('T')[0],
         type: newC.type || 'paye',
         status: newC.status || 'attente',
         notes: newC.notes || ''
@@ -1316,15 +1325,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newB: BulletinPaie = { ...b, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     setBulletinsPaie(prev => [newB, ...prev]);
     if (user?.id) {
-      supabase.from('bulletins_paie').insert({
+      supabase.from('bulletins_paie').upsert({
         id: newB.id,
         user_id: user.id,
         employe_id: newB.employe_id,
         employe_nom: newB.employe_nom || '',
-        mois: newB.mois,
-        salaire_base: newB.salaire_base || 0,
-        avances_deduites: newB.avances_deduites || 0,
-        net_a_payer: newB.net_a_payer || 0,
+        mois: newB.mois || new Date().toISOString().slice(0, 7),
+        salaire_base: Number(newB.salaire_base) || 0,
+        avances_deduites: Number(newB.avances_deduites) || 0,
+        net_a_payer: Number(newB.net_a_payer) || 0,
         statut_paiement: newB.statut_paiement || 'non_paye'
       }).then(({ error }) => { if (error) console.error('addBulletinPaie error:', error); });
     }
