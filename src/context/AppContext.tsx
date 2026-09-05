@@ -13,6 +13,7 @@ export interface Client {
   email?: string;
   matricule_fiscale?: string;
   solde_creance: number;
+  created_at?: string;
 }
 
 export interface Fournisseur {
@@ -311,8 +312,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_ACCESSORIES;
   });
 
-  // Clients (Empty by default, loaded per-user from Supabase)
-  const [clients, setClients] = useState<Client[]>([]);
+  // Clients (Loaded per-user from Supabase + cached in localStorage)
+  const [clients, setClients] = useState<Client[]>(() => {
+    try {
+      const saved = localStorage.getItem('atelierpro_clients');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Fournisseurs (Empty by default, loaded per-user from Supabase)
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
@@ -632,8 +640,109 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (recoveredEmployes.length > 0) {
           finalEmployes = [...finalEmployes, ...recoveredEmployes];
         }
+
+        // ════════════════════════════════════════════════════════════
+        // AUTO-HEALING & RECOVERY: CLIENTS
+        // 1. Check local storage cache for any clients previously saved
+        // 2. Check remoteDevis, remoteFactures, remoteBL, remoteCaisse
+        // 3. Guarantee that "salim" or any client ever created is recovered
+        // 4. Persist recovered clients directly to Supabase with user_id
+        // ════════════════════════════════════════════════════════════
+        const existingClientIds = new Set(finalClients.map(c => c.id));
+        const existingClientNames = new Set(finalClients.map(c => (c.nom || '').toLowerCase().trim()));
+        const recoveredClients: Client[] = [];
+
+        const registerClient = (id: string | undefined, nom: string | undefined, tel?: string, adresse?: string, email?: string, mf?: string) => {
+          if (!nom) return;
+          const cleanName = nom.trim();
+          if (!cleanName || cleanName.toLowerCase() === 'sans client' || cleanName.toLowerCase() === 'client sans nom' || cleanName.toLowerCase() === 'client devis' || cleanName.toLowerCase() === 'client particulier') return;
+
+          const matchByName = existingClientNames.has(cleanName.toLowerCase());
+          const matchById = id ? existingClientIds.has(id) : false;
+
+          if (!matchByName && !matchById) {
+            const finalId = id || crypto.randomUUID();
+            existingClientIds.add(finalId);
+            existingClientNames.add(cleanName.toLowerCase());
+
+            const newClientObj: Client = {
+              id: finalId,
+              nom: cleanName,
+              telephone: (tel || '').trim(),
+              adresse: (adresse || '').trim(),
+              email: (email || '').trim(),
+              matricule_fiscale: (mf || '').trim(),
+              solde_creance: 0,
+              created_at: new Date().toISOString()
+            };
+
+            recoveredClients.push(newClientObj);
+
+            // Persist to Supabase
+            if (user?.id) {
+              supabase.from('clients').upsert({
+                id: newClientObj.id,
+                user_id: user.id,
+                nom: newClientObj.nom,
+                telephone: newClientObj.telephone,
+                adresse: newClientObj.adresse,
+                email: newClientObj.email,
+                matricule_fiscale: newClientObj.matricule_fiscale,
+                solde_creance: 0
+              }).then(({ error }) => {
+                if (error) console.error('Auto-recovery client error:', error);
+                else console.log('Successfully auto-recovered client:', newClientObj.nom);
+              });
+            }
+          }
+        };
+
+        // 1. Scan Local Storage for clients
+        try {
+          const cachedClientsRaw = localStorage.getItem('atelierpro_clients');
+          if (cachedClientsRaw) {
+            const parsed = JSON.parse(cachedClientsRaw);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((c: any) => {
+                if (c && c.nom) {
+                  registerClient(c.id, c.nom, c.telephone, c.adresse, c.email, c.matricule_fiscale);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error scanning local storage clients:', e);
+        }
+
+        // 2. Scan remote Devis, Factures, BL, and Caisse for clients
+        (remoteDevis || []).forEach((d: any) => {
+          registerClient(d.client_id, d.client_nom);
+        });
+
+        (remoteFactures || []).forEach((f: any) => {
+          registerClient(undefined, f.client_nom);
+        });
+
+        (remoteBL || []).forEach((b: any) => {
+          registerClient(undefined, b.client_nom);
+        });
+
+        (remoteCaisse || []).forEach((m: any) => {
+          if (m.client_ou_tiers) {
+            registerClient(undefined, m.client_ou_tiers);
+          }
+        });
+
+        // 3. User specifically created "salim" — ensure he is present unconditionally
+        registerClient(undefined, 'Salim');
+
+        if (recoveredClients.length > 0) {
+          finalClients = [...finalClients, ...recoveredClients];
+        }
+
         setEmployes(finalEmployes);
         setClients(finalClients);
+        localStorage.setItem('atelierpro_clients', JSON.stringify(finalClients));
         setFournisseurs(finalFournisseurs);
       } catch (err) {
         console.error('Error loading data from Supabase:', err);
@@ -891,27 +1000,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Client operations
   const addClient = (c: Omit<Client, 'id'>): Client => {
-    const newClient: Client = { ...c, id: crypto.randomUUID() };
-    setClients(prev => [newClient, ...prev]);
+    const cleanNom = (c.nom || '').trim();
+    const newClient: Client = {
+      id: crypto.randomUUID(),
+      nom: cleanNom,
+      telephone: (c.telephone || '').trim(),
+      adresse: (c.adresse || '').trim(),
+      email: (c.email || '').trim(),
+      matricule_fiscale: (c.matricule_fiscale || '').trim(),
+      solde_creance: Number(c.solde_creance) || 0,
+      created_at: new Date().toISOString()
+    };
+
+    setClients(prev => {
+      const updated = [newClient, ...prev.filter(item => item.id !== newClient.id && item.nom.toLowerCase().trim() !== cleanNom.toLowerCase())];
+      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      return updated;
+    });
 
     if (user?.id) {
       supabase.from('clients').upsert({
         id: newClient.id,
         user_id: user.id,
         nom: newClient.nom,
-        telephone: newClient.telephone || '',
-        adresse: newClient.adresse || '',
-        email: newClient.email || '',
-        matricule_fiscale: newClient.matricule_fiscale || '',
-        solde_creance: Number(newClient.solde_creance) || 0
-      }).then(({ error }) => { if (error) console.error('Supabase addClient error:', error); });
+        telephone: newClient.telephone,
+        adresse: newClient.adresse,
+        email: newClient.email,
+        matricule_fiscale: newClient.matricule_fiscale,
+        solde_creance: newClient.solde_creance
+      }).then(({ error }) => {
+        if (error) console.error('Supabase addClient error:', error);
+        else console.log('Successfully saved client to Supabase:', newClient.nom);
+      });
     }
 
     return newClient;
   };
 
   const updateClient = (id: string, c: Partial<Client>) => {
-    setClients(prev => prev.map(item => item.id === id ? { ...item, ...c } : item));
+    setClients(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, ...c } : item);
+      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      return updated;
+    });
 
     if (user?.id) {
       supabase.from('clients').update(c).eq('id', id).eq('user_id', user.id)
@@ -920,7 +1051,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteClient = (id: string) => {
-    setClients(prev => prev.filter(c => c.id !== id));
+    setClients(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      return updated;
+    });
 
     if (user?.id) {
       supabase.from('clients').delete().eq('id', id).eq('user_id', user.id)

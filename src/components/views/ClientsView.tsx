@@ -38,17 +38,23 @@ export const ClientsView: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formNom.trim() || !formTel.trim()) return;
+    if (!formNom.trim()) return;
     if (editingClient) {
       updateClient(editingClient.id, {
-        nom: formNom, telephone: formTel, adresse: formAdresse,
-        email: formEmail, matricule_fiscale: formMatricule,
+        nom: formNom.trim(),
+        telephone: formTel.trim(),
+        adresse: formAdresse.trim(),
+        email: formEmail.trim(),
+        matricule_fiscale: formMatricule.trim(),
         solde_creance: parseFloat(formCreance) || 0
       });
     } else {
       addClient({
-        nom: formNom, telephone: formTel, adresse: formAdresse,
-        email: formEmail, matricule_fiscale: formMatricule,
+        nom: formNom.trim(),
+        telephone: formTel.trim(),
+        adresse: formAdresse.trim(),
+        email: formEmail.trim(),
+        matricule_fiscale: formMatricule.trim(),
         solde_creance: parseFloat(formCreance) || 0
       });
     }
@@ -56,8 +62,13 @@ export const ClientsView: React.FC = () => {
   };
 
   const filteredClients = clients.filter(c => {
-    const q = search.toLowerCase();
-    return c.nom.toLowerCase().includes(q) || c.telephone.includes(q);
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    const nomMatch = (c.nom || '').toLowerCase().includes(q);
+    const telMatch = (c.telephone || '').includes(q);
+    const adrMatch = (c.adresse || '').toLowerCase().includes(q);
+    const mfMatch = (c.matricule_fiscale || '').toLowerCase().includes(q);
+    return nomMatch || telMatch || adrMatch || mfMatch;
   });
 
   const totalCreances = clients.reduce((a, c) => a + (c.solde_creance || 0), 0);
@@ -364,9 +375,9 @@ export const ClientsView: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Téléphone *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Téléphone <span className="text-gray-400 font-normal">(Optionnel)</span></label>
                 <input
-                  type="text" required value={formTel} onChange={e => setFormTel(e.target.value)}
+                  type="text" value={formTel} onChange={e => setFormTel(e.target.value)}
                   placeholder="Ex: 98 123 456"
                   className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 />
