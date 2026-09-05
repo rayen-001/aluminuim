@@ -559,7 +559,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // 2. Remove any payments that exceed invoice total
         // 3. Keep caisse and factures in 100% mathematical harmony
         // ════════════════════════════════════════════════════════════
-        let sanitizedCaisse = remoteCaisse ? [...remoteCaisse] : [];
+        let sanitizedCaisse: CaisseMovement[] = (remoteCaisse ? [...remoteCaisse] : []).map((m: any) => {
+          const heure = m.heure || (m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '10:00');
+          let categorie = m.categorie;
+          if (!categorie) {
+            if (m.type === 'entree') {
+              categorie = 'client_reglement';
+            } else {
+              const lowerMotif = (m.motif || '').toLowerCase();
+              if (lowerMotif.includes('avance')) categorie = 'rh_avance';
+              else if (lowerMotif.includes('salaire')) categorie = 'rh_salaire';
+              else if (lowerMotif.includes('fournisseur') || lowerMotif.includes('achat') || lowerMotif.includes('profilé') || lowerMotif.includes('matière')) categorie = 'fournisseur_achat';
+              else if (lowerMotif.includes('loyer')) categorie = 'frais_loyer';
+              else if (lowerMotif.includes('steg') || lowerMotif.includes('electr')) categorie = 'frais_steg';
+              else if (lowerMotif.includes('outil') || lowerMotif.includes('lame')) categorie = 'frais_outillage';
+              else if (lowerMotif.includes('transport') || lowerMotif.includes('carburant') || lowerMotif.includes('gasoil')) categorie = 'frais_transport';
+              else categorie = 'frais_divers';
+            }
+          }
+          return { ...m, heure, categorie };
+        });
+
         let sanitizedFactures = remoteFactures ? [...remoteFactures] : [];
         const badMovementIds: string[] = [];
 
@@ -609,7 +629,158 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
         setFactures(sanitizedFactures);
+
+        // ════════════════════════════════════════════════════════════
+        // AUTO-HEALING & HISTORICAL RECONCILIATION: CAISSE MOVEMENTS
+        // Synthesize any missing Outflows for existing Avances,
+        // Paid Payslips, Supplier Payments, and Upfront Purchases.
+        // ════════════════════════════════════════════════════════════
+        const newCaisseToInsert: CaisseMovement[] = [];
+
+        // 1. Reconcile Avances sur salaire
+        (remoteAvances || []).forEach((a: any) => {
+          const aMontant = Number(a.montant) || 0;
+          if (aMontant <= 0) return;
+          const exists = sanitizedCaisse.some(m =>
+            (m.source_id && m.source_id === a.id) ||
+            (m.type === 'sortie' && (m.categorie === 'rh_avance' || (m.motif && m.motif.includes(a.employe_nom || ''))) && Math.abs(m.montant - aMontant) < 0.01 && m.date === a.date)
+          );
+          if (!exists) {
+            const empNom = a.employe_nom || finalEmployes.find(e => e.id === a.employe_id)?.nom || 'Employé';
+            const createdM: CaisseMovement = {
+              id: crypto.randomUUID(),
+              date: a.date || new Date().toISOString().split('T')[0],
+              heure: a.created_at ? new Date(a.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '10:00',
+              type: 'sortie',
+              montant: aMontant,
+              motif: `Avance sur salaire — ${empNom}`,
+              mode_paiement: 'especes',
+              client_ou_tiers: empNom,
+              categorie: 'rh_avance',
+              source_id: a.id,
+              created_at: a.created_at || new Date().toISOString()
+            };
+            sanitizedCaisse.push(createdM);
+            newCaisseToInsert.push(createdM);
+          }
+        });
+
+        // 2. Reconcile Paid Payslips (Bulletins de paie payés)
+        (remoteBulletins || []).forEach((b: any) => {
+          if (b.statut_paiement === 'paye') {
+            const net = Number(b.net_a_payer) || 0;
+            if (net > 0) {
+              const exists = sanitizedCaisse.some(m =>
+                (m.source_id && m.source_id === b.id) ||
+                (m.type === 'sortie' && (m.categorie === 'rh_salaire' || (m.motif && m.motif.includes(b.employe_nom || '') && m.motif.includes(b.mois || ''))) && Math.abs(m.montant - net) < 0.01)
+              );
+              if (!exists) {
+                const empNom = b.employe_nom || finalEmployes.find(e => e.id === b.employe_id)?.nom || 'Employé';
+                const createdM: CaisseMovement = {
+                  id: crypto.randomUUID(),
+                  date: b.created_at ? b.created_at.split('T')[0] : `${b.mois}-28`,
+                  heure: b.created_at ? new Date(b.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '17:00',
+                  type: 'sortie',
+                  montant: net,
+                  motif: `Règlement solde salaire (${b.mois}) — ${empNom}`,
+                  mode_paiement: 'especes',
+                  client_ou_tiers: empNom,
+                  categorie: 'rh_salaire',
+                  source_id: b.id,
+                  created_at: b.created_at || new Date().toISOString()
+                };
+                sanitizedCaisse.push(createdM);
+                newCaisseToInsert.push(createdM);
+              }
+            }
+          }
+        });
+
+        // 3. Reconcile Supplier Debt Payments (Paiements dettes fournisseurs)
+        (remotePaiements || []).forEach((p: any) => {
+          const pMontant = Number(p.montant) || 0;
+          if (pMontant <= 0) return;
+          const exists = sanitizedCaisse.some(m =>
+            (m.source_id && m.source_id === p.id) ||
+            (m.type === 'sortie' && m.categorie === 'fournisseur_reglement' && Math.abs(m.montant - pMontant) < 0.01 && m.date === p.date)
+          );
+          if (!exists) {
+            const fNom = finalFournisseurs.find(f => f.id === p.fournisseur_id)?.nom || 'Fournisseur';
+            const createdM: CaisseMovement = {
+              id: crypto.randomUUID(),
+              date: p.date || new Date().toISOString().split('T')[0],
+              heure: p.created_at ? new Date(p.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '14:00',
+              type: 'sortie',
+              montant: pMontant,
+              motif: `Règlement dette fournisseur — ${fNom}`,
+              mode_paiement: p.mode_paiement || 'especes',
+              client_ou_tiers: fNom,
+              categorie: 'fournisseur_reglement',
+              source_id: p.id,
+              created_at: p.created_at || new Date().toISOString()
+            };
+            sanitizedCaisse.push(createdM);
+            newCaisseToInsert.push(createdM);
+          }
+        });
+
+        // 4. Reconcile Supplier Purchases with initial payments
+        (remoteAchats || []).forEach((a: any) => {
+          const paye = Number(a.montant_paye) || 0;
+          if (paye <= 0) return;
+          const exists = sanitizedCaisse.some(m =>
+            (m.source_id && m.source_id === a.id) ||
+            (m.type === 'sortie' && m.categorie === 'fournisseur_achat' && Math.abs(m.montant - paye) < 0.01 && m.date === a.date)
+          );
+          if (!exists) {
+            const fNom = finalFournisseurs.find(f => f.id === a.fournisseur_id)?.nom || 'Fournisseur';
+            const createdM: CaisseMovement = {
+              id: crypto.randomUUID(),
+              date: a.date || new Date().toISOString().split('T')[0],
+              heure: a.created_at ? new Date(a.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '11:00',
+              type: 'sortie',
+              montant: paye,
+              motif: `Achat matière/profilés (${a.designation || 'Marchandise'}) — ${fNom}`,
+              mode_paiement: a.mode_paiement || 'especes',
+              client_ou_tiers: fNom,
+              categorie: 'fournisseur_achat',
+              source_id: a.id,
+              created_at: a.created_at || new Date().toISOString()
+            };
+            sanitizedCaisse.push(createdM);
+            newCaisseToInsert.push(createdM);
+          }
+        });
+
+        // Chronological order (most recent first)
+        sanitizedCaisse.sort((m1, m2) => {
+          const d1 = `${m1.date}T${m1.heure || '00:00'}`;
+          const d2 = `${m2.date}T${m2.heure || '00:00'}`;
+          return d2.localeCompare(d1);
+        });
+
+        // Update state
         setCaisseMovements(sanitizedCaisse);
+
+        // Persist newly synthesized historical movements to Supabase
+        if (newCaisseToInsert.length > 0 && user?.id) {
+          supabase.from('caisse_movements').insert(
+            newCaisseToInsert.map(m => ({
+              id: m.id,
+              user_id: user.id,
+              type: m.type,
+              montant: m.montant,
+              motif: m.motif,
+              date: m.date,
+              mode_paiement: m.mode_paiement || 'especes',
+              client_ou_tiers: m.client_ou_tiers || '',
+              facture_id: m.facture_id || null
+            }))
+          ).then(({ error }) => {
+            if (error) console.error('Supabase auto-heal caisse movements error:', error);
+            else console.log('Successfully auto-synced missing caisse movements to Supabase:', newCaisseToInsert.length);
+          });
+        }
 
         // ════════════════════════════════════════════════════════════
         // AUTO-HEALING: Recover any orphaned employee referenced in
