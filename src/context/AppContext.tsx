@@ -43,6 +43,51 @@ export interface PaiementFournisseur {
   created_at: string;
 }
 
+export interface Employe {
+  id: string;
+  nom: string;
+  poste: string;
+  telephone: string;
+  salaire_base: number;
+  date_embauche?: string;
+  actif: boolean;
+  created_at: string;
+}
+
+export interface AvanceSalaire {
+  id: string;
+  employe_id: string;
+  employe_nom: string;
+  date: string;
+  montant: number;
+  motif: string;
+  created_at: string;
+}
+
+export interface Conge {
+  id: string;
+  employe_id: string;
+  employe_nom: string;
+  date_debut: string;
+  date_fin: string;
+  type: 'paye' | 'non_paye' | 'maladie';
+  status: 'attente' | 'approuve' | 'refuse';
+  notes?: string;
+  created_at: string;
+}
+
+export interface BulletinPaie {
+  id: string;
+  employe_id: string;
+  employe_nom: string;
+  mois: string;
+  salaire_base: number;
+  avances_deduites: number;
+  net_a_payer: number;
+  statut_paiement: 'paye' | 'non_paye';
+  created_at: string;
+}
+
 export interface DevisRecord {
   id: string;
   numero: string;
@@ -195,6 +240,25 @@ interface AppContextType {
 
   settings: AtelierSettings;
   updateSettings: (s: Partial<AtelierSettings>) => void;
+
+  employes: Employe[];
+  addEmploye: (e: Omit<Employe, 'id' | 'created_at'>) => void;
+  updateEmploye: (id: string, e: Partial<Employe>) => void;
+  deleteEmploye: (id: string) => void;
+
+  avancesSalaire: AvanceSalaire[];
+  addAvanceSalaire: (a: Omit<AvanceSalaire, 'id' | 'created_at'>) => void;
+  deleteAvanceSalaire: (id: string) => void;
+
+  conges: Conge[];
+  addConge: (c: Omit<Conge, 'id' | 'created_at'>) => void;
+  updateCongeStatus: (id: string, status: Conge['status']) => void;
+  deleteConge: (id: string) => void;
+
+  bulletinsPaie: BulletinPaie[];
+  addBulletinPaie: (b: Omit<BulletinPaie, 'id' | 'created_at'>) => void;
+  updateBulletinStatut: (id: string, statut: BulletinPaie['statut_paiement']) => void;
+  deleteBulletinPaie: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -252,6 +316,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Factures
   const [factures, setFactures] = useState<FactureRecord[]>([]);
+
+  // RH
+  const [employes, setEmployes] = useState<Employe[]>([]);
+  const [avancesSalaire, setAvancesSalaire] = useState<AvanceSalaire[]>([]);
+  const [conges, setConges] = useState<Conge[]>([]);
+  const [bulletinsPaie, setBulletinsPaie] = useState<BulletinPaie[]>([]);
 
   // Caisse
   const [caisseMovements, setCaisseMovements] = useState<CaisseMovement[]>([]);
@@ -382,6 +452,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .eq('user_id', user.id)
           .order('date', { ascending: false });
         setPaiementsFournisseur(remotePaiements || []);
+
+        // Fetch RH - Employes
+        const { data: remoteEmployes } = await supabase
+          .from('employes').select('*').eq('user_id', user.id).order('nom');
+        setEmployes(remoteEmployes || []);
+
+        // Fetch RH - Avances
+        const { data: remoteAvances } = await supabase
+          .from('avances_salaire').select('*').eq('user_id', user.id).order('date', { ascending: false });
+        setAvancesSalaire(remoteAvances || []);
+
+        // Fetch RH - Congés
+        const { data: remoteConges } = await supabase
+          .from('conges').select('*').eq('user_id', user.id).order('date_debut', { ascending: false });
+        setConges(remoteConges || []);
+
+        // Fetch RH - Bulletins
+        const { data: remoteBulletins } = await supabase
+          .from('bulletins_paie').select('*').eq('user_id', user.id).order('mois', { ascending: false });
+        setBulletinsPaie(remoteBulletins || []);
 
         // Fetch Devis
         const { data: remoteDevis } = await supabase
@@ -1026,12 +1116,84 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       facture_id: factureId
     });
 
+    // Fix: update by id only, RLS handles the user isolation
+    supabase.from('factures').update({
+      montant_paye: newPaye,
+      status: newStatus
+    }).eq('id', factureId)
+      .then(({ error }) => { if (error) console.error('Supabase payment update error:', error); });
+  };
+
+  // ─── RH CRUD ──────────────────────────────────────────────────
+  const addEmploye = (e: Omit<Employe, 'id' | 'created_at'>) => {
+    const newE: Employe = { ...e, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    setEmployes(prev => [...prev, newE]);
     if (user?.id) {
-      supabase.from('factures').update({
-        montant_paye: newPaye,
-        status: newStatus
-      }).eq('id', factureId).eq('user_id', user.id);
+      supabase.from('employes').insert({ ...newE, user_id: user.id })
+        .then(({ error }) => { if (error) console.error('addEmploye error:', error); });
     }
+  };
+
+  const updateEmploye = (id: string, e: Partial<Employe>) => {
+    setEmployes(prev => prev.map(x => x.id === id ? { ...x, ...e } : x));
+    if (user?.id) supabase.from('employes').update(e).eq('id', id);
+  };
+
+  const deleteEmploye = (id: string) => {
+    setEmployes(prev => prev.filter(x => x.id !== id));
+    supabase.from('employes').delete().eq('id', id);
+  };
+
+  const addAvanceSalaire = (a: Omit<AvanceSalaire, 'id' | 'created_at'>) => {
+    const newA: AvanceSalaire = { ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    setAvancesSalaire(prev => [newA, ...prev]);
+    if (user?.id) {
+      supabase.from('avances_salaire').insert({ ...newA, user_id: user.id })
+        .then(({ error }) => { if (error) console.error('addAvanceSalaire error:', error); });
+    }
+  };
+
+  const deleteAvanceSalaire = (id: string) => {
+    setAvancesSalaire(prev => prev.filter(x => x.id !== id));
+    supabase.from('avances_salaire').delete().eq('id', id);
+  };
+
+  const addConge = (c: Omit<Conge, 'id' | 'created_at'>) => {
+    const newC: Conge = { ...c, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    setConges(prev => [newC, ...prev]);
+    if (user?.id) {
+      supabase.from('conges').insert({ ...newC, user_id: user.id })
+        .then(({ error }) => { if (error) console.error('addConge error:', error); });
+    }
+  };
+
+  const updateCongeStatus = (id: string, status: Conge['status']) => {
+    setConges(prev => prev.map(x => x.id === id ? { ...x, status } : x));
+    supabase.from('conges').update({ status }).eq('id', id);
+  };
+
+  const deleteConge = (id: string) => {
+    setConges(prev => prev.filter(x => x.id !== id));
+    supabase.from('conges').delete().eq('id', id);
+  };
+
+  const addBulletinPaie = (b: Omit<BulletinPaie, 'id' | 'created_at'>) => {
+    const newB: BulletinPaie = { ...b, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    setBulletinsPaie(prev => [newB, ...prev]);
+    if (user?.id) {
+      supabase.from('bulletins_paie').insert({ ...newB, user_id: user.id })
+        .then(({ error }) => { if (error) console.error('addBulletinPaie error:', error); });
+    }
+  };
+
+  const updateBulletinStatut = (id: string, statut_paiement: BulletinPaie['statut_paiement']) => {
+    setBulletinsPaie(prev => prev.map(x => x.id === id ? { ...x, statut_paiement } : x));
+    supabase.from('bulletins_paie').update({ statut_paiement }).eq('id', id);
+  };
+
+  const deleteBulletinPaie = (id: string) => {
+    setBulletinsPaie(prev => prev.filter(x => x.id !== id));
+    supabase.from('bulletins_paie').delete().eq('id', id);
   };
 
   const addCaisseMovement = (m: Omit<CaisseMovement, 'id' | 'created_at'>) => {
@@ -1130,7 +1292,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addCaisseMovement,
         soldeCaisse,
         settings,
-        updateSettings
+        updateSettings,
+        employes,
+        addEmploye,
+        updateEmploye,
+        deleteEmploye,
+        avancesSalaire,
+        addAvanceSalaire,
+        deleteAvanceSalaire,
+        conges,
+        addConge,
+        updateCongeStatus,
+        deleteConge,
+        bulletinsPaie,
+        addBulletinPaie,
+        updateBulletinStatut,
+        deleteBulletinPaie
       }}
     >
       {children}
