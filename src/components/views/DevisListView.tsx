@@ -45,7 +45,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
   } = useApp();
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('en_cours');
   const [printDevis, setPrintDevis] = useState<DevisRecord | null>(null);
   const [ficheDevis, setFicheDevis] = useState<DevisRecord | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -63,7 +63,11 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
   };
 
   const filteredDevis = devisList.filter(d => {
-    if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+    if (statusFilter === 'en_cours') {
+      if (d.status === 'converti' || d.status === 'refuse') return false;
+    } else if (statusFilter !== 'all' && d.status !== statusFilter) {
+      return false;
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -131,12 +135,13 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
         {/* Status Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-gray-100 p-1 rounded-xl border border-gray-200/80">
           {[
-            { id: 'all', label: 'Tous' },
-            { id: 'brouillon', label: 'Brouillons' },
-            { id: 'envoye', label: 'Envoyés' },
-            { id: 'accepte', label: 'Acceptés' },
-            { id: 'converti', label: 'Convertis' },
-            { id: 'refuse', label: 'Refusés' }
+            { id: 'en_cours', label: `En cours (${devisList.filter(d => d.status !== 'converti' && d.status !== 'refuse').length})` },
+            { id: 'all', label: `Tous (${devisList.length})` },
+            { id: 'brouillon', label: `Brouillons (${devisList.filter(d => d.status === 'brouillon').length})` },
+            { id: 'envoye', label: `Envoyés (${devisList.filter(d => d.status === 'envoye').length})` },
+            { id: 'accepte', label: `Acceptés (${devisList.filter(d => d.status === 'accepte').length})` },
+            { id: 'converti', label: `Convertis / BL (${devisList.filter(d => d.status === 'converti').length})` },
+            { id: 'refuse', label: `Refusés (${devisList.filter(d => d.status === 'refuse').length})` }
           ].map(tab => (
             <button
               key={tab.id}

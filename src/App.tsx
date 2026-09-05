@@ -213,7 +213,7 @@ const MainLayout: React.FC = () => {
 
           {currentTab === 'clients' && <ClientsView />}
           {currentTab === 'fournisseurs' && <FournisseursView />}
-          {currentTab === 'bl' && <BonsLivraisonView />}
+          {currentTab === 'bl' && <BonsLivraisonView setCurrentTab={setCurrentTab} />}
           {currentTab === 'factures' && <FacturesView />}
           {currentTab === 'caisse' && <CaisseView />}
           {currentTab === 'settings' && <SettingsView />}

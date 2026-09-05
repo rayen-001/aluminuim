@@ -116,6 +116,8 @@ export interface BonLivraisonRecord {
   id: string;
   numero: string;
   devis_id?: string;
+  devis_numero?: string;
+  client_id?: string;
   client_nom: string;
   date: string;
   items: Array<{
@@ -123,7 +125,12 @@ export interface BonLivraisonRecord {
     hauteur?: string | number;
     largeur?: string | number;
     quantite: number;
+    prix_unitaire_ht?: number;
+    total_ht?: number;
   }>;
+  devis_items?: DevisItemState[];
+  totals?: DevisTotals;
+  facture_id?: string;
   notes?: string;
   status: 'livre' | 'en_cours';
   created_at: string;
@@ -231,6 +238,8 @@ interface AppContextType {
   convertToFacture: (devisId: string) => FactureRecord;
 
   bonsLivraison: BonLivraisonRecord[];
+  updateBLStatus: (id: string, status: 'livre' | 'en_cours') => void;
+  deleteBL: (id: string) => void;
   factures: FactureRecord[];
   addPaymentToFacture: (factureId: string, montant: number, mode: 'especes' | 'cheque' | 'virement') => void;
   deleteFacture: (id: string) => void;
@@ -1129,19 +1138,84 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const convertToBL = (devisId: string): BonLivraisonRecord => {
     const devis = devisList.find(d => d.id === devisId);
     if (!devis) throw new Error('Devis not found');
+
+    // 1. Ensure linked Facture exists (auto-create if missing to track customer debt / créance)
+    let linkedFac = factures.find(f => f.devis_id === devisId);
+    if (!linkedFac) {
+      const nextFac = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      linkedFac = {
+        id: crypto.randomUUID(),
+        numero: nextFac,
+        devis_id: devis.id,
+        client_nom: devis.client_nom || 'Client sans nom',
+        date: new Date().toISOString().split('T')[0],
+        items: devis.items.map((it, idx) => ({
+          designation: it.is_manual ? (it.manual_nom || 'Article manuel') : `Menuiserie ${it.largeur}×${it.hauteur} cm`,
+          quantite: it.quantity,
+          prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
+          total_ht: devis.totals?.items_costs?.[idx]?.total_ht || 0
+        })),
+        total_ht: devis.totals?.total_ht || 0,
+        tva_taux: devis.marges?.tva || 0,
+        total_tva: devis.totals?.total_tva || 0,
+        total_ttc: devis.totals?.total_ttc || 0,
+        montant_paye: 0,
+        status: 'impayee',
+        created_at: new Date().toISOString()
+      };
+      setFactures(prev => [linkedFac!, ...prev]);
+
+      if (devis.client_id) {
+        const clientObj = clients.find(c => c.id === devis.client_id);
+        const newSolde = (clientObj?.solde_creance || 0) + linkedFac.total_ttc;
+        setClients(prev => prev.map(c => c.id === devis.client_id ? { ...c, solde_creance: newSolde } : c));
+        if (user?.id) {
+          supabase.from('clients').update({ solde_creance: newSolde }).eq('id', devis.client_id).eq('user_id', user.id)
+            .then(({ error }) => { if (error) console.error('Supabase client solde update error:', error); });
+        }
+      }
+
+      if (user?.id) {
+        supabase.from('factures').insert({
+          id: linkedFac.id,
+          user_id: user.id,
+          numero: linkedFac.numero,
+          devis_id: linkedFac.devis_id,
+          client_nom: linkedFac.client_nom,
+          date: linkedFac.date,
+          items: linkedFac.items,
+          total_ht: linkedFac.total_ht,
+          tva_taux: linkedFac.tva_taux,
+          total_tva: linkedFac.total_tva,
+          total_ttc: linkedFac.total_ttc,
+          montant_paye: 0,
+          status: 'impayee',
+          paiements: []
+        }).then(({ error }) => { if (error) console.error('Supabase auto-create facture on BL error:', error); });
+      }
+    }
+
+    // 2. Build rich BonLivraisonRecord
     const nextBL = `BL-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
     const bl: BonLivraisonRecord = {
       id: crypto.randomUUID(),
       numero: nextBL,
       devis_id: devis.id,
+      devis_numero: devis.numero,
+      client_id: devis.client_id,
       client_nom: devis.client_nom || 'Client sans nom',
       date: new Date().toISOString().split('T')[0],
       items: devis.items.map((it, idx) => ({
         designation: it.is_manual ? (it.manual_nom || `Ligne libre ${idx + 1}`) : `Produit ${idx + 1} (${it.couleur})`,
         hauteur: it.hauteur,
         largeur: it.largeur,
-        quantite: it.quantity || 1
+        quantite: it.quantity || 1,
+        prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
+        total_ht: devis.totals?.items_costs?.[idx]?.total_ht || 0
       })),
+      devis_items: devis.items,
+      totals: devis.totals,
+      facture_id: linkedFac?.id,
       notes: devis.notes,
       status: 'en_cours',
       created_at: new Date().toISOString()
@@ -1164,6 +1238,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     return bl;
+  };
+
+  const updateBLStatus = (id: string, status: 'livre' | 'en_cours') => {
+    setBonsLivraison(prev => prev.map(b => b.id === id ? { ...b, status } : b));
+    if (user?.id) {
+      supabase.from('bons_livraison').update({ status }).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase updateBLStatus error:', error); });
+    }
+  };
+
+  const deleteBL = (id: string) => {
+    const bl = bonsLivraison.find(b => b.id === id);
+    setBonsLivraison(prev => prev.filter(b => b.id !== id));
+    if (bl?.devis_id) {
+      const hasOtherBL = bonsLivraison.some(b => b.id !== id && b.devis_id === bl.devis_id);
+      const hasFacture = factures.some(f => f.devis_id === bl.devis_id);
+      if (!hasOtherBL && !hasFacture) {
+        updateDevisStatus(bl.devis_id, 'accepte');
+      }
+    }
+    if (user?.id) {
+      supabase.from('bons_livraison').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteBL error:', error); });
+    }
   };
 
   const convertToFacture = (devisId: string): FactureRecord => {
@@ -1550,6 +1648,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         convertToBL,
         convertToFacture,
         bonsLivraison,
+        updateBLStatus,
+        deleteBL,
         factures,
         addPaymentToFacture,
         deleteFacture,
