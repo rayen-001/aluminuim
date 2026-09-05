@@ -117,13 +117,27 @@ interface AppContextType {
   articles: ArticleItem[];
   articlesMap: Map<string, ArticleItem>;
   updateArticlePrice: (id: number, colorKey: string, ht: number, ttc: number) => void;
-  bulkUpdatePrices: (family: string, color: string, percent: number) => void;
+  bulkUpdatePrices: (
+    family: string,
+    color: string,
+    value: number,
+    mode?: 'percent' | 'amount',
+    direction?: 'increase' | 'decrease'
+  ) => void;
+  resetArticlesToDefault: () => void;
   updateGlobalTVA: (newTva: number) => void;
   updateArticleStock: (id: number, qty: number) => void;
 
   accessories: AccessoryItemDef[];
   updateAccessoryPrice: (id: string, newHt: number) => void;
   updateAccessoryStock: (id: string, qty: number) => void;
+  bulkUpdateAccessories: (
+    category: string,
+    value: number,
+    mode?: 'percent' | 'amount',
+    direction?: 'increase' | 'decrease'
+  ) => void;
+  resetAccessoriesToDefault: () => void;
 
   clients: Client[];
   addClient: (c: Omit<Client, 'id'>) => Client;
@@ -132,6 +146,7 @@ interface AppContextType {
 
   fournisseurs: Fournisseur[];
   addFournisseur: (f: Omit<Fournisseur, 'id'>) => Fournisseur;
+  updateFournisseur: (id: string, f: Partial<Fournisseur>) => void;
   deleteFournisseur: (id: string) => void;
 
   devisList: DevisRecord[];
@@ -284,6 +299,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }));
         }
 
+        // Fetch User Catalog
+        const { data: remoteCatalog } = await supabase
+          .from('user_catalogs')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (remoteCatalog) {
+          if (remoteCatalog.articles_data && Array.isArray(remoteCatalog.articles_data) && remoteCatalog.articles_data.length > 0) {
+            setArticles(remoteCatalog.articles_data);
+          }
+          if (remoteCatalog.accessories_data && Array.isArray(remoteCatalog.accessories_data) && remoteCatalog.accessories_data.length > 0) {
+            setAccessories(remoteCatalog.accessories_data);
+          }
+        }
+
         // Fetch Clients
         const { data: remoteClients } = await supabase
           .from('clients')
@@ -291,7 +322,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        setClients(remoteClients || []);
+        // Map DB fields → local interface (handle both solde_creance and solde_initial)
+        setClients((remoteClients || []).map((c: any) => ({
+          ...c,
+          solde_creance: c.solde_creance ?? c.solde_initial ?? 0
+        })));
 
         // Fetch Fournisseurs
         const { data: remoteFournisseurs } = await supabase
@@ -345,6 +380,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loadUserData();
   }, [user]);
 
+  // Helper to persist user catalog to Supabase
+  const saveUserCatalog = async (updatedArticles: ArticleItem[], updatedAccessories: AccessoryItemDef[]) => {
+    if (!user?.id) return;
+    try {
+      const { error } = await supabase
+        .from('user_catalogs')
+        .upsert({
+          user_id: user.id,
+          articles_data: updatedArticles,
+          accessories_data: updatedAccessories,
+          updated_at: new Date().toISOString()
+        });
+      if (error) {
+        console.error('Supabase saveUserCatalog error:', error);
+      }
+    } catch (err) {
+      console.error('Error saving user catalog:', err);
+    }
+  };
+
   // Sync state to local storage cache for offline / instant availability
   useEffect(() => {
     localStorage.setItem('atelierpro_articles', JSON.stringify(articles));
@@ -389,12 +444,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSession(null);
     setIsSuspended(false);
     setUserRole('user');
+    setArticles(INITIAL_ARTICLES);
+    setAccessories(INITIAL_ACCESSORIES);
     setClients([]);
     setFournisseurs([]);
     setDevisList([]);
     setBonsLivraison([]);
     setFactures([]);
     setCaisseMovements([]);
+    localStorage.removeItem('atelierpro_articles');
+    localStorage.removeItem('atelierpro_accessories');
     localStorage.removeItem('atelierpro_clients');
     localStorage.removeItem('atelierpro_fournisseurs');
     localStorage.removeItem('atelierpro_devis');
@@ -405,55 +464,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Article operations
   const updateArticlePrice = (id: number, colorKey: string, ht: number, ttc: number) => {
-    setArticles(prev => prev.map(a => {
-      if (a.id === id) {
-        return {
-          ...a,
-          prix: {
-            ...a.prix,
-            [colorKey]: { ht, ttc }
-          }
-        };
-      }
-      return a;
-    }));
+    setArticles(prev => {
+      const updated = prev.map(a => {
+        if (a.id === id) {
+          return {
+            ...a,
+            prix: {
+              ...a.prix,
+              [colorKey]: { ht, ttc }
+            }
+          };
+        }
+        return a;
+      });
+      saveUserCatalog(updated, accessories);
+      return updated;
+    });
   };
 
   const updateArticleStock = (id: number, qty: number) => {
-    setArticles(prev => prev.map(a => a.id === id ? { ...a, stock_qty: qty } : a));
+    setArticles(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, stock_qty: qty } : a);
+      saveUserCatalog(updated, accessories);
+      return updated;
+    });
   };
 
-  const bulkUpdatePrices = (family: string, color: string, percent: number) => {
-    const factor = 1 + percent / 100;
-    setArticles(prev => prev.map(a => {
-      if (family && family !== 'Toutes' && a.family !== family) return a;
-      const newPrix = { ...a.prix };
-      const colorsToUpdate = (color && color !== 'Toutes') ? [color] : ['blanc', 'gris', 'noir', 'couleur_mat', 'couleur_givre'];
-      colorsToUpdate.forEach(c => {
-        if (newPrix[c]) {
-          const newHT = Math.round(newPrix[c].ht * factor * 1000) / 1000;
-          const newTTC = Math.round(newHT * (1 + settings.tva_default / 100) * 1000) / 1000;
-          newPrix[c] = { ht: newHT, ttc: newTTC };
-        }
+  const bulkUpdatePrices = (
+    family: string,
+    color: string,
+    value: number,
+    mode: 'percent' | 'amount' = 'percent',
+    direction: 'increase' | 'decrease' = 'increase'
+  ) => {
+    const isAmount = mode === 'amount';
+    const isDecrease = direction === 'decrease';
+
+    setArticles(prev => {
+      const updated = prev.map(a => {
+        if (family && family !== 'Toutes' && a.family !== family) return a;
+        const newPrix = { ...a.prix };
+        const colorsToUpdate = (color && color !== 'Toutes') ? [color] : ['blanc', 'gris', 'noir', 'couleur_mat', 'couleur_givre'];
+        colorsToUpdate.forEach(c => {
+          if (newPrix[c]) {
+            let newHT = newPrix[c].ht;
+            if (isAmount) {
+              newHT = isDecrease ? Math.max(0, newHT - value) : newHT + value;
+            } else {
+              const factor = isDecrease ? (1 - value / 100) : (1 + value / 100);
+              newHT = Math.max(0, newHT * factor);
+            }
+            newHT = Math.round(newHT * 1000) / 1000;
+            const newTTC = Math.round(newHT * (1 + settings.tva_default / 100) * 1000) / 1000;
+            newPrix[c] = { ht: newHT, ttc: newTTC };
+          }
+        });
+        return { ...a, prix: newPrix };
       });
-      return { ...a, prix: newPrix };
-    }));
+      saveUserCatalog(updated, accessories);
+      return updated;
+    });
+  };
+
+  const resetArticlesToDefault = () => {
+    setArticles(INITIAL_ARTICLES);
+    saveUserCatalog(INITIAL_ARTICLES, accessories);
   };
 
   const updateGlobalTVA = (newTva: number) => {
     setSettings(prev => ({ ...prev, tva_default: newTva }));
-    setArticles(prev => prev.map(a => {
-      const newPrix = { ...a.prix };
-      ['blanc', 'gris', 'noir', 'couleur_mat', 'couleur_givre'].forEach(c => {
-        if (newPrix[c]) {
-          newPrix[c] = {
-            ht: newPrix[c].ht,
-            ttc: Math.round(newPrix[c].ht * (1 + newTva / 100) * 1000) / 1000
-          };
-        }
+    setArticles(prev => {
+      const updated = prev.map(a => {
+        const newPrix = { ...a.prix };
+        ['blanc', 'gris', 'noir', 'couleur_mat', 'couleur_givre'].forEach(c => {
+          if (newPrix[c]) {
+            newPrix[c] = {
+              ht: newPrix[c].ht,
+              ttc: Math.round(newPrix[c].ht * (1 + newTva / 100) * 1000) / 1000
+            };
+          }
+        });
+        return { ...a, prix: newPrix };
       });
-      return { ...a, prix: newPrix };
-    }));
+      saveUserCatalog(updated, accessories);
+      return updated;
+    });
 
     if (user?.id) {
       supabase.from('profiles').update({ tva_default: newTva }).eq('id', user.id);
@@ -461,16 +556,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateAccessoryPrice = (id: string, newHt: number) => {
-    setAccessories(prev => prev.map(a => a.id === id ? { ...a, prix_unitaire_ht: newHt } : a));
+    setAccessories(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, prix_unitaire_ht: newHt } : a);
+      saveUserCatalog(articles, updated);
+      return updated;
+    });
   };
 
   const updateAccessoryStock = (id: string, qty: number) => {
-    setAccessories(prev => prev.map(a => a.id === id ? { ...a, stock_qty: qty } : a));
+    setAccessories(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, stock_qty: qty } : a);
+      saveUserCatalog(articles, updated);
+      return updated;
+    });
+  };
+
+  const bulkUpdateAccessories = (
+    category: string,
+    value: number,
+    mode: 'percent' | 'amount' = 'percent',
+    direction: 'increase' | 'decrease' = 'increase'
+  ) => {
+    const isAmount = mode === 'amount';
+    const isDecrease = direction === 'decrease';
+
+    setAccessories(prev => {
+      const updated = prev.map(a => {
+        if (category && category !== 'all' && a.categorie !== category) return a;
+        let newHT = a.prix_unitaire_ht;
+        if (isAmount) {
+          newHT = isDecrease ? Math.max(0, newHT - value) : newHT + value;
+        } else {
+          const factor = isDecrease ? (1 - value / 100) : (1 + value / 100);
+          newHT = Math.max(0, newHT * factor);
+        }
+        newHT = Math.round(newHT * 1000) / 1000;
+        return { ...a, prix_unitaire_ht: newHT };
+      });
+      saveUserCatalog(articles, updated);
+      return updated;
+    });
+  };
+
+  const resetAccessoriesToDefault = () => {
+    setAccessories(INITIAL_ACCESSORIES);
+    saveUserCatalog(articles, INITIAL_ACCESSORIES);
   };
 
   // Client operations
   const addClient = (c: Omit<Client, 'id'>): Client => {
-    const newClient: Client = { ...c, id: `c_${Date.now()}` };
+    const newClient: Client = { ...c, id: crypto.randomUUID() };
     setClients(prev => [newClient, ...prev]);
 
     if (user?.id) {
@@ -481,7 +616,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         telephone: newClient.telephone || '',
         adresse: newClient.adresse || '',
         email: newClient.email || '',
-        solde_initial: newClient.solde_creance || 0
+        matricule_fiscale: newClient.matricule_fiscale || '',
+        solde_creance: newClient.solde_creance || 0
       }).then(({ error }) => { if (error) console.error('Supabase addClient error:', error); });
     }
 
@@ -506,7 +642,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Fournisseurs
   const addFournisseur = (f: Omit<Fournisseur, 'id'>): Fournisseur => {
-    const newF: Fournisseur = { ...f, id: `f_${Date.now()}` };
+    const newF: Fournisseur = { ...f, id: crypto.randomUUID() };
     setFournisseurs(prev => [newF, ...prev]);
 
     if (user?.id) {
@@ -515,11 +651,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         user_id: user.id,
         nom: newF.nom,
         telephone: newF.telephone || '',
-        adresse: newF.adresse || ''
+        adresse: newF.adresse || '',
+        solde_dette: newF.solde_dette || 0
       }).then(({ error }) => { if (error) console.error('Supabase addFournisseur error:', error); });
     }
 
     return newF;
+  };
+
+  const updateFournisseur = (id: string, f: Partial<Fournisseur>) => {
+    setFournisseurs(prev => prev.map(item => item.id === id ? { ...item, ...f } : item));
+
+    if (user?.id) {
+      supabase.from('fournisseurs').update(f).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase updateFournisseur error:', error); });
+    }
   };
 
   const deleteFournisseur = (id: string) => {
@@ -564,7 +710,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const nextNum = `DEV-${new Date().getFullYear()}-${ts}`;
       const newDevis: DevisRecord = {
         ...d,
-        id: `dev_${Date.now()}`,
+        id: crypto.randomUUID(),
         numero: nextNum,
         created_at: new Date().toISOString()
       };
@@ -643,7 +789,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!devis) throw new Error('Devis not found');
     const nextBL = `BL-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
     const bl: BonLivraisonRecord = {
-      id: `bl_${Date.now()}`,
+      id: crypto.randomUUID(),
       numero: nextBL,
       devis_id: devis.id,
       client_nom: devis.client_nom || 'Client sans nom',
@@ -689,7 +835,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const nextFac = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
     const fac: FactureRecord = {
-      id: `fac_${Date.now()}`,
+      id: crypto.randomUUID(),
       numero: nextFac,
       devis_id: devis.id,
       client_nom: devis.client_nom || 'Client sans nom',
@@ -723,13 +869,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         devis_id: fac.devis_id,
         client_nom: fac.client_nom,
         date: fac.date,
+        items: fac.items,
         total_ht: fac.total_ht,
+        tva_taux: fac.tva_taux,
         total_tva: fac.total_tva,
         total_ttc: fac.total_ttc,
         montant_paye: fac.montant_paye,
         status: fac.status,
         paiements: []
-      });
+      }).then(({ error }) => { if (error) console.error('Supabase convertToFacture error:', error); });
     }
 
     return fac;
@@ -785,7 +933,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addCaisseMovement = (m: Omit<CaisseMovement, 'id' | 'created_at'>) => {
     const item: CaisseMovement = {
       ...m,
-      id: `m_${Date.now()}`,
+      id: crypto.randomUUID(),
       created_at: new Date().toISOString()
     };
     setCaisseMovements(prev => [item, ...prev]);
@@ -798,8 +946,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         montant: item.montant,
         motif: item.motif,
         date: item.date,
+        mode_paiement: item.mode_paiement || 'especes',
+        client_ou_tiers: item.client_ou_tiers || null,
         facture_id: item.facture_id || null
-      });
+      }).then(({ error }) => { if (error) console.error('Supabase addCaisseMovement error:', error); });
     }
   };
 
@@ -840,17 +990,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         articlesMap,
         updateArticlePrice,
         bulkUpdatePrices,
+        resetArticlesToDefault,
         updateGlobalTVA,
         updateArticleStock,
         accessories,
         updateAccessoryPrice,
         updateAccessoryStock,
+        bulkUpdateAccessories,
+        resetAccessoriesToDefault,
         clients,
         addClient,
         updateClient,
         deleteClient,
         fournisseurs,
         addFournisseur,
+        updateFournisseur,
         deleteFournisseur,
         devisList,
         saveDevis,
