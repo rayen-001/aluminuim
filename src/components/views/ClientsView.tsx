@@ -71,18 +71,45 @@ export const ClientsView: React.FC = () => {
     return nomMatch || telMatch || adrMatch || mfMatch;
   });
 
-  const totalCreances = clients.reduce((a, c) => a + (c.solde_creance || 0), 0);
+  // Calculate real-time accurate customer debt (Unpaid invoices + base client debt)
+  const getClientCreance = (c: Client): number => {
+    const baseDebt = Number(c.solde_creance) || 0;
+
+    const clientFactures = factures.filter(f => {
+      const matchName = f.client_nom && f.client_nom.toLowerCase().trim() === c.nom.toLowerCase().trim();
+      const linkedDevis = devisList.find(d => d.id === f.devis_id);
+      const matchDevis = linkedDevis && (
+        linkedDevis.client_id === c.id ||
+        (linkedDevis.client_nom && linkedDevis.client_nom.toLowerCase().trim() === c.nom.toLowerCase().trim())
+      );
+      return matchName || matchDevis;
+    });
+
+    const unpaidFactures = clientFactures.reduce((acc, f) => {
+      return acc + Math.max(0, f.total_ttc - (f.montant_paye || 0));
+    }, 0);
+
+    return baseDebt + unpaidFactures;
+  };
+
+  const totalCreances = clients.reduce((a, c) => a + getClientCreance(c), 0);
 
   // --- Fiche Client ---
   if (selectedClient) {
-    const clientDevis = devisList.filter(d => d.client_id === selectedClient.id);
+    const clientDevis = devisList.filter(d => 
+      d.client_id === selectedClient.id || 
+      (d.client_nom && d.client_nom.toLowerCase().trim() === selectedClient.nom.toLowerCase().trim())
+    );
     const clientFactures = factures.filter(f => {
       const d = devisList.find(dv => dv.id === f.devis_id);
-      return d?.client_id === selectedClient.id;
+      const matchName = f.client_nom && f.client_nom.toLowerCase().trim() === selectedClient.nom.toLowerCase().trim();
+      const matchDevis = (d?.client_id === selectedClient.id) || 
+                         (d?.client_nom && d.client_nom.toLowerCase().trim() === selectedClient.nom.toLowerCase().trim());
+      return matchName || matchDevis;
     });
     const totalDepense = clientFactures.reduce((a, f) => a + f.total_ttc, 0);
-    const totalPaye = clientFactures.reduce((a, f) => a + f.montant_paye, 0);
-    const restant = totalDepense - totalPaye;
+    const totalPaye = clientFactures.reduce((a, f) => a + (f.montant_paye || 0), 0);
+    const restant = getClientCreance(selectedClient);
 
     return (
       <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
@@ -310,12 +337,17 @@ export const ClientsView: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-600">{c.telephone}</td>
+                    <td className="px-5 py-3.5 text-gray-600">{c.telephone || '—'}</td>
                     <td className="px-5 py-3.5 text-gray-500">{c.adresse || '—'}</td>
                     <td className="px-5 py-3.5 text-right font-mono font-bold">
-                      <span className={c.solde_creance > 0 ? 'text-orange-600' : 'text-gray-400'}>
-                        {(c.solde_creance || 0).toFixed(2)} DT
-                      </span>
+                      {(() => {
+                        const creance = getClientCreance(c);
+                        return (
+                          <span className={creance > 0 ? 'inline-block px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 font-extrabold text-xs sm:text-sm' : 'text-gray-400 font-normal'}>
+                            {creance.toFixed(2)} DT
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-5 py-3.5 text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">

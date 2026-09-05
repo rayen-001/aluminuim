@@ -740,6 +740,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           finalClients = [...finalClients, ...recoveredClients];
         }
 
+        // Reconcile and calculate real remaining unpaid debt for each client
+        finalClients = finalClients.map(c => {
+          const clientFacs = sanitizedFactures.filter(f => {
+            const matchName = f.client_nom && f.client_nom.toLowerCase().trim() === c.nom.toLowerCase().trim();
+            const linkedDevis = (remoteDevis || []).find((d: any) => d.id === f.devis_id);
+            const matchDevis = linkedDevis && (
+              linkedDevis.client_id === c.id ||
+              (linkedDevis.client_nom && linkedDevis.client_nom.toLowerCase().trim() === c.nom.toLowerCase().trim())
+            );
+            return matchName || matchDevis;
+          });
+          const unpaidSum = clientFacs.reduce((sum, f) => sum + Math.max(0, f.total_ttc - (f.montant_paye || 0)), 0);
+          const base = Number(c.solde_creance) || 0;
+          return {
+            ...c,
+            solde_creance: base > 0 ? base : unpaidSum
+          };
+        });
+
         setEmployes(finalEmployes);
         setClients(finalClients);
         localStorage.setItem('atelierpro_clients', JSON.stringify(finalClients));
