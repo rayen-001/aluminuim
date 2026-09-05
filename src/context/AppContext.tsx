@@ -23,6 +23,26 @@ export interface Fournisseur {
   solde_dette: number;
 }
 
+export interface AchatFournisseur {
+  id: string;
+  fournisseur_id: string;
+  date: string;
+  designation: string;
+  montant: number;
+  notes?: string;
+  created_at: string;
+}
+
+export interface PaiementFournisseur {
+  id: string;
+  fournisseur_id: string;
+  date: string;
+  montant: number;
+  mode_paiement: 'especes' | 'cheque' | 'virement';
+  notes?: string;
+  created_at: string;
+}
+
 export interface DevisRecord {
   id: string;
   numero: string;
@@ -149,6 +169,14 @@ interface AppContextType {
   updateFournisseur: (id: string, f: Partial<Fournisseur>) => void;
   deleteFournisseur: (id: string) => void;
 
+  achatsFournisseur: AchatFournisseur[];
+  addAchatFournisseur: (a: Omit<AchatFournisseur, 'id' | 'created_at'>) => void;
+  deleteAchatFournisseur: (id: string) => void;
+
+  paiementsFournisseur: PaiementFournisseur[];
+  addPaiementFournisseur: (p: Omit<PaiementFournisseur, 'id' | 'created_at'>) => void;
+  deletePaiementFournisseur: (id: string) => void;
+
   devisList: DevisRecord[];
   saveDevis: (d: Omit<DevisRecord, 'id' | 'numero' | 'created_at'> & { id?: string }) => DevisRecord;
   deleteDevis: (id: string) => void;
@@ -213,6 +241,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Fournisseurs (Empty by default, loaded per-user from Supabase)
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  const [achatsFournisseur, setAchatsFournisseur] = useState<AchatFournisseur[]>([]);
+  const [paiementsFournisseur, setPaiementsFournisseur] = useState<PaiementFournisseur[]>([]);
 
   // Devis
   const [devisList, setDevisList] = useState<DevisRecord[]>([]);
@@ -336,6 +366,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .order('created_at', { ascending: false });
 
         setFournisseurs(remoteFournisseurs || []);
+
+        // Fetch Achats Fournisseur
+        const { data: remoteAchats } = await supabase
+          .from('achats_fournisseur')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+        setAchatsFournisseur(remoteAchats || []);
+
+        // Fetch Paiements Fournisseur
+        const { data: remotePaiements } = await supabase
+          .from('paiements_fournisseur')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
+        setPaiementsFournisseur(remotePaiements || []);
 
         // Fetch Devis
         const { data: remoteDevis } = await supabase
@@ -676,6 +722,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Achats Fournisseur
+  const addAchatFournisseur = (a: Omit<AchatFournisseur, 'id' | 'created_at'>) => {
+    const newA: AchatFournisseur = {
+      ...a,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString()
+    };
+    setAchatsFournisseur(prev => [newA, ...prev]);
+
+    if (user?.id) {
+      supabase.from('achats_fournisseur').insert({
+        id: newA.id,
+        user_id: user.id,
+        fournisseur_id: newA.fournisseur_id,
+        date: newA.date,
+        designation: newA.designation,
+        montant: newA.montant,
+        notes: newA.notes || ''
+      }).then(({ error }) => { if (error) console.error('Supabase addAchatFournisseur error:', error); });
+    }
+  };
+
+  const deleteAchatFournisseur = (id: string) => {
+    setAchatsFournisseur(prev => prev.filter(a => a.id !== id));
+    if (user?.id) {
+      supabase.from('achats_fournisseur').delete().eq('id', id).eq('user_id', user.id);
+    }
+  };
+
+  // Paiements Fournisseur
+  const addPaiementFournisseur = (p: Omit<PaiementFournisseur, 'id' | 'created_at'>) => {
+    const newP: PaiementFournisseur = {
+      ...p,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString()
+    };
+    setPaiementsFournisseur(prev => [newP, ...prev]);
+
+    if (user?.id) {
+      supabase.from('paiements_fournisseur').insert({
+        id: newP.id,
+        user_id: user.id,
+        fournisseur_id: newP.fournisseur_id,
+        date: newP.date,
+        montant: newP.montant,
+        mode_paiement: newP.mode_paiement,
+        notes: newP.notes || ''
+      }).then(({ error }) => { if (error) console.error('Supabase addPaiementFournisseur error:', error); });
+    }
+  };
+
+  const deletePaiementFournisseur = (id: string) => {
+    setPaiementsFournisseur(prev => prev.filter(p => p.id !== id));
+    if (user?.id) {
+      supabase.from('paiements_fournisseur').delete().eq('id', id).eq('user_id', user.id);
+    }
+  };
+
   // Devis operations
   const saveDevis = (d: Omit<DevisRecord, 'id' | 'numero' | 'created_at'> & { id?: string }): DevisRecord => {
     if (d.id) {
@@ -1006,6 +1110,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addFournisseur,
         updateFournisseur,
         deleteFournisseur,
+        achatsFournisseur,
+        addAchatFournisseur,
+        deleteAchatFournisseur,
+        paiementsFournisseur,
+        addPaiementFournisseur,
+        deletePaiementFournisseur,
         devisList,
         saveDevis,
         deleteDevis,
