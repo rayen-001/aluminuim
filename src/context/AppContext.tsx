@@ -422,11 +422,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        // Map DB fields → local interface (handle both solde_creance and solde_initial)
-        setClients((remoteClients || []).map((c: any) => ({
+        let finalClients = (remoteClients || []).map((c: any) => ({
           ...c,
           solde_creance: c.solde_creance ?? c.solde_initial ?? 0
-        })));
+        }));
 
         // Fetch Fournisseurs
         const { data: remoteFournisseurs } = await supabase
@@ -435,7 +434,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        setFournisseurs(remoteFournisseurs || []);
+        let finalFournisseurs = remoteFournisseurs || [];
 
         // Fetch Achats Fournisseur
         const { data: remoteAchats } = await supabase
@@ -455,22 +454,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // Fetch RH - Employes
         const { data: remoteEmployes } = await supabase
-          .from('employes').select('*').eq('user_id', user.id).order('nom');
-        setEmployes(remoteEmployes || []);
+          .from('employes')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('nom');
+
+        let finalEmployes: Employe[] = remoteEmployes || [];
 
         // Fetch RH - Avances
         const { data: remoteAvances } = await supabase
-          .from('avances_salaire').select('*').eq('user_id', user.id).order('date', { ascending: false });
+          .from('avances_salaire')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false });
         setAvancesSalaire(remoteAvances || []);
 
         // Fetch RH - Congés
         const { data: remoteConges } = await supabase
-          .from('conges').select('*').eq('user_id', user.id).order('date_debut', { ascending: false });
+          .from('conges')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date_debut', { ascending: false });
         setConges(remoteConges || []);
 
         // Fetch RH - Bulletins
         const { data: remoteBulletins } = await supabase
-          .from('bulletins_paie').select('*').eq('user_id', user.id).order('mois', { ascending: false });
+          .from('bulletins_paie')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('mois', { ascending: false });
         setBulletinsPaie(remoteBulletins || []);
 
         // Fetch Devis
@@ -479,7 +491,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-
         setDevisList(remoteDevis || []);
 
         // Fetch BL
@@ -488,7 +499,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-
         setBonsLivraison(remoteBL || []);
 
         // Fetch Factures
@@ -497,7 +507,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-
         setFactures(remoteFactures || []);
 
         // Fetch Caisse
@@ -506,8 +515,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-
         setCaisseMovements(remoteCaisse || []);
+
+        // ════════════════════════════════════════════════════════════
+        // AUTO-HEALING: Recover any orphaned employee referenced in
+        // advances, leaves, or payslips so they appear in Employes tab
+        // ════════════════════════════════════════════════════════════
+        const existingEmpIds = new Set(finalEmployes.map(e => e.id));
+        const existingEmpNames = new Set(finalEmployes.map(e => e.nom.toLowerCase().trim()));
+        const recoveredEmployes: Employe[] = [];
+
+        const checkAndRecoverEmp = (id: string, nom: string, dateStr?: string) => {
+          if (!id || !nom) return;
+          const cleanName = nom.trim();
+          if (!existingEmpIds.has(id) && !existingEmpNames.has(cleanName.toLowerCase())) {
+            existingEmpIds.add(id);
+            existingEmpNames.add(cleanName.toLowerCase());
+            const newRecovered: Employe = {
+              id,
+              nom: cleanName,
+              poste: 'Employé atelier',
+              telephone: '',
+              salaire_base: 800,
+              date_embauche: dateStr || new Date().toISOString().split('T')[0],
+              actif: true,
+              created_at: new Date().toISOString()
+            };
+            recoveredEmployes.push(newRecovered);
+            // Persist recovered employee to Supabase
+            supabase.from('employes').upsert({
+              id: newRecovered.id,
+              user_id: user.id,
+              nom: newRecovered.nom,
+              poste: newRecovered.poste,
+              telephone: newRecovered.telephone,
+              salaire_base: newRecovered.salaire_base,
+              date_embauche: newRecovered.date_embauche,
+              actif: true
+            }).then(({ error }) => {
+              if (error) console.error('Auto-recovery employe error:', error);
+            });
+          }
+        };
+
+        (remoteAvances || []).forEach(a => checkAndRecoverEmp(a.employe_id, a.employe_nom, a.date));
+        (remoteConges || []).forEach(c => checkAndRecoverEmp(c.employe_id, c.employe_nom, c.date_debut));
+        (remoteBulletins || []).forEach(b => checkAndRecoverEmp(b.employe_id, b.employe_nom));
+
+        if (recoveredEmployes.length > 0) {
+          finalEmployes = [...finalEmployes, ...recoveredEmployes];
+        }
+        setEmployes(finalEmployes);
+        setClients(finalClients);
+        setFournisseurs(finalFournisseurs);
       } catch (err) {
         console.error('Error loading data from Supabase:', err);
       }
