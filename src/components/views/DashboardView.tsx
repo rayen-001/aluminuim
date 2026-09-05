@@ -15,6 +15,7 @@ import {
   DollarSign,
   Receipt,
   CheckCircle2,
+  Trash2,
   X
 } from 'lucide-react';
 
@@ -30,10 +31,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
     factures, 
     addPaymentToFacture,
     caisseMovements, 
+    deleteCaisseMovement,
     settings 
   } = useApp();
 
   const [paymentModalFacture, setPaymentModalFacture] = useState<FactureRecord | null>(null);
+  const [deleteConfirmMovementId, setDeleteConfirmMovementId] = useState<string | null>(null);
   const [payMontant, setPayMontant] = useState('');
   const [payMode, setPayMode] = useState<'especes' | 'cheque' | 'virement'>('especes');
 
@@ -268,14 +271,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
           ) : (
             <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto">
               {paiementsJour.map(p => (
-                <div key={p.id} className="py-3 flex items-center justify-between">
-                  <div>
+                <div key={p.id} className="py-3 flex items-center justify-between gap-2">
+                  <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-800">{p.motif}</p>
                     <p className="text-xs text-gray-500">{p.client_ou_tiers || 'Client'} • {p.mode_paiement}</p>
                   </div>
-                  <span className="text-sm font-bold font-mono text-emerald-600">
-                    +{p.montant.toFixed(2)} DT
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold font-mono text-emerald-600">
+                      +{p.montant.toFixed(2)} DT
+                    </span>
+                    <button
+                      onClick={() => setDeleteConfirmMovementId(p.id)}
+                      className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Supprimer ce mouvement"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -313,6 +325,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
                   <th className="px-4 py-2.5 font-semibold">Motif</th>
                   <th className="px-4 py-2.5 font-semibold">Mode</th>
                   <th className="px-4 py-2.5 font-semibold text-right">Montant</th>
+                  <th className="px-4 py-2.5 font-semibold text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -333,6 +346,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
                     }`}>
                       {m.type === 'entree' ? '+' : '-'}{m.montant.toFixed(2)} DT
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => setDeleteConfirmMovementId(m.id)}
+                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Supprimer ce mouvement"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -340,6 +362,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
           </div>
         )}
       </div>
+
+      {/* Delete Movement Confirm Modal */}
+      {deleteConfirmMovementId && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Supprimer ce mouvement ?</h3>
+                <p className="text-xs text-gray-500">Le solde de caisse et le reste dû de la facture seront ajustés en temps réel.</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => setDeleteConfirmMovementId(null)}
+                className="px-3.5 py-1.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  deleteCaisseMovement(deleteConfirmMovementId);
+                  setDeleteConfirmMovementId(null);
+                }}
+                className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+              >
+                Confirmer la suppression
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payment Modal */}
       {paymentModalFacture && (
