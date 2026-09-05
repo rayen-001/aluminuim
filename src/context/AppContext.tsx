@@ -233,9 +233,11 @@ interface AppContextType {
   bonsLivraison: BonLivraisonRecord[];
   factures: FactureRecord[];
   addPaymentToFacture: (factureId: string, montant: number, mode: 'especes' | 'cheque' | 'virement') => void;
+  deleteFacture: (id: string) => void;
 
   caisseMovements: CaisseMovement[];
   addCaisseMovement: (m: Omit<CaisseMovement, 'id' | 'created_at'>) => void;
+  deleteCaisseMovement: (id: string) => void;
   soldeCaisse: number;
 
   settings: AtelierSettings;
@@ -1225,6 +1227,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const deleteFacture = (factureId: string) => {
+    const fac = factures.find(f => f.id === factureId);
+    setFactures(prev => prev.filter(f => f.id !== factureId));
+    if (fac?.devis_id) {
+      updateDevisStatus(fac.devis_id, 'accepte');
+    }
+    if (user?.id) {
+      supabase.from('factures').delete().eq('id', factureId).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteFacture error:', error); });
+    }
+  };
+
   // ─── RH CRUD ──────────────────────────────────────────────────
   const addEmploye = (e: Omit<Employe, 'id' | 'created_at'>) => {
     const newE: Employe = { ...e, id: crypto.randomUUID(), created_at: new Date().toISOString() };
@@ -1378,6 +1392,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const deleteCaisseMovement = (id: string) => {
+    setCaisseMovements(prev => prev.filter(m => m.id !== id));
+    if (user?.id) {
+      supabase.from('caisse_movements').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteCaisseMovement error:', error); });
+    }
+  };
+
   const soldeCaisse = React.useMemo(() => {
     return caisseMovements.reduce((acc, m) => {
       return m.type === 'entree' ? acc + m.montant : acc - m.montant;
@@ -1398,7 +1420,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         email: updated.email,
         tva_default: updated.tva_default,
         devise: updated.devise
-      });
+      }).then(({ error }) => { if (error) console.error('Supabase updateSettings error:', error); });
     }
   };
 
@@ -1447,8 +1469,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bonsLivraison,
         factures,
         addPaymentToFacture,
+        deleteFacture,
         caisseMovements,
         addCaisseMovement,
+        deleteCaisseMovement,
         soldeCaisse,
         settings,
         updateSettings,

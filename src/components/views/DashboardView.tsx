@@ -1,5 +1,5 @@
-import React from 'react';
-import { useApp } from '../../context/AppContext';
+import React, { useState } from 'react';
+import { useApp, FactureRecord } from '../../context/AppContext';
 import { 
   Wallet, 
   Users, 
@@ -11,7 +11,11 @@ import {
   Package, 
   Clock, 
   PlusCircle,
-  ChevronRight
+  ChevronRight,
+  DollarSign,
+  Receipt,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -24,15 +28,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
     clients, 
     devisList, 
     factures, 
+    addPaymentToFacture,
     caisseMovements, 
     settings 
   } = useApp();
 
-  // Compute total customer debt / unpaid invoices
-  const totalCreances = clients.reduce((acc, c) => acc + (c.solde_creance || 0), 0);
-  const clientsDebiteurs = clients.filter(c => (c.solde_creance || 0) > 0);
+  const [paymentModalFacture, setPaymentModalFacture] = useState<FactureRecord | null>(null);
+  const [payMontant, setPayMontant] = useState('');
+  const [payMode, setPayMode] = useState<'especes' | 'cheque' | 'virement'>('especes');
 
-  // Month entries
+  // Compute total real customer debt / unpaid balances on invoices
+  const totalCreances = factures.reduce((acc, f) => {
+    return acc + Math.max(0, f.total_ttc - (f.montant_paye || 0));
+  }, 0);
+
+  // Invoices that have a remaining unpaid balance
+  const facturesImpayees = factures.filter(f => f.status !== 'payee' && (f.total_ttc - (f.montant_paye || 0)) > 0);
+
+  // Devis pipeline (non encore convertis ni refusés)
+  const devisEnCours = devisList.filter(d => d.status !== 'converti' && d.status !== 'refuse');
+  const totalDevisEnCours = devisEnCours.reduce((acc, d) => acc + (d.totals?.total_ttc || 0), 0);
+
+  // Month entries (Real Cash Flow In)
   const currentMonth = new Date().toISOString().slice(0, 7);
   const entreesMois = caisseMovements
     .filter(m => m.type === 'entree' && m.date.startsWith(currentMonth))
@@ -40,7 +57,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
 
   const todayStr = new Date().toISOString().split('T')[0];
   const paiementsJour = caisseMovements.filter(m => m.type === 'entree' && m.date === todayStr);
-  const mouvementsJour = caisseMovements.filter(m => m.date === todayStr);
+
+  const openPayment = (f: FactureRecord) => {
+    setPaymentModalFacture(f);
+    const restant = Math.max(0, f.total_ttc - f.montant_paye);
+    setPayMontant(String(restant));
+    setPayMode('especes');
+  };
+
+  const handleRecordPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!paymentModalFacture) return;
+    const m = parseFloat(payMontant) || 0;
+    if (m <= 0) return;
+    addPaymentToFacture(paymentModalFacture.id, m, payMode);
+    setPaymentModalFacture(null);
+  };
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
@@ -53,55 +85,68 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
         <span className="hidden md:inline-block opacity-90">Support : {settings.telephone}</span>
       </div>
 
-      {/* Stats Cards Grid (Matching reference tableau_de_bord.png) */}
+      {/* Stats Cards Grid (5 Financial KPI Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Solde Caisse */}
+        {/* Card 1: Solde Caisse Réel */}
         <div className="bg-blue-600 rounded-2xl p-5 text-white shadow-md shadow-blue-600/10 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-blue-100 uppercase tracking-wider">Solde Caisse</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold mt-1">
-              {soldeCaisse.toFixed(2)} <span className="text-base font-bold">TND</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-xs font-semibold text-blue-100 uppercase tracking-wider">Solde Caisse Réel</p>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold mt-1 font-mono">
+              {soldeCaisse.toFixed(2)} <span className="text-base font-bold">DT</span>
             </h3>
+            <p className="text-[11px] text-blue-200 mt-0.5">Espèces & fonds encaissés</p>
           </div>
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-xs">
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-xs shrink-0">
             <Wallet className="w-6 h-6 text-white" />
           </div>
         </div>
 
-        {/* Card 2: Total Clients */}
+        {/* Card 2: Créances Clients (Factures Impayées) */}
         <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Clients</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1">{clients.length}</h3>
-          </div>
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-            <Users className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Card 3: Créances */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Créances clients</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-orange-600 mt-1">
-              {totalCreances.toFixed(2)} <span className="text-base font-bold text-gray-700">TND</span>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Créances Clients (Crédits)</p>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-orange-600 mt-1 font-mono">
+              {totalCreances.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
             </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {facturesImpayees.length} facture{facturesImpayees.length > 1 ? 's' : ''} en attente
+            </p>
           </div>
-          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
             <AlertCircle className="w-6 h-6" />
           </div>
         </div>
 
-        {/* Card 4: Entrées Mois */}
+        {/* Card 3: Entrées Mois (Flux Encaissé) */}
         <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Entrées Mois</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">
-              {entreesMois.toFixed(2)} <span className="text-base font-bold text-gray-700">TND</span>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Entrées du Mois</p>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono">
+              {entreesMois.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
             </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">Total encaissé ce mois</p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
             <TrendingUp className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Card 4: Devis en Cours (Estimations / Non convertis) */}
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Devis en Cours</p>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1 font-mono">
+              {totalDevisEnCours.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
+            </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {devisEnCours.length} devis non converti{devisEnCours.length > 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <FileText className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -116,6 +161,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
           <span>Nouveau Devis Aluminium</span>
         </button>
         <button
+          onClick={() => setCurrentTab('factures')}
+          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
+        >
+          <Receipt className="w-4 h-4 text-emerald-600" />
+          <span>Facturation & Règlements</span>
+        </button>
+        <button
           onClick={() => setCurrentTab('articles')}
           className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
         >
@@ -127,71 +179,101 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
           className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
         >
           <Users className="w-4 h-4 text-indigo-600" />
-          <span>Gestion Clients</span>
+          <span>Gestion Clients ({clients.length})</span>
         </button>
       </div>
 
-      {/* Middle Grid: Clients Débiteurs & Paiements du Jour */}
+      {/* Middle Grid: Créances & Factures Impayées vs Paiements du Jour */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Clients Débiteurs */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-bold text-gray-900">Clients Débiteurs</h3>
-            <button 
-              onClick={() => setCurrentTab('clients')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Voir tout
-            </button>
-          </div>
+        {/* Factures & Créances Impayées */}
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Créances & Factures Impayées</h3>
+                <p className="text-xs text-gray-500">Reste à recouvrer auprès des clients</p>
+              </div>
+              <button 
+                onClick={() => setCurrentTab('factures')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+              >
+                Voir Factures
+              </button>
+            </div>
 
-          {clientsDebiteurs.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
-              <Users className="w-10 h-10 mx-auto mb-2 stroke-1 text-gray-300" />
-              <p className="text-sm">Aucun client débiteur</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {clientsDebiteurs.slice(0, 5).map(c => (
-                <div key={c.id} className="py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{c.nom}</p>
-                    <p className="text-xs text-gray-500">{c.telephone}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-bold text-orange-600">
-                      {c.solde_creance.toFixed(2)} DT
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+            {facturesImpayees.length === 0 ? (
+              <div className="text-center py-10 text-gray-400 space-y-2">
+                <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-500 stroke-1" />
+                <p className="text-sm font-medium text-gray-700">Toutes les factures sont réglées !</p>
+                <p className="text-xs text-gray-400">Aucune créance client en attente.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto">
+                {facturesImpayees.slice(0, 6).map(f => {
+                  const restant = f.total_ttc - (f.montant_paye || 0);
+                  return (
+                    <div key={f.id} className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-gray-900">{f.client_nom}</p>
+                          <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-semibold">
+                            {f.numero}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Total : {f.total_ttc.toFixed(2)} DT • Payé : {f.montant_paye.toFixed(2)} DT
+                        </p>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        <div>
+                          <p className="text-xs text-gray-500">Reste à payer</p>
+                          <span className="text-sm font-bold font-mono text-orange-600">
+                            {restant.toFixed(2)} DT
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => openPayment(f)}
+                          className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xs transition shrink-0"
+                        >
+                          <DollarSign className="w-3.5 h-3.5" />
+                          <span>Régler</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Paiements du Jour */}
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-bold text-gray-900">Paiements du Jour</h3>
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Paiements Encaissés du Jour</h3>
+              <p className="text-xs text-gray-500">Flux financiers réels entrés en caisse</p>
+            </div>
             <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">
               {paiementsJour.length} paiement(s)
             </span>
           </div>
 
           {paiementsJour.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
-              <Clock className="w-10 h-10 mx-auto mb-2 stroke-1 text-gray-300" />
-              <p className="text-sm">Aucun paiement enregistré aujourd'hui</p>
+            <div className="text-center py-10 text-gray-400 space-y-2">
+              <Clock className="w-10 h-10 mx-auto stroke-1 text-gray-300" />
+              <p className="text-sm font-medium">Aucun encaissement enregistré aujourd'hui</p>
+              <p className="text-xs text-gray-400">Les règlements apparaîtront ici dès l'encaissement.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto">
               {paiementsJour.map(p => (
                 <div key={p.id} className="py-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-800">{p.motif}</p>
                     <p className="text-xs text-gray-500">{p.client_ou_tiers || 'Client'} • {p.mode_paiement}</p>
                   </div>
-                  <span className="text-sm font-bold text-emerald-600">
+                  <span className="text-sm font-bold font-mono text-emerald-600">
                     +{p.montant.toFixed(2)} DT
                   </span>
                 </div>
@@ -204,12 +286,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
       {/* Bottom Card: Mouvements de Caisse récents */}
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-gray-900">Mouvements de Caisse récents</h3>
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Mouvements de Caisse récents</h3>
+            <p className="text-xs text-gray-500">Historique des entrées et sorties réelles</p>
+          </div>
           <button 
             onClick={() => setCurrentTab('caisse')}
             className="text-xs font-semibold text-blue-600 hover:text-blue-700"
           >
-            Voir la caisse
+            Voir toute la caisse
           </button>
         </div>
 
@@ -243,7 +328,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-800">{m.motif}</td>
                     <td className="px-4 py-3 text-gray-600 capitalize">{m.mode_paiement}</td>
-                    <td className={`px-4 py-3 text-right font-bold ${
+                    <td className={`px-4 py-3 text-right font-bold font-mono ${
                       m.type === 'entree' ? 'text-emerald-600' : 'text-red-600'
                     }`}>
                       {m.type === 'entree' ? '+' : '-'}{m.montant.toFixed(2)} DT
@@ -255,6 +340,86 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      {paymentModalFacture && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Enregistrer un Règlement</h3>
+                <p className="text-xs text-gray-500">Facture {paymentModalFacture.numero} • {paymentModalFacture.client_nom}</p>
+              </div>
+              <button 
+                onClick={() => setPaymentModalFacture(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleRecordPayment} className="space-y-4">
+              <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-100 flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-gray-500">Total Facture :</span>
+                  <p className="font-bold text-gray-900 font-mono">{paymentModalFacture.total_ttc.toFixed(3)} DT</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Déjà Payé :</span>
+                  <p className="font-bold text-emerald-600 font-mono">{paymentModalFacture.montant_paye.toFixed(3)} DT</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Reste :</span>
+                  <p className="font-bold text-orange-600 font-mono">{(paymentModalFacture.total_ttc - paymentModalFacture.montant_paye).toFixed(3)} DT</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Montant à Encaisser (DT) *</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0.001"
+                  max={paymentModalFacture.total_ttc - paymentModalFacture.montant_paye}
+                  required
+                  value={payMontant}
+                  onChange={e => setPayMontant(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-base font-mono font-bold focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Mode de Règlement</label>
+                <select
+                  value={payMode}
+                  onChange={e => setPayMode(e.target.value as any)}
+                  className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="especes">Espèces (Caisse)</option>
+                  <option value="cheque">Chèque bancaire</option>
+                  <option value="virement">Virement bancaire</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setPaymentModalFacture(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition"
+                >
+                  Encaisser en Caisse
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
