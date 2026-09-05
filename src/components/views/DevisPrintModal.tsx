@@ -96,19 +96,33 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                   if (typeDef?.category === 'standalone_store') drawType = 'store';
                   if (typeDef?.category === 'standalone_mousti') drawType = 'mousti';
 
+                  let nbVantaux = 1;
+                  const match = (typeDef?.name || '').match(/(\d+)\s*vantaux/i);
+                  if (match) nbVantaux = parseInt(match[1]);
+                  else if (drawType === 'coulissante' || (typeDef?.name || '').includes('2')) nbVantaux = 2;
+
                   svg = renderAlumDrawing({
                     drawType,
                     largeur: parseFloat(String(it.largeur)) || 100,
                     hauteur: parseFloat(String(it.hauteur)) || 100,
+                    nbVantaux,
                     couleur: it.couleur,
                     estPorte: typeDef?.category === 'porte',
                     partieFixeType: it.partie_fixe_type,
                     pfDim1: parseFloat(String(it.pf_dim_1)) || 0,
                     pfDim2: parseFloat(String(it.pf_dim_2)) || 0,
+                    store_enabled: it.store_enabled || false,
+                    store_coffre: it.store_coffre || '',
+                    store_couleur: it.store_couleur || '',
+                    store_lame_type: it.store_lame_type || '',
+                    mousti_enabled: it.mousti_enabled || false,
+                    remplissage_id: it.remplissage_id,
+                    vitrage_type: it.vitrage_type,
+                    motif_id: it.motif_id,
                     cotations: true,
                     svgW: 240,
                     svgH: 180,
-                    responsive: false
+                    responsive: true
                   });
                 }
 

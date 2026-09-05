@@ -270,10 +270,24 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       chassiSocleWide: ['40121', '40154', 'AE_40121', 'AE_40154'].includes(item.chassi_socle_ref || ''),
       serrureTraverse: item.supplements?.some(s => s.toLowerCase().includes('traverse')),
       typeOuverture: item.ouverture_type === 'Basculante' ? 'basculante' : (item.ouverture_type === 'Osilobattante' ? 'oscillo' : 'francaise'),
-      storeCoffre: item.store_enabled ? !!item.store_coffre : true,
+      
+      // Store Rideau
+      store_enabled: item.store_enabled || false,
+      store_coffre: item.store_coffre || '',
+      store_couleur: item.store_couleur || '',
+      store_lame_type: item.store_lame_type || '',
+
+      // Moustiquaire
+      mousti_enabled: item.mousti_enabled || false,
+
+      // Vitrage & Remplissage
+      remplissage_id: item.remplissage_id,
+      vitrage_type: item.vitrage_type,
+      motif_id: item.motif_id,
+
       cotations: true,
-      svgW: 500,
-      svgH: 430
+      svgW: 520,
+      svgH: 400
     };
 
     return renderAlumDrawing(params);
