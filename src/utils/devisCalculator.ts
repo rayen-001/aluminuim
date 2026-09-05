@@ -82,13 +82,20 @@ export interface DevisItemState {
   _showErrors?: boolean;
 }
 
-export const STORE_MOTORS = [
-  { id: 'auto', nom: 'Automatique (Recommandé selon surface/poids)', prix_unitaire_ht: 0 },
-  { id: 'acc_moteur_40kg', nom: 'Moteur tubulaire 40 kg (jusqu’à 2.5 m²)', prix_unitaire_ht: 70.200 },
-  { id: 'acc_moteur_60kg', nom: 'Moteur tubulaire 60 kg (2.5 à 4.5 m²)', prix_unitaire_ht: 81.000 },
-  { id: 'acc_moteur_100kg', nom: 'Moteur tubulaire 100 kg (4.5 à 7.5 m²)', prix_unitaire_ht: 102.600 },
-  { id: 'acc_moteur_160kg', nom: 'Moteur tubulaire 160 kg (grandes baies)', prix_unitaire_ht: 194.400 },
-  { id: 'acc_moteur_250kg', nom: 'Moteur tubulaire 250 kg (industriel)', prix_unitaire_ht: 237.600 }
+export interface StoreMotorDef {
+  id: string;
+  nom: string;
+  capacite_kg: number;
+  prix_unitaire_ht: number;
+}
+
+export const STORE_MOTORS: StoreMotorDef[] = [
+  { id: 'auto', nom: 'Automatique (Recommandé selon dimensions)', capacite_kg: 0, prix_unitaire_ht: 0 },
+  { id: 'acc_moteur_40kg', nom: 'Moteur tubulaire 40 kg (jusqu’à 2.5 m²)', capacite_kg: 40, prix_unitaire_ht: 70.200 },
+  { id: 'acc_moteur_60kg', nom: 'Moteur tubulaire 60 kg (2.5 à 4.5 m²)', capacite_kg: 60, prix_unitaire_ht: 81.000 },
+  { id: 'acc_moteur_100kg', nom: 'Moteur tubulaire 100 kg (4.5 à 7.5 m²)', capacite_kg: 100, prix_unitaire_ht: 102.600 },
+  { id: 'acc_moteur_160kg', nom: 'Moteur tubulaire 160 kg (grandes baies)', capacite_kg: 160, prix_unitaire_ht: 194.400 },
+  { id: 'acc_moteur_250kg', nom: 'Moteur tubulaire 250 kg (industriel)', capacite_kg: 250, prix_unitaire_ht: 237.600 }
 ];
 
 export interface CalculatedItemCost {

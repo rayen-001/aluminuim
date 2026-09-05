@@ -536,6 +536,28 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
           <div className="space-y-6">
             {items.map((item, index) => {
               const types = getProductTypesForFamily(item.family_id);
+              const typeDef = types.find(t => t.id === item.product_type_id);
+              const fam = FAMILIES.find(f => f.id === item.family_id);
+              const isCoulissant = fam?.drawType === 'coulissante' || typeDef?.category === 'coulissant';
+              const isFrappe = fam?.drawType === 'francaise' || typeDef?.category === 'fenetre' || typeDef?.category === 'porte';
+              const isPorte = typeDef?.category === 'porte' || (typeDef?.name || '').toLowerCase().startsWith('porte') || (typeDef?.display_name || '').toLowerCase().startsWith('porte');
+              const isChassiFixe = item.is_chassi_fix || typeDef?.category === 'chassi_fix' || fam?.drawType === 'fixe';
+              const isGardeCorps = item.is_garde_corps || typeDef?.category === 'garde_corps' || fam?.drawType === 'garde_corps';
+              const isStandaloneStore = item.family_id === '67' || typeDef?.category === 'standalone_store';
+              const isStandaloneMousti = item.family_id === '68' || typeDef?.category === 'standalone_mousti';
+
+              const widthNum = parseFloat(String(item.largeur)) || 0;
+              const heightNum = parseFloat(String(item.hauteur)) || 0;
+              const surfaceM2 = (widthNum * heightNum) / 10000;
+
+              let autoMotorKg = 60;
+              if (surfaceM2 > 0) {
+                if (surfaceM2 <= 2.2) autoMotorKg = 40;
+                else if (surfaceM2 <= 4.2) autoMotorKg = 60;
+                else if (surfaceM2 <= 7.0) autoMotorKg = 100;
+                else autoMotorKg = 160;
+              }
+
               const svgContent = getDrawingSVG(item);
               const itemCost = totals.items_costs[index];
 
@@ -779,47 +801,53 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                       </div>
 
                       {/* Remplissage + Vitrage + Motif */}
-                      {!item.is_garde_corps && (
+                      {!item.is_garde_corps && !isStandaloneStore && !isStandaloneMousti && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Remplissage</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                              Remplissage / Verre
+                            </label>
                             <select
                               value={item.remplissage_id || ''}
                               onChange={e => updateItem(index, { remplissage_id: e.target.value })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                             >
                               <option value="">— Choisir un remplissage —</option>
                               {REMPLISSAGES.map(r => (
                                 <option key={r.id} value={r.id}>
-                                  {r.label}
+                                  {r.label} ({r.pricePerM2.toFixed(3)} DT/m²)
                                 </option>
                               ))}
                             </select>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Vitrage</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                              Vitrage
+                            </label>
                             <select
                               value={item.vitrage_type || 'simple'}
                               onChange={e => updateItem(index, { vitrage_type: e.target.value as any })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                             >
-                              <option value="simple">Simple vitrage</option>
-                              <option value="double">Double vitrage</option>
+                              <option value="simple">Simple vitrage (Standard)</option>
+                              <option value="double">Double vitrage (Isolation thermique / acoustique)</option>
                             </select>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Motif</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                              Finition & Motif
+                            </label>
                             <select
                               value={item.motif_id || ''}
                               onChange={e => updateItem(index, { motif_id: e.target.value })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                             >
-                              <option value="">— Sans motif —</option>
+                              <option value="">— Sans motif (Standard) —</option>
                               {MOTIFS.map(m => (
                                 <option key={m.id} value={m.id}>
-                                  {m.label}
+                                  {m.label} (+{m.pricePerM2.toFixed(3)} DT/m²)
                                 </option>
                               ))}
                             </select>
@@ -827,65 +855,77 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                         </div>
                       )}
 
-                      {/* Suppléments Quincaillerie */}
-                      {!item.is_chassi_fix && !item.is_garde_corps && (
+                      {/* Suppléments Quincaillerie Contextuels */}
+                      {!isChassiFixe && !item.is_garde_corps && !isStandaloneStore && !isStandaloneMousti && (
                         <div className="pt-2 border-t border-gray-100">
-                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">
-                            Quincaillerie & Suppléments
-                          </label>
-                          <div className="flex flex-wrap items-center gap-3">
-                            {/* Fast Lock */}
-                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={item.supplements?.includes('Fast Lock')}
-                                onChange={e => {
-                                  const sups = item.supplements || [];
-                                  updateItem(index, {
-                                    supplements: e.target.checked
-                                      ? [...sups, 'Fast Lock']
-                                      : sups.filter(s => s !== 'Fast Lock')
-                                  });
-                                }}
-                                className="rounded text-blue-600"
-                              />
-                              <span>Fast Lock</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600">
+                              Quincaillerie & Accessoires spécifiques
                             </label>
+                            <span className="text-[10px] text-gray-400">
+                              {isCoulissant ? 'Châssis Coulissant' : isPorte ? 'Bloc Porte' : 'Châssis Ouvrant'}
+                            </span>
+                          </div>
 
-                            {item.supplements?.includes('Fast Lock') && (
-                              <div className="flex items-center gap-1.5 bg-blue-50/70 border border-blue-200 px-2 py-0.5 rounded-lg">
-                                <span className="text-[11px] font-semibold text-blue-700">Points :</span>
-                                <select
-                                  value={item.fast_lock_points || '1'}
-                                  onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
-                                  className="bg-white border border-blue-300 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900"
-                                >
-                                  <option value="1">1 pt</option>
-                                  <option value="2">2 pts</option>
-                                  <option value="3">3 pts</option>
-                                </select>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {/* Fast Lock - Seulement pour Coulissant */}
+                            {isCoulissant && (
+                              <div className="flex items-center gap-2">
+                                <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.supplements?.includes('Fast Lock')}
+                                    onChange={e => {
+                                      const sups = item.supplements || [];
+                                      updateItem(index, {
+                                        supplements: e.target.checked
+                                          ? [...sups, 'Fast Lock']
+                                          : sups.filter(s => s !== 'Fast Lock')
+                                      });
+                                    }}
+                                    className="rounded text-blue-600"
+                                  />
+                                  <span>🔒 Fast Lock</span>
+                                </label>
+
+                                {item.supplements?.includes('Fast Lock') && (
+                                  <div className="flex items-center gap-1.5 bg-blue-100/80 border border-blue-300 px-2 py-0.5 rounded-lg">
+                                    <span className="text-[11px] font-bold text-blue-900">Points :</span>
+                                    <select
+                                      value={item.fast_lock_points || '1'}
+                                      onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
+                                      className="bg-white border border-blue-400 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900"
+                                    >
+                                      <option value="1">1 point</option>
+                                      <option value="2">2 points</option>
+                                      <option value="3">3 points</option>
+                                    </select>
+                                  </div>
+                                )}
                               </div>
                             )}
 
-                            {/* Traverse */}
-                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={item.supplements?.includes('Traverse')}
-                                onChange={e => {
-                                  const sups = item.supplements || [];
-                                  updateItem(index, {
-                                    supplements: e.target.checked
-                                      ? [...sups, 'Traverse']
-                                      : sups.filter(s => s !== 'Traverse')
-                                  });
-                                }}
-                                className="rounded text-blue-600"
-                              />
-                              <span>Traverse</span>
-                            </label>
+                            {/* Poignée Béquille - Seulement pour Portes ou Frappe */}
+                            {(isPorte || isFrappe) && (
+                              <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={item.supplements?.includes('Poignée béquille')}
+                                  onChange={e => {
+                                    const sups = item.supplements || [];
+                                    updateItem(index, {
+                                      supplements: e.target.checked
+                                        ? [...sups, 'Poignée béquille']
+                                        : sups.filter(s => s !== 'Poignée béquille')
+                                    });
+                                  }}
+                                  className="rounded text-blue-600"
+                                />
+                                <span>🚪 Poignée béquille double</span>
+                              </label>
+                            )}
 
-                            {/* Serrure à clé */}
+                            {/* Serrure à clé - Pour Portes ou Fenêtres verrouillables */}
                             <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
                               <input
                                 type="checkbox"
@@ -900,105 +940,127 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                 }}
                                 className="rounded text-blue-600"
                               />
-                              <span>Serrure à clé</span>
+                              <span>🔑 Serrure à clé / Cylindre</span>
                             </label>
 
-                            {/* Poignée Béquille */}
+                            {/* Ferme-porte Groom - Seulement pour Portes */}
+                            {isPorte && (
+                              <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={item.supplements?.includes('Ferme-porte Groom')}
+                                  onChange={e => {
+                                    const sups = item.supplements || [];
+                                    updateItem(index, {
+                                      supplements: e.target.checked
+                                        ? [...sups, 'Ferme-porte Groom']
+                                        : sups.filter(s => s !== 'Ferme-porte Groom')
+                                    });
+                                  }}
+                                  className="rounded text-amber-600"
+                                />
+                                <span>🛡️ Ferme-porte hydraulique (Groom)</span>
+                              </label>
+                            )}
+
+                            {/* Traverse intermédiaire */}
                             <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
                               <input
                                 type="checkbox"
-                                checked={item.supplements?.includes('Poignée béquille')}
+                                checked={item.supplements?.includes('Traverse')}
                                 onChange={e => {
                                   const sups = item.supplements || [];
                                   updateItem(index, {
                                     supplements: e.target.checked
-                                      ? [...sups, 'Poignée béquille']
-                                      : sups.filter(s => s !== 'Poignée béquille')
+                                      ? [...sups, 'Traverse']
+                                      : sups.filter(s => s !== 'Traverse')
                                   });
                                 }}
                                 className="rounded text-blue-600"
                               />
-                              <span>Poignée béquille</span>
-                            </label>
-
-                            {/* Ferme-porte Groom */}
-                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={item.supplements?.includes('Ferme-porte Groom')}
-                                onChange={e => {
-                                  const sups = item.supplements || [];
-                                  updateItem(index, {
-                                    supplements: e.target.checked
-                                      ? [...sups, 'Ferme-porte Groom']
-                                      : sups.filter(s => s !== 'Ferme-porte Groom')
-                                  });
-                                }}
-                                className="rounded text-blue-600"
-                              />
-                              <span>Ferme-porte (Groom)</span>
+                              <span>➕ Traverse intermédiaire</span>
                             </label>
                           </div>
                         </div>
                       )}
 
                       {/* Store Rideau Option */}
-                      {!item.is_garde_corps && (
+                      {!item.is_garde_corps && !isStandaloneMousti && (
                         <div className="pt-2 border-t border-gray-200/80">
                           <label className="flex items-center space-x-2 text-xs font-bold text-gray-800 cursor-pointer w-fit">
                             <input
                               type="checkbox"
-                              checked={item.store_enabled || false}
+                              checked={isStandaloneStore || item.store_enabled || false}
+                              disabled={isStandaloneStore}
                               onChange={e => updateItem(index, { store_enabled: e.target.checked })}
                               className="rounded text-blue-600 w-4 h-4"
                             />
-                            <span>Store Rideau (Volet Roulant)</span>
+                            <span className="flex items-center gap-1.5">
+                              🪟 Store Rideau (Volet Roulant Intégré)
+                              {isStandaloneStore && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">Produit Store</span>}
+                            </span>
                           </label>
 
-                          {item.store_enabled && (
+                          {(isStandaloneStore || item.store_enabled) && (
                             <div className="mt-2.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 border border-blue-200 rounded-xl p-3.5 space-y-3">
+                              {/* Alerte contrainte physique si Largeur < 50cm */}
+                              {widthNum > 0 && widthNum < 50 && (
+                                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium">
+                                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                  <span>
+                                    ⚠️ <strong>Attention Largeur ({widthNum} cm &lt; 50 cm) :</strong> Un moteur tubulaire standard (~45 cm) ne peut pas rentrer dans l'axe. Privilégiez une manœuvre manuelle (sangle/tirage direct).
+                                  </span>
+                                </div>
+                              )}
+
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Type de lame</label>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Type de lame
+                                  </label>
                                   <select
                                     value={item.store_lame_type || 'lame inj 55'}
                                     onChange={e => updateItem(index, { store_lame_type: e.target.value })}
                                     className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                   >
-                                    <option value="lame inj 55">Lame injectée 55mm (Standard)</option>
-                                    <option value="lame inj 45">Lame injectée 45mm</option>
-                                    <option value="lame inj 42">Lame injectée 42mm</option>
-                                    <option value="lame extrud">Lame extrudée renforcée</option>
+                                    <option value="lame inj 55">Lame injectée 55mm (Standard — 65.000 DT/m²)</option>
+                                    <option value="lame inj 45">Lame injectée 45mm (75.000 DT/m²)</option>
+                                    <option value="lame inj 42">Lame injectée 42mm (70.000 DT/m²)</option>
+                                    <option value="lame extrud">Lame extrudée renforcée (110.000 DT/m²)</option>
                                   </select>
                                 </div>
 
                                 <div>
-                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Couleur store</label>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Couleur tablier
+                                  </label>
                                   <select
                                     value={item.store_couleur || 'Blanc'}
                                     onChange={e => updateItem(index, { store_couleur: e.target.value })}
                                     className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                   >
-                                    <option value="Blanc">Blanc</option>
-                                    <option value="Gris">Gris</option>
-                                    <option value="Noir">Noir</option>
-                                    <option value="Effet Bois">Effet Bois</option>
+                                    <option value="Blanc">Blanc Laqué</option>
+                                    <option value="Gris">Gris Anthracite</option>
+                                    <option value="Noir">Noir 9005</option>
+                                    <option value="Effet Bois">Effet Bois (Chêne doré)</option>
                                     <option value="Bronze">Bronze</option>
                                   </select>
                                 </div>
 
                                 <div>
-                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Coffre</label>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Coffre de volet
+                                  </label>
                                   <select
                                     value={item.store_coffre || ''}
                                     onChange={e => updateItem(index, { store_coffre: e.target.value })}
                                     className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                   >
-                                    <option value="">— Sans coffre (Tunnel/Encastré) —</option>
-                                    <option value="Coffre alu 15">Coffre alu 15 cm</option>
-                                    <option value="Coffre alu 20">Coffre alu 20 cm</option>
-                                    <option value="Coffre alu 25">Coffre alu 25 cm</option>
-                                    <option value="Coffre PVC">Coffre PVC Monobloc</option>
+                                    <option value="">— Sans coffre (Tunnel / Encastré — 0 DT) —</option>
+                                    <option value="Coffre alu 15">Coffre alu 15 cm (45.000 DT/ml)</option>
+                                    <option value="Coffre alu 20">Coffre alu 20 cm (55.000 DT/ml)</option>
+                                    <option value="Coffre alu 25">Coffre alu 25 cm (65.000 DT/ml)</option>
+                                    <option value="Coffre PVC">Coffre PVC Monobloc (50.000 DT/ml)</option>
                                   </select>
                                 </div>
                               </div>
@@ -1023,17 +1085,27 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
                                 {(item.store_manoeuvre === 'moteur_filaire' || item.store_manoeuvre === 'moteur_radio' || !item.store_manoeuvre) && (
                                   <div>
-                                    <label className="block text-[11px] font-bold text-blue-900 mb-1">
-                                      Modèle du Moteur
-                                    </label>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <label className="block text-[11px] font-bold text-blue-900">
+                                        Modèle & Puissance du Moteur
+                                      </label>
+                                      {surfaceM2 > 0 && (
+                                        <span className="text-[10px] text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded">
+                                          Surf: {surfaceM2.toFixed(2)} m² → {autoMotorKg} kg
+                                        </span>
+                                      )}
+                                    </div>
                                     <select
                                       value={item.store_moteur_id || 'auto'}
                                       onChange={e => updateItem(index, { store_moteur_id: e.target.value })}
                                       className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-800"
                                     >
-                                      {STORE_MOTORS.map(m => (
+                                      <option value="auto">
+                                        🤖 Recommandé Auto ({autoMotorKg} kg) {STORE_MOTORS.find(m => m.id === 'moteur_' + autoMotorKg) ? `— ${STORE_MOTORS.find(m => m.id === 'moteur_' + autoMotorKg)!.prix_unitaire_ht.toFixed(3)} DT HT` : ''}
+                                      </option>
+                                      {STORE_MOTORS.filter(m => m.id !== 'auto').map(m => (
                                         <option key={m.id} value={m.id}>
-                                          {m.nom} {m.prix_unitaire_ht > 0 ? `(${m.prix_unitaire_ht.toFixed(3)} DT HT)` : ''}
+                                          {m.nom} — {m.capacite_kg > 0 ? `${m.capacite_kg} kg — ` : ''}{m.prix_unitaire_ht.toFixed(3)} DT HT
                                         </option>
                                       ))}
                                     </select>
@@ -1050,7 +1122,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     onChange={e => updateItem(index, { store_bloc_secu: e.target.checked })}
                                     className="rounded text-blue-600"
                                   />
-                                  <span>Bloc de sécurité anti-soulèvement</span>
+                                  <span>🛡️ Bloc de sécurité anti-soulèvement (+18.000 DT)</span>
                                 </label>
 
                                 <label className="flex items-center space-x-1.5 font-medium text-gray-700 cursor-pointer">
@@ -1060,7 +1132,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     onChange={e => updateItem(index, { store_axe70: e.target.checked })}
                                     className="rounded text-blue-600"
                                   />
-                                  <span>Axe 70 renforcé</span>
+                                  <span>🔩 Axe tubulaire Ø70 renforcé (conseillé pour grande baie)</span>
                                 </label>
                               </div>
                             </div>
@@ -1069,33 +1141,44 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                       )}
 
                       {/* Moustiquaire Option */}
-                      {!item.is_garde_corps && (
+                      {!item.is_garde_corps && !isStandaloneStore && (
                         <div className="pt-2 border-t border-gray-100">
                           <label className="flex items-center space-x-2 text-xs font-bold text-gray-800 cursor-pointer w-fit">
                             <input
                               type="checkbox"
-                              checked={item.mousti_enabled || false}
+                              checked={isStandaloneMousti || item.mousti_enabled || false}
+                              disabled={isStandaloneMousti}
                               onChange={e => updateItem(index, { mousti_enabled: e.target.checked })}
                               className="rounded text-emerald-600 w-4 h-4"
                             />
-                            <span>Moustiquaire</span>
+                            <span className="flex items-center gap-1.5">
+                              🦟 Moustiquaire
+                              {isStandaloneMousti && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Produit Moustiquaire</span>}
+                            </span>
                           </label>
 
-                          {item.mousti_enabled && (
+                          {(isStandaloneMousti || item.mousti_enabled) && (
                             <div className="mt-2 bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                               <div className="flex-1 w-full">
-                                <label className="block text-[11px] font-semibold text-emerald-900 mb-1">
-                                  Type de Moustiquaire
-                                </label>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="block text-[11px] font-semibold text-emerald-900">
+                                    Type de Moustiquaire
+                                  </label>
+                                  {surfaceM2 > 0 && (
+                                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+                                      Surface : {surfaceM2.toFixed(2)} m²
+                                    </span>
+                                  )}
+                                </div>
                                 <select
                                   value={item.mousti_type || 'enroulable'}
                                   onChange={e => updateItem(index, { mousti_type: e.target.value as any })}
                                   className="w-full bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-900"
                                 >
-                                  <option value="enroulable">🌀 Moustiquaire Enroulable Verticale (Standard fenêtre — 65 DT/m²)</option>
-                                  <option value="plissee">📐 Moustiquaire Plissée Coulissante (Baies vitrées & Portes — 110 DT/m²)</option>
-                                  <option value="fixe">🔲 Moustiquaire Cadre Fixe Clipsé (Économique — 40 DT/m²)</option>
-                                  <option value="battante">🚪 Moustiquaire Porte Battante avec charnières (90 DT/m²)</option>
+                                  <option value="enroulable">🌀 Moustiquaire Enroulable Verticale (Standard fenêtre — 65.000 DT/m²)</option>
+                                  <option value="plissee">📐 Moustiquaire Plissée Coulissante (Baies vitrées & Portes — 110.000 DT/m²)</option>
+                                  <option value="fixe">🔲 Moustiquaire Cadre Fixe Clipsé (Économique — 40.000 DT/m²)</option>
+                                  <option value="battante">🚪 Moustiquaire Porte Battante avec charnières (90.000 DT/m²)</option>
                                 </select>
                               </div>
                             </div>
