@@ -11,7 +11,7 @@ import {
   CHASSI_FIX_REFS_ALUECO
 } from '../../data/productCatalog';
 import { renderAlumDrawing, DrawingParams } from '../../utils/productDrawing';
-import { DevisItemState, calculateDevisTotals } from '../../utils/devisCalculator';
+import { DevisItemState, calculateDevisTotals, STORE_MOTORS } from '../../utils/devisCalculator';
 import { FicheAtelierModal } from './FicheAtelierModal';
 import { 
   Plus, 
@@ -32,7 +32,9 @@ import {
   Phone,
   MapPin,
   Mail,
-  Building2
+  Building2,
+  Truck,
+  Wrench
 } from 'lucide-react';
 
 interface DevisCreateViewProps {
@@ -75,6 +77,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
   const [margeStoreType, setMargeStoreType] = useState<'percent' | 'dt'>(existingDevis?.marges.margeStoreType || 'percent');
   const [margeStoreValue, setMargeStoreValue] = useState<number>(existingDevis?.marges.margeStoreValue || 0);
 
+  const [fraisPose, setFraisPose] = useState<number>(existingDevis?.frais_pose ?? existingDevis?.marges?.frais_pose ?? 0);
+  const [fraisTransport, setFraisTransport] = useState<number>(existingDevis?.frais_transport ?? existingDevis?.marges?.frais_transport ?? 0);
+
   const [tvaRate, setTvaRate] = useState<number>(existingDevis?.marges.tva ?? settings.tva_default);
 
   const createInitialItem = (): DevisItemState => ({
@@ -108,7 +113,12 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     store_lame_type: 'lame inj 55',
     store_couleur: 'Blanc',
     store_coffre: '',
+    store_manoeuvre: 'moteur_filaire',
+    store_moteur_id: 'auto',
+    store_bloc_secu: true,
+    store_axe70: false,
     mousti_enabled: false,
+    mousti_type: 'enroulable',
     mousti_hauteur: '',
     mousti_largeur: '',
     _showErrors: false
@@ -133,7 +143,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     margeMoustiValue,
     margeStoreType,
     margeStoreValue,
-    tva: tvaRate
+    tva: tvaRate,
+    frais_pose: fraisPose,
+    frais_transport: fraisTransport
   };
 
   // Live Totals calculation
@@ -344,6 +356,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       client_nom: selectedClient ? selectedClient.nom : 'Sans client',
       date,
       notes,
+      frais_pose: fraisPose,
+      frais_transport: fraisTransport,
       items,
       marges: margesConfig,
       totals,
@@ -815,114 +829,239 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
                       {/* Suppléments Quincaillerie */}
                       {!item.is_chassi_fix && !item.is_garde_corps && (
-                        <div className="flex flex-wrap items-center gap-4 pt-1">
-                          <label className="flex items-center space-x-2 text-xs font-medium text-gray-700 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={item.supplements?.includes('Fast Lock')}
-                              onChange={e => {
-                                const sups = item.supplements || [];
-                                updateItem(index, {
-                                  supplements: e.target.checked
-                                    ? [...sups, 'Fast Lock']
-                                    : sups.filter(s => s !== 'Fast Lock')
-                                });
-                              }}
-                              className="rounded text-blue-600"
-                            />
-                            <span>Fast Lock</span>
+                        <div className="pt-2 border-t border-gray-100">
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">
+                            Quincaillerie & Suppléments
                           </label>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {/* Fast Lock */}
+                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={item.supplements?.includes('Fast Lock')}
+                                onChange={e => {
+                                  const sups = item.supplements || [];
+                                  updateItem(index, {
+                                    supplements: e.target.checked
+                                      ? [...sups, 'Fast Lock']
+                                      : sups.filter(s => s !== 'Fast Lock')
+                                  });
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span>Fast Lock</span>
+                            </label>
 
-                          {item.supplements?.includes('Fast Lock') && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600">Points :</span>
-                              <select
-                                value={item.fast_lock_points || '1'}
-                                onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
-                                className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-xs"
-                              >
-                                <option value="1">1 point</option>
-                                <option value="2">2 points</option>
-                                <option value="3">3 points</option>
-                              </select>
-                            </div>
-                          )}
+                            {item.supplements?.includes('Fast Lock') && (
+                              <div className="flex items-center gap-1.5 bg-blue-50/70 border border-blue-200 px-2 py-0.5 rounded-lg">
+                                <span className="text-[11px] font-semibold text-blue-700">Points :</span>
+                                <select
+                                  value={item.fast_lock_points || '1'}
+                                  onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
+                                  className="bg-white border border-blue-300 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900"
+                                >
+                                  <option value="1">1 pt</option>
+                                  <option value="2">2 pts</option>
+                                  <option value="3">3 pts</option>
+                                </select>
+                              </div>
+                            )}
 
-                          <label className="flex items-center space-x-2 text-xs font-medium text-gray-700 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={item.supplements?.includes('Traverse')}
-                              onChange={e => {
-                                const sups = item.supplements || [];
-                                updateItem(index, {
-                                  supplements: e.target.checked
-                                    ? [...sups, 'Traverse']
-                                    : sups.filter(s => s !== 'Traverse')
-                                });
-                              }}
-                              className="rounded text-blue-600"
-                            />
-                            <span>Traverse</span>
-                          </label>
+                            {/* Traverse */}
+                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={item.supplements?.includes('Traverse')}
+                                onChange={e => {
+                                  const sups = item.supplements || [];
+                                  updateItem(index, {
+                                    supplements: e.target.checked
+                                      ? [...sups, 'Traverse']
+                                      : sups.filter(s => s !== 'Traverse')
+                                  });
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span>Traverse</span>
+                            </label>
+
+                            {/* Serrure à clé */}
+                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={item.supplements?.includes('Serrure à clé')}
+                                onChange={e => {
+                                  const sups = item.supplements || [];
+                                  updateItem(index, {
+                                    supplements: e.target.checked
+                                      ? [...sups, 'Serrure à clé']
+                                      : sups.filter(s => s !== 'Serrure à clé')
+                                  });
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span>Serrure à clé</span>
+                            </label>
+
+                            {/* Poignée Béquille */}
+                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={item.supplements?.includes('Poignée béquille')}
+                                onChange={e => {
+                                  const sups = item.supplements || [];
+                                  updateItem(index, {
+                                    supplements: e.target.checked
+                                      ? [...sups, 'Poignée béquille']
+                                      : sups.filter(s => s !== 'Poignée béquille')
+                                  });
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span>Poignée béquille</span>
+                            </label>
+
+                            {/* Ferme-porte Groom */}
+                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={item.supplements?.includes('Ferme-porte Groom')}
+                                onChange={e => {
+                                  const sups = item.supplements || [];
+                                  updateItem(index, {
+                                    supplements: e.target.checked
+                                      ? [...sups, 'Ferme-porte Groom']
+                                      : sups.filter(s => s !== 'Ferme-porte Groom')
+                                  });
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span>Ferme-porte (Groom)</span>
+                            </label>
+                          </div>
                         </div>
                       )}
 
                       {/* Store Rideau Option */}
                       {!item.is_garde_corps && (
                         <div className="pt-2 border-t border-gray-200/80">
-                          <label className="flex items-center space-x-2 text-xs font-semibold text-gray-800 cursor-pointer w-fit">
+                          <label className="flex items-center space-x-2 text-xs font-bold text-gray-800 cursor-pointer w-fit">
                             <input
                               type="checkbox"
                               checked={item.store_enabled || false}
                               onChange={e => updateItem(index, { store_enabled: e.target.checked })}
-                              className="rounded text-blue-600"
+                              className="rounded text-blue-600 w-4 h-4"
                             />
-                            <span>Store Rideau</span>
+                            <span>Store Rideau (Volet Roulant)</span>
                           </label>
 
                           {item.store_enabled && (
-                            <div className="mt-2 bg-blue-50/70 border border-blue-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                              <div>
-                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Type de lame</label>
-                                <select
-                                  value={item.store_lame_type || 'lame inj 55'}
-                                  onChange={e => updateItem(index, { store_lame_type: e.target.value })}
-                                  className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
-                                >
-                                  <option value="lame inj 55">Lame injectée 55mm</option>
-                                  <option value="lame inj 45">Lame injectée 45mm</option>
-                                  <option value="lame inj 42">Lame injectée 42mm</option>
-                                  <option value="lame extrud">Lame extrudée</option>
-                                </select>
+                            <div className="mt-2.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 border border-blue-200 rounded-xl p-3.5 space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Type de lame</label>
+                                  <select
+                                    value={item.store_lame_type || 'lame inj 55'}
+                                    onChange={e => updateItem(index, { store_lame_type: e.target.value })}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                                  >
+                                    <option value="lame inj 55">Lame injectée 55mm (Standard)</option>
+                                    <option value="lame inj 45">Lame injectée 45mm</option>
+                                    <option value="lame inj 42">Lame injectée 42mm</option>
+                                    <option value="lame extrud">Lame extrudée renforcée</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Couleur store</label>
+                                  <select
+                                    value={item.store_couleur || 'Blanc'}
+                                    onChange={e => updateItem(index, { store_couleur: e.target.value })}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                                  >
+                                    <option value="Blanc">Blanc</option>
+                                    <option value="Gris">Gris</option>
+                                    <option value="Noir">Noir</option>
+                                    <option value="Effet Bois">Effet Bois</option>
+                                    <option value="Bronze">Bronze</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-600 mb-1">Coffre</label>
+                                  <select
+                                    value={item.store_coffre || ''}
+                                    onChange={e => updateItem(index, { store_coffre: e.target.value })}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                                  >
+                                    <option value="">— Sans coffre (Tunnel/Encastré) —</option>
+                                    <option value="Coffre alu 15">Coffre alu 15 cm</option>
+                                    <option value="Coffre alu 20">Coffre alu 20 cm</option>
+                                    <option value="Coffre alu 25">Coffre alu 25 cm</option>
+                                    <option value="Coffre PVC">Coffre PVC Monobloc</option>
+                                  </select>
+                                </div>
                               </div>
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Couleur store</label>
-                                <select
-                                  value={item.store_couleur || 'Blanc'}
-                                  onChange={e => updateItem(index, { store_couleur: e.target.value })}
-                                  className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
-                                >
-                                  <option value="Blanc">Blanc</option>
-                                  <option value="Noir">Noir</option>
-                                  <option value="Gris">Gris</option>
-                                  <option value="Effet Bois">Effet Bois</option>
-                                </select>
+                              {/* Manœuvre & Motorisation Grid */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-blue-200/60">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-blue-900 mb-1">
+                                    Type de Manœuvre (Commande)
+                                  </label>
+                                  <select
+                                    value={item.store_manoeuvre || 'moteur_filaire'}
+                                    onChange={e => updateItem(index, { store_manoeuvre: e.target.value as any })}
+                                    className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-blue-900"
+                                  >
+                                    <option value="moteur_filaire">⚡ Moteur Électrique Filaire (Bouton inverseur)</option>
+                                    <option value="moteur_radio">📡 Moteur Électrique Radio (Télécommande sans fil)</option>
+                                    <option value="manuel_sangle">🖐️ Manuel (Sangle / Enrouleur)</option>
+                                    <option value="tirage_direct">🚪 Tirage direct à ressort (Porte / Magasin)</option>
+                                  </select>
+                                </div>
+
+                                {(item.store_manoeuvre === 'moteur_filaire' || item.store_manoeuvre === 'moteur_radio' || !item.store_manoeuvre) && (
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-blue-900 mb-1">
+                                      Modèle du Moteur
+                                    </label>
+                                    <select
+                                      value={item.store_moteur_id || 'auto'}
+                                      onChange={e => updateItem(index, { store_moteur_id: e.target.value })}
+                                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-800"
+                                    >
+                                      {STORE_MOTORS.map(m => (
+                                        <option key={m.id} value={m.id}>
+                                          {m.nom} {m.prix_unitaire_ht > 0 ? `(${m.prix_unitaire_ht.toFixed(3)} DT HT)` : ''}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
                               </div>
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Coffre</label>
-                                <select
-                                  value={item.store_coffre || ''}
-                                  onChange={e => updateItem(index, { store_coffre: e.target.value })}
-                                  className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
-                                >
-                                  <option value="">— Sans coffre —</option>
-                                  <option value="Coffre alu 15">Coffre alu 15</option>
-                                  <option value="Coffre alu 20">Coffre alu 20</option>
-                                  <option value="Coffre alu 25">Coffre alu 25</option>
-                                  <option value="Coffre PVC">Coffre PVC</option>
-                                </select>
+                              {/* Sécurité & Axe */}
+                              <div className="flex flex-wrap items-center gap-4 pt-1.5 text-xs">
+                                <label className="flex items-center space-x-1.5 font-medium text-gray-700 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.store_bloc_secu ?? true}
+                                    onChange={e => updateItem(index, { store_bloc_secu: e.target.checked })}
+                                    className="rounded text-blue-600"
+                                  />
+                                  <span>Bloc de sécurité anti-soulèvement</span>
+                                </label>
+
+                                <label className="flex items-center space-x-1.5 font-medium text-gray-700 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.store_axe70 || false}
+                                    onChange={e => updateItem(index, { store_axe70: e.target.checked })}
+                                    className="rounded text-blue-600"
+                                  />
+                                  <span>Axe 70 renforcé</span>
+                                </label>
                               </div>
                             </div>
                           )}
@@ -931,16 +1070,36 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
                       {/* Moustiquaire Option */}
                       {!item.is_garde_corps && (
-                        <div className="pt-1">
-                          <label className="flex items-center space-x-2 text-xs font-semibold text-gray-800 cursor-pointer w-fit">
+                        <div className="pt-2 border-t border-gray-100">
+                          <label className="flex items-center space-x-2 text-xs font-bold text-gray-800 cursor-pointer w-fit">
                             <input
                               type="checkbox"
                               checked={item.mousti_enabled || false}
                               onChange={e => updateItem(index, { mousti_enabled: e.target.checked })}
-                              className="rounded text-emerald-600"
+                              className="rounded text-emerald-600 w-4 h-4"
                             />
                             <span>Moustiquaire</span>
                           </label>
+
+                          {item.mousti_enabled && (
+                            <div className="mt-2 bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                              <div className="flex-1 w-full">
+                                <label className="block text-[11px] font-semibold text-emerald-900 mb-1">
+                                  Type de Moustiquaire
+                                </label>
+                                <select
+                                  value={item.mousti_type || 'enroulable'}
+                                  onChange={e => updateItem(index, { mousti_type: e.target.value as any })}
+                                  className="w-full bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-900"
+                                >
+                                  <option value="enroulable">🌀 Moustiquaire Enroulable Verticale (Standard fenêtre — 65 DT/m²)</option>
+                                  <option value="plissee">📐 Moustiquaire Plissée Coulissante (Baies vitrées & Portes — 110 DT/m²)</option>
+                                  <option value="fixe">🔲 Moustiquaire Cadre Fixe Clipsé (Économique — 40 DT/m²)</option>
+                                  <option value="battante">🚪 Moustiquaire Porte Battante avec charnières (90 DT/m²)</option>
+                                </select>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1002,83 +1161,133 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
           </div>
         </div>
 
-        {/* Section 3: Marges & TVA */}
+        {/* Section 3: Marges, TVA & Frais de Chantier */}
         <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-4 sm:p-6 space-y-4">
           <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
-            Marges & TVA <span className="text-xs font-normal text-gray-500">(optionnel)</span>
+            Marges, TVA & Frais de Chantier <span className="text-xs font-normal text-gray-500">(optionnel)</span>
           </h2>
 
-          <div className="space-y-3">
-            {/* Fenêtres / Portes */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs sm:text-sm font-semibold text-gray-700 w-36">Fenêtres / Portes :</span>
-              <select
-                value={margeType}
-                onChange={e => setMargeType(e.target.value as any)}
-                className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs sm:text-sm"
-              >
-                <option value="percent">Pourcentage (%)</option>
-                <option value="dt">Montant fixe (DT)</option>
-              </select>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={margeValue || ''}
-                  onChange={e => setMargeValue(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-mono font-bold"
-                />
-                <span className="absolute right-2.5 top-1.5 text-gray-400 text-xs">{margeType === 'percent' ? '%' : 'DT'}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Colonne Gauche: Marges */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Marges Bénéficiaires</p>
+              
+              {/* Fenêtres / Portes */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-32">Fenêtres / Portes :</span>
+                <select
+                  value={margeType}
+                  onChange={e => setMargeType(e.target.value as any)}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
+                >
+                  <option value="percent">% Marge</option>
+                  <option value="dt">Montant fixe (DT)</option>
+                </select>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={margeValue || ''}
+                    onChange={e => setMargeValue(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-20 bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">{margeType === 'percent' ? '%' : 'DT'}</span>
+                </div>
+              </div>
+
+              {/* Store Rideau */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-32">Store Rideau :</span>
+                <select
+                  value={margeStoreType}
+                  onChange={e => setMargeStoreType(e.target.value as any)}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
+                >
+                  <option value="percent">% Marge</option>
+                  <option value="dt">Montant fixe (DT)</option>
+                </select>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={margeStoreValue || ''}
+                    onChange={e => setMargeStoreValue(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-20 bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">{margeStoreType === 'percent' ? '%' : 'DT'}</span>
+                </div>
+              </div>
+
+              {/* TVA */}
+              <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
+                <span className="text-xs font-semibold text-gray-700 w-32">Taux TVA :</span>
+                <select
+                  value={tvaRate}
+                  onChange={e => setTvaRate(parseFloat(e.target.value) || 0)}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+                >
+                  <option value="0">Sans TVA (0%)</option>
+                  <option value="7">TVA 7%</option>
+                  <option value="13">TVA 13%</option>
+                  <option value="19">TVA 19%</option>
+                </select>
               </div>
             </div>
 
-            {/* Store Rideau */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs sm:text-sm font-semibold text-gray-700 w-36">Store Rideau :</span>
-              <select
-                value={margeStoreType}
-                onChange={e => setMargeStoreType(e.target.value as any)}
-                className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs sm:text-sm"
-              >
-                <option value="percent">Pourcentage (%)</option>
-                <option value="dt">Montant fixe (DT)</option>
-              </select>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={margeStoreValue || ''}
-                  onChange={e => setMargeStoreValue(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-mono font-bold"
-                />
-                <span className="absolute right-2.5 top-1.5 text-gray-400 text-xs">{margeStoreType === 'percent' ? '%' : 'DT'}</span>
-              </div>
-            </div>
+            {/* Colonne Droite: Frais de Pose & Transport */}
+            <div className="space-y-3 md:border-l md:border-gray-200 md:pl-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Prestations de Chantier</p>
 
-            {/* TVA */}
-            <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100">
-              <span className="text-xs sm:text-sm font-semibold text-gray-700 w-36">TVA :</span>
-              <select
-                value={tvaRate}
-                onChange={e => setTvaRate(parseFloat(e.target.value) || 0)}
-                className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold"
-              >
-                <option value="0">Sans TVA (0%)</option>
-                <option value="7">TVA 7%</option>
-                <option value="13">TVA 13%</option>
-                <option value="19">TVA 19%</option>
-              </select>
+              {/* Frais de Pose */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <Wrench className="w-3.5 h-3.5 text-blue-600" />
+                  Pose & Montage :
+                </span>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="5"
+                    min="0"
+                    value={fraisPose || ''}
+                    onChange={e => setFraisPose(parseFloat(e.target.value) || 0)}
+                    placeholder="0.000"
+                    className="w-28 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-gray-800"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">DT</span>
+                </div>
+              </div>
+
+              {/* Frais de Transport */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                  Transport / Livraison :
+                </span>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="5"
+                    min="0"
+                    value={fraisTransport || ''}
+                    onChange={e => setFraisTransport(parseFloat(e.target.value) || 0)}
+                    placeholder="0.000"
+                    className="w-28 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-gray-800"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">DT</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Section 4: Totals Summary & Submit Bar */}
         <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-5">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full md:w-auto font-mono">
+          <div className="flex flex-wrap items-center gap-6 w-full md:w-auto font-mono">
             <div>
               <p className="text-[11px] text-blue-200 uppercase tracking-wider font-sans">Total Brut HT</p>
               <p className="text-base font-bold">{totals.total_brut_ht.toFixed(3)} DT</p>
@@ -1087,6 +1296,12 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
               <p className="text-[11px] text-blue-200 uppercase tracking-wider font-sans">Total Marge</p>
               <p className="text-base font-bold text-amber-300">+{totals.total_marge.toFixed(3)} DT</p>
             </div>
+            {(totals.frais_pose > 0 || totals.frais_transport > 0) && (
+              <div>
+                <p className="text-[11px] text-blue-200 uppercase tracking-wider font-sans">Pose & Transport</p>
+                <p className="text-base font-bold text-sky-300">+{(totals.frais_pose + totals.frais_transport).toFixed(3)} DT</p>
+              </div>
+            )}
             <div>
               <p className="text-[11px] text-blue-200 uppercase tracking-wider font-sans">Total Net HT</p>
               <p className="text-base font-bold">{totals.total_ht.toFixed(3)} DT</p>

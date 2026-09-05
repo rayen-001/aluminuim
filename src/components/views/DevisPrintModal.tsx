@@ -142,14 +142,34 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                         {it.hauteur && it.largeur ? `Dimensions : ${it.largeur} cm × ${it.hauteur} cm` : ''} • Quantité : <span className="font-bold">{it.quantity}</span>
                       </p>
 
-                      {it.store_enabled && (
-                        <p className="text-[11px] text-blue-700">
-                          + Store rideau : {it.store_lame_type} ({it.store_couleur}) {it.store_coffre ? `avec ${it.store_coffre}` : ''}
+                      {/* Suppléments Quincaillerie */}
+                      {it.supplements && it.supplements.length > 0 && (
+                        <p className="text-[11px] text-gray-700">
+                          <span className="font-semibold">Options : </span>
+                          {it.supplements.map(s => s === 'Fast Lock' ? `Fast Lock (${it.fast_lock_points || 1} pt)` : s).join(' • ')}
                         </p>
                       )}
 
+                      {/* Store Rideau */}
+                      {it.store_enabled && (
+                        <p className="text-[11px] text-blue-700">
+                          + Store rideau : {it.store_lame_type || 'Lame 55'} ({it.store_couleur || 'Blanc'}) 
+                          {it.store_manoeuvre === 'moteur_radio' ? ' • Moteur Radio Télécommande' : 
+                           it.store_manoeuvre === 'moteur_filaire' ? ' • Moteur Filaire' : 
+                           it.store_manoeuvre === 'manuel_sangle' ? ' • Manuel Sangle' : 
+                           it.store_manoeuvre === 'tirage_direct' ? ' • Tirage Direct' : ' • Moteur Électrique'}
+                          {it.store_coffre ? ` • ${it.store_coffre}` : ''}
+                          {it.store_bloc_secu ? ' • Bloc sécurité' : ''}
+                        </p>
+                      )}
+
+                      {/* Moustiquaire */}
                       {it.mousti_enabled && (
-                        <p className="text-[11px] text-emerald-700">+ Moustiquaire sur mesure incluse</p>
+                        <p className="text-[11px] text-emerald-700">
+                          + {it.mousti_type === 'plissee' ? 'Moustiquaire Plissée Coulissante' : 
+                             it.mousti_type === 'fixe' ? 'Moustiquaire Cadre Fixe' : 
+                             it.mousti_type === 'battante' ? 'Moustiquaire Porte Battante' : 'Moustiquaire Enroulable Verticale'}
+                        </p>
                       )}
                     </div>
 
@@ -176,7 +196,23 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
 
           {/* Totals Box */}
           <div className="flex justify-end pt-4 border-t border-gray-200">
-            <div className="w-64 space-y-1.5 font-mono text-xs">
+            <div className="w-72 space-y-1.5 font-mono text-xs">
+              {(devis.totals?.frais_pose > 0 || devis.totals?.frais_transport > 0) && (
+                <>
+                  {devis.totals?.frais_pose > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Frais de Pose / Montage :</span>
+                      <span className="font-bold">{devis.totals.frais_pose.toFixed(3)} DT</span>
+                    </div>
+                  )}
+                  {devis.totals?.frais_transport > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Transport / Livraison :</span>
+                      <span className="font-bold">{devis.totals.frais_transport.toFixed(3)} DT</span>
+                    </div>
+                  )}
+                </>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Total Net HT :</span>
                 <span className="font-bold">{devis.totals.total_ht.toFixed(3)} DT</span>

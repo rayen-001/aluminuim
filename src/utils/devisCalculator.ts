@@ -53,7 +53,7 @@ export interface DevisItemState {
   gc_fin_qty?: number;
   gc_ongle?: string;
 
-  // Store
+  // Store Rideau (Volet Roulant)
   store_enabled?: boolean;
   store_lame_type?: string;
   store_couleur?: string;
@@ -61,10 +61,14 @@ export interface DevisItemState {
   store_encastre?: boolean;
   store_axe70?: boolean;
   store_renforce?: boolean;
+  store_bloc_secu?: boolean;
   store_lame_s_qty?: number;
+  store_manoeuvre?: 'manuel_sangle' | 'moteur_filaire' | 'moteur_radio' | 'tirage_direct';
+  store_moteur_id?: string;
 
   // Moustiquaire
   mousti_enabled?: boolean;
+  mousti_type?: 'enroulable' | 'plissee' | 'fixe' | 'battante';
   mousti_hauteur?: string | number;
   mousti_largeur?: string | number;
 
@@ -77,6 +81,15 @@ export interface DevisItemState {
 
   _showErrors?: boolean;
 }
+
+export const STORE_MOTORS = [
+  { id: 'auto', nom: 'Automatique (Recommandé selon surface/poids)', prix_unitaire_ht: 0 },
+  { id: 'acc_moteur_40kg', nom: 'Moteur tubulaire 40 kg (jusqu’à 2.5 m²)', prix_unitaire_ht: 70.200 },
+  { id: 'acc_moteur_60kg', nom: 'Moteur tubulaire 60 kg (2.5 à 4.5 m²)', prix_unitaire_ht: 81.000 },
+  { id: 'acc_moteur_100kg', nom: 'Moteur tubulaire 100 kg (4.5 à 7.5 m²)', prix_unitaire_ht: 102.600 },
+  { id: 'acc_moteur_160kg', nom: 'Moteur tubulaire 160 kg (grandes baies)', prix_unitaire_ht: 194.400 },
+  { id: 'acc_moteur_250kg', nom: 'Moteur tubulaire 250 kg (industriel)', prix_unitaire_ht: 237.600 }
+];
 
 export interface CalculatedItemCost {
   article_cost: number;
@@ -94,6 +107,8 @@ export interface CalculatedItemCost {
 export interface DevisTotals {
   total_brut_ht: number;
   total_marge: number;
+  frais_pose?: number;
+  frais_transport?: number;
   total_ht: number;
   total_tva: number;
   total_ttc: number;
@@ -113,6 +128,8 @@ export function calculateItemCost(
     margeStoreType: 'percent' | 'dt';
     margeStoreValue: number;
     tva: number;
+    frais_pose?: number;
+    frais_transport?: number;
   }
 ): CalculatedItemCost {
   const qty = Number(item.quantity) || 1;
@@ -288,7 +305,7 @@ export function calculateItemCost(
       if (mot) vitrage_cost += surfaceM2 * mot.pricePerM2;
     }
 
-    // Quincaillerie & Accessories
+    // Quincaillerie & Accessories Suppléments
     if (item.supplements && item.supplements.length > 0) {
       item.supplements.forEach(sup => {
         const sLower = sup.toLowerCase();
@@ -297,10 +314,14 @@ export function calculateItemCost(
           accessoires_cost += pts * 22;
         } else if (sLower.includes('crémone')) {
           accessoires_cost += 32;
-        } else if (sLower.includes('serrure')) {
-          accessoires_cost += 45;
+        } else if (sLower.includes('serrure') || sLower.includes('clé') || sLower.includes('cylindre')) {
+          accessoires_cost += 48.600; // Serrure à clé multipoints
+        } else if (sLower.includes('béquille') || sLower.includes('poignée')) {
+          accessoires_cost += 28.000; // Poignée béquille double renforcée
+        } else if (sLower.includes('groom') || sLower.includes('ferme-porte')) {
+          accessoires_cost += 75.000; // Ferme-porte hydraulique
         } else if (sLower.includes('traverse')) {
-          accessoires_cost += 28;
+          accessoires_cost += 28.000;
         }
       });
     }
@@ -308,15 +329,59 @@ export function calculateItemCost(
     accessoires_cost += perimeterM * 4.5 + 15;
   }
 
-  // Store Rideau
+  // Store Rideau (Volet Roulant)
   if (item.store_enabled) {
     const isExtrude = item.store_lame_type === 'lame extrud';
-    const storeBase = surfaceM2 * (isExtrude ? 145 : 95);
+    let pricePerM2 = 95;
+    if (isExtrude) pricePerM2 = 145;
+    else if (item.store_lame_type === 'lame inj 55') pricePerM2 = 105;
+    else if (item.store_lame_type === 'lame inj 45') pricePerM2 = 95;
+    else if (item.store_lame_type === 'lame inj 42') pricePerM2 = 90;
+
+    // Règle d'or marché : Minimum facturable 1.3 m² pour couvrir axe, roulements et embouts
+    const storeSurf = Math.max(1.3, surfaceM2);
+    const storeBase = storeSurf * pricePerM2;
+
     let coffreCost = 0;
-    if (item.store_coffre) coffreCost += (w / 100) * 35;
+    if (item.store_coffre && item.store_coffre !== '— Sans coffre —') {
+      coffreCost += (w / 100) * 35;
+    }
     if (item.store_axe70) coffreCost += 25;
+    if (item.store_bloc_secu) coffreCost += (item.store_axe70 ? 42.012 : 31.212);
     if (item.store_renforce) coffreCost += 18;
-    store_cost = storeBase + coffreCost;
+
+    // Manœuvre & Motorisation
+    let manoeuvreCost = 0;
+    const manoeuvre = item.store_manoeuvre || 'moteur_filaire';
+
+    if (manoeuvre === 'manuel_sangle') {
+      manoeuvreCost += 25; // Sangle + boîtier enrouleur + guide sangle
+    } else if (manoeuvre === 'tirage_direct') {
+      manoeuvreCost += 30; // Ressort de compensation + serrure lame finale
+    } else if (manoeuvre === 'moteur_filaire' || manoeuvre === 'moteur_radio') {
+      let motorCost = 81.000; // Moteur 60kg standard par défaut
+
+      if (item.store_moteur_id && item.store_moteur_id !== 'auto') {
+        const found = STORE_MOTORS.find(m => m.id === item.store_moteur_id);
+        if (found && found.prix_unitaire_ht > 0) {
+          motorCost = found.prix_unitaire_ht;
+        }
+      } else {
+        // Auto-sélection selon la surface du volet
+        if (surfaceM2 <= 2.2) motorCost = 70.200; // Moteur 40 kg
+        else if (surfaceM2 <= 4.2) motorCost = 81.000; // Moteur 60 kg
+        else if (surfaceM2 <= 7.0) motorCost = 102.600; // Moteur 100 kg
+        else motorCost = 194.400; // Moteur 160 kg
+      }
+
+      if (manoeuvre === 'moteur_filaire') {
+        manoeuvreCost += motorCost + 15; // Moteur + Bouton inverseur mural
+      } else {
+        manoeuvreCost += motorCost + 45; // Moteur + Récepteur radio & Télécommande sans fil
+      }
+    }
+
+    store_cost = storeBase + coffreCost + manoeuvreCost;
   }
 
   // Moustiquaire
@@ -324,7 +389,21 @@ export function calculateItemCost(
     const mH = parseFloat(String(item.mousti_hauteur || h)) || h;
     const mW = parseFloat(String(item.mousti_largeur || w)) || w;
     const mSurf = (mH * mW) / 10000;
-    mousti_cost = Math.max(35, mSurf * 65);
+    const mType = item.mousti_type || 'enroulable';
+
+    if (mType === 'plissee') {
+      // Moustiquaire plissée latérale (min 1.2 m²)
+      mousti_cost = Math.max(90, Math.max(1.2, mSurf) * 110);
+    } else if (mType === 'fixe') {
+      // Moustiquaire cadre fixe clipsé (min 0.6 m²)
+      mousti_cost = Math.max(25, Math.max(0.6, mSurf) * 40);
+    } else if (mType === 'battante') {
+      // Moustiquaire porte battante avec cadre et charnières (min 1.0 m²)
+      mousti_cost = Math.max(75, Math.max(1.0, mSurf) * 90);
+    } else {
+      // Moustiquaire enroulable verticale standard (min 1.0 m²)
+      mousti_cost = Math.max(45, Math.max(1.0, mSurf) * 65);
+    }
   }
 
   // Margin application
@@ -395,11 +474,13 @@ export function calculateDevisTotals(
     margeStoreType: 'percent' | 'dt';
     margeStoreValue: number;
     tva: number;
+    frais_pose?: number;
+    frais_transport?: number;
   }
 ): DevisTotals {
   let total_brut_ht = 0;
   let total_marge = 0;
-  let total_ht = 0;
+  let items_total_ht = 0;
 
   const items_costs: CalculatedItemCost[] = [];
 
@@ -408,8 +489,12 @@ export function calculateDevisTotals(
     items_costs.push(cost);
     total_brut_ht += cost.brut_ht * (item.quantity || 1);
     total_marge += cost.marge_amount * (item.quantity || 1);
-    total_ht += cost.total_ht;
+    items_total_ht += cost.total_ht;
   });
+
+  const frais_pose = Number(marges.frais_pose) || 0;
+  const frais_transport = Number(marges.frais_transport) || 0;
+  const total_ht = items_total_ht + frais_pose + frais_transport;
 
   const total_tva = total_ht * ((marges.tva || 0) / 100);
   const total_ttc = total_ht + total_tva;
@@ -417,6 +502,8 @@ export function calculateDevisTotals(
   return {
     total_brut_ht: Math.round(total_brut_ht * 1000) / 1000,
     total_marge: Math.round(total_marge * 1000) / 1000,
+    frais_pose: Math.round(frais_pose * 1000) / 1000,
+    frais_transport: Math.round(frais_transport * 1000) / 1000,
     total_ht: Math.round(total_ht * 1000) / 1000,
     total_tva: Math.round(total_tva * 1000) / 1000,
     total_ttc: Math.round(total_ttc * 1000) / 1000,

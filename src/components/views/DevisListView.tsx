@@ -451,17 +451,33 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                             </span>
                                           )}
 
+                                          {/* Suppléments Quincaillerie */}
+                                          {it.supplements && it.supplements.length > 0 && (
+                                            <span className="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-medium">
+                                              ⚙️ {it.supplements.map(s => s === 'Fast Lock' ? `Fast Lock (${it.fast_lock_points || 1} pt)` : s).join(', ')}
+                                            </span>
+                                          )}
+
                                           {/* Store */}
                                           {it.store_enabled && (
                                             <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-semibold">
-                                              + Store rideau : {it.store_lame_type || 'Alu'} ({it.store_couleur || it.couleur}) {it.store_coffre ? `[${it.store_coffre}]` : ''}
+                                              + Store rideau : {it.store_lame_type || 'Alu'} ({it.store_couleur || it.couleur})
+                                              {it.store_manoeuvre === 'moteur_radio' ? ' [📡 Radio]' : 
+                                               it.store_manoeuvre === 'moteur_filaire' ? ' [⚡ Filaire]' : 
+                                               it.store_manoeuvre === 'manuel_sangle' ? ' [🖐️ Sangle]' : 
+                                               it.store_manoeuvre === 'tirage_direct' ? ' [🚪 Tirage]' : ' [⚡ Moteur]'}
+                                              {it.store_coffre ? ` [${it.store_coffre}]` : ''}
+                                              {it.store_bloc_secu ? ' [🛡️ Sécu]' : ''}
                                             </span>
                                           )}
 
                                           {/* Moustiquaire */}
                                           {it.mousti_enabled && (
                                             <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-semibold">
-                                              + Moustiquaire {it.mousti_largeur && it.mousti_hauteur ? `(${it.mousti_largeur}×${it.mousti_hauteur} cm)` : ''}
+                                              + {it.mousti_type === 'plissee' ? 'Moustiquaire Plissée' : 
+                                                 it.mousti_type === 'fixe' ? 'Moustiquaire Fixe' : 
+                                                 it.mousti_type === 'battante' ? 'Moustiquaire Battante' : 'Moustiquaire Enroulable'}
+                                              {it.mousti_largeur && it.mousti_hauteur ? ` (${it.mousti_largeur}×${it.mousti_hauteur} cm)` : ''}
                                             </span>
                                           )}
 
@@ -519,7 +535,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                               </div>
 
                               {/* Devis Notes & Total Bar */}
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200 text-xs">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-gray-200 text-xs">
                                 <div className="text-gray-600">
                                   {d.notes ? (
                                     <p className="italic">
@@ -530,7 +546,12 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                     <span className="text-gray-400 italic">Aucune note pour ce devis</span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-3 font-mono font-bold text-gray-900 self-end sm:self-auto">
+                                <div className="flex flex-wrap items-center gap-3 font-mono font-bold text-gray-900 self-end sm:self-auto">
+                                  {(d.totals?.frais_pose > 0 || d.totals?.frais_transport > 0) && (
+                                    <span className="text-gray-600 text-xs font-semibold bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                                      Pose/Transp : {((d.totals.frais_pose || 0) + (d.totals.frais_transport || 0)).toFixed(3)} DT
+                                    </span>
+                                  )}
                                   <span className="text-gray-500 font-normal">Total Devis :</span>
                                   <span className="text-blue-700 text-sm font-extrabold">{d.totals.total_ttc.toFixed(3)} DT TTC</span>
                                 </div>

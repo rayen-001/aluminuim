@@ -99,6 +99,8 @@ export interface DevisRecord {
   client_nom?: string;
   date: string;
   notes?: string;
+  frais_pose?: number;
+  frais_transport?: number;
   items: DevisItemState[];
   marges: {
     margeType: 'percent' | 'dt';
@@ -110,6 +112,8 @@ export interface DevisRecord {
     margeStoreType: 'percent' | 'dt';
     margeStoreValue: number;
     tva: number;
+    frais_pose?: number;
+    frais_transport?: number;
   };
   totals: DevisTotals;
   status: 'brouillon' | 'envoye' | 'accepte' | 'refuse' | 'converti';
