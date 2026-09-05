@@ -933,7 +933,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDevisList(prev => prev.filter(d => d.id !== id));
 
     if (user?.id) {
-      supabase.from('devis').delete().eq('id', id).eq('user_id', user.id);
+      supabase.from('devis').delete().eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase deleteDevis error:', error); });
     }
   };
 
@@ -943,7 +944,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const ts = String(Date.now()).slice(-6);
     const clone: DevisRecord = {
       ...JSON.parse(JSON.stringify(original)),
-      id: `dev_${Date.now()}`,
+      id: crypto.randomUUID(),
       numero: `DEV-${new Date().getFullYear()}-${ts}-COPIE`,
       status: 'brouillon',
       created_at: new Date().toISOString()
@@ -963,7 +964,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         marges: clone.marges,
         totals: clone.totals,
         status: clone.status
-      });
+      }).then(({ error }) => { if (error) console.error('Supabase duplicateDevis error:', error); });
     }
 
     return clone;
@@ -973,7 +974,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDevisList(prev => prev.map(d => d.id === id ? { ...d, status } : d));
 
     if (user?.id) {
-      supabase.from('devis').update({ status }).eq('id', id).eq('user_id', user.id);
+      supabase.from('devis').update({ status }).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase updateDevisStatus error:', error); });
     }
   };
 
@@ -1011,7 +1013,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         items: bl.items,
         notes: bl.notes || '',
         status: bl.status
-      });
+      }).then(({ error }) => { if (error) console.error('Supabase insert BL error:', error); });
     }
 
     return bl;
