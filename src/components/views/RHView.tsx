@@ -4,7 +4,8 @@ import {
   UserCheck, DollarSign, Calendar, FileText, Plus, Trash2, X,
   Edit2, CheckCircle, XCircle, Clock, Users, ArrowLeft,
   Phone, Briefcase, TrendingDown, CreditCard, AlertCircle,
-  CalendarCheck, ChevronRight, Printer, Wallet, Search
+  CalendarCheck, ChevronRight, Printer, Wallet, Search,
+  ArrowRight
 } from 'lucide-react';
 
 interface RHViewProps {
@@ -16,7 +17,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     employes, addEmploye, updateEmploye, deleteEmploye,
     avancesSalaire, addAvanceSalaire, deleteAvanceSalaire,
     conges, addConge, updateCongeStatus, deleteConge,
-    bulletinsPaie, addBulletinPaie, updateBulletinStatut, paySalaryBulletin, deleteBulletinPaie
+    bulletinsPaie, addBulletinPaie, updateBulletinStatut, paySalaryBulletin,
+    settleSalaryPayment, deleteBulletinPaie
   } = useApp();
 
   const currentMonthStr = new Date().toISOString().slice(0, 7); // "YYYY-MM"
@@ -26,6 +28,15 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
   const [selectedEmp, setSelectedEmp] = useState<Employe | null>(null);
   const [empActiveTab, setEmpActiveTab] = useState<'avances' | 'conges' | 'paies' | 'journal'>('avances');
   const [searchEmp, setSearchEmp] = useState('');
+
+  // ── Quick Pay Modal state ─────────────────────────────────────────
+  const [payModal, setPayModal] = useState(false);
+  const [payEmp, setPayEmp] = useState<Employe | null>(null);
+  const [payMontant, setPayMontant] = useState('');
+  const [payMode, setPayMode] = useState<'especes' | 'cheque' | 'virement'>('especes');
+  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
+  const [payMois, setPayMois] = useState(currentMonthStr);
+  const [payNotes, setPayNotes] = useState('');
 
   // ── Employes Modal state ──────────────────────────────────────────
   const [empModal, setEmpModal] = useState(false);
@@ -181,6 +192,37 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
     setBulletinModal(false);
   };
 
+  // ── Quick Pay Handlers ────────────────────────────────────────────
+  const openQuickPay = (e: Employe, moisToPay = currentMonthStr) => {
+    setPayEmp(e);
+    setPayMois(moisToPay);
+    setPayDate(new Date().toISOString().split('T')[0]);
+    setPayMode('especes');
+    setPayNotes('');
+
+    // Calculate advances and remainder for this month
+    const empAv = avancesSalaire
+      .filter(a => a.employe_id === e.id && a.date.startsWith(moisToPay))
+      .reduce((s, a) => s + a.montant, 0);
+    const bul = bulletinsPaie.find(b => b.employe_id === e.id && b.mois === moisToPay);
+    const netTotal = Math.max(0, (e.salaire_base || 0) - empAv);
+    const isAlreadyPaid = bul ? bul.statut_paiement === 'paye' : false;
+    const reste = isAlreadyPaid ? 0 : netTotal;
+
+    setPayMontant(reste > 0 ? String(reste) : String(netTotal > 0 ? netTotal : e.salaire_base));
+    setPayModal(true);
+  };
+
+  const handleConfirmQuickPay = (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!payEmp || !payMontant) return;
+    const montant = parseFloat(payMontant) || 0;
+    if (montant <= 0) return;
+
+    settleSalaryPayment(payEmp.id, montant, payMode, payDate, payMois, payNotes);
+    setPayModal(false);
+  };
+
   const calcNbJours = (debut: string, fin: string) => {
     const d1 = new Date(debut); const d2 = new Date(fin);
     return Math.max(1, Math.round((d2.getTime() - d1.getTime()) / 86400000) + 1);
@@ -220,6 +262,9 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
 
     const totalDebourseHistorique = totalBulletinsPayes + totalAvancesHistorique;
     const netCeMois = Math.max(0, selectedEmp.salaire_base - avancesCeMois);
+    const bulCeMois = empBulletins.find(b => b.mois === currentMonthStr);
+    const isCeMoisPaye = bulCeMois?.statut_paiement === 'paye';
+    const resteNetCeMois = isCeMoisPaye ? 0 : netCeMois;
 
     const totalJoursCongesApprouves = empConges
       .filter(c => c.status === 'approuve')
@@ -301,6 +346,17 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
           {/* Quick Actions Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              onClick={() => openQuickPay(selectedEmp)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+                isCeMoisPaye
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+              }`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span>{isCeMoisPaye ? '✓ Salaire Soldé' : `Payer Salaire (${resteNetCeMois.toFixed(2)} DT)`}</span>
+            </button>
+            <button
               onClick={() => openNewAvanceForEmp(selectedEmp.id)}
               className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
             >
@@ -316,7 +372,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
             </button>
             <button
               onClick={() => openNewBulletinForEmp(selectedEmp.id)}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
+              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Générer Bulletin</span>
@@ -357,16 +413,22 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
             </p>
           </div>
 
-          <div className="bg-emerald-50/70 rounded-2xl border border-emerald-200/90 p-5 shadow-xs space-y-2">
+          <div className={`${isCeMoisPaye ? 'bg-emerald-50/90 border-emerald-300' : 'bg-emerald-50/70 border-emerald-200/90'} rounded-2xl border p-5 shadow-xs space-y-2`}>
             <div className="flex items-center justify-between text-emerald-800 text-xs font-semibold uppercase tracking-wider">
-              <span>Net à Payer (Ce Mois)</span>
+              <span>Reste Dû ({currentMonthName})</span>
               <CreditCard className="w-4 h-4 text-emerald-600" />
             </div>
             <p className="text-2xl font-extrabold text-emerald-900 font-mono">
-              {netCeMois.toFixed(2)} <span className="text-sm font-normal text-emerald-700">DT</span>
+              {resteNetCeMois.toFixed(2)} <span className="text-sm font-normal text-emerald-700">DT</span>
             </p>
             <p className="text-xs text-emerald-700 flex items-center gap-1 font-medium">
-              <Clock className="w-3 h-3" /> Échéance : {getNextPayDate()}
+              {isCeMoisPaye ? (
+                <span className="font-bold flex items-center gap-1 text-emerald-800"><CheckCircle className="w-3.5 h-3.5" /> Salaire du mois soldé & payé</span>
+              ) : (
+                <>
+                  <Clock className="w-3 h-3" /> Échéance : {getNextPayDate()}
+                </>
+              )}
             </p>
           </div>
 
@@ -805,7 +867,7 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                       <th className="px-5 py-3">Téléphone</th>
                       <th className="px-5 py-3 text-right">Salaire Base</th>
                       <th className="px-5 py-3 text-right">Avances ({currentMonthName})</th>
-                      <th className="px-5 py-3 text-right">Net Estimé</th>
+                      <th className="px-5 py-3 text-right">Reste Net ({currentMonthName})</th>
                       <th className="px-5 py-3 text-right">Fiche & Actions</th>
                     </tr>
                   </thead>
@@ -814,7 +876,16 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                       const empAvCeMois = avancesSalaire
                         .filter(a => a.employe_id === e.id && a.date.startsWith(currentMonthStr))
                         .reduce((s, a) => s + a.montant, 0);
-                      const netEstime = Math.max(0, e.salaire_base - empAvCeMois);
+                      const empBulCeMois = bulletinsPaie.find(b => b.employe_id === e.id && b.mois === currentMonthStr);
+                      const isCeMoisPaye = empBulCeMois?.statut_paiement === 'paye';
+                      const netTheorique = Math.max(0, e.salaire_base - empAvCeMois);
+                      const resteAPayer = isCeMoisPaye ? 0 : netTheorique;
+
+                      // Check for rollover advance on next month
+                      const [yStr, mStr] = currentMonthStr.split('-');
+                      const nextMois = mStr === '12' ? `${parseInt(yStr, 10)+1}-01` : `${yStr}-${String(parseInt(mStr, 10)+1).padStart(2,'0')}`;
+                      const rolloverAdv = avancesSalaire.find(a => a.employe_id === e.id && a.date.startsWith(nextMois) && (a.motif || '').includes('Report trop-perçu'));
+                      const rolloverAmt = rolloverAdv ? Number(rolloverAdv.montant) || 0 : 0;
 
                       return (
                         <tr
@@ -841,28 +912,58 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                           <td className="px-5 py-3.5 text-right font-mono font-bold text-amber-700">
                             {empAvCeMois > 0 ? `-${empAvCeMois.toFixed(2)} DT` : '0.00 DT'}
                           </td>
-                          <td className="px-5 py-3.5 text-right font-mono font-extrabold text-emerald-700">
-                            {netEstime.toFixed(2)} DT
+                          <td className="px-5 py-3.5 text-right font-mono font-extrabold">
+                            {isCeMoisPaye ? (
+                              <div className="flex flex-col items-end">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Payé (0.00 DT)
+                                </span>
+                                {rolloverAmt > 0 && (
+                                  <span className="text-[10px] text-blue-600 font-bold mt-0.5">
+                                    +{rolloverAmt.toFixed(2)} DT reporté sur {nextMois}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-end">
+                                <span className="text-emerald-700 font-extrabold text-sm font-mono">
+                                  {resteAPayer.toFixed(2)} DT
+                                </span>
+                                <span className="text-[10px] text-gray-400 font-medium">À régler ce mois</span>
+                              </div>
+                            )}
                           </td>
                           <td className="px-5 py-3.5 text-right" onClick={ev => ev.stopPropagation()}>
                             <div className="flex justify-end items-center gap-1.5">
                               <button
+                                onClick={() => openQuickPay(e)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+                                  isCeMoisPaye
+                                    ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                                }`}
+                                title={isCeMoisPaye ? "Mois déjà soldé — cliquer pour réajuster ou verser un acompte" : `Payer le salaire de ${e.nom}`}
+                              >
+                                <Wallet className="w-3.5 h-3.5" />
+                                <span>{isCeMoisPaye ? '✓ Soldé' : 'Payer'}</span>
+                              </button>
+                              <button
                                 onClick={() => setSelectedEmp(e)}
-                                className="flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-lg text-xs font-semibold transition"
+                                className="flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"
                               >
                                 <span>Fiche</span>
                                 <ChevronRight className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => openEditEmp(e)}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg"
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                                 title="Modifier"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => { if (confirm(`Supprimer ${e.nom} ?`)) deleteEmploye(e.id); }}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                                 title="Supprimer"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1269,6 +1370,178 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
           </div>
         </div>
       )}
+
+      {/* ══════ MODAL PAIEMENT SALAIRE RAPIDE ══════ */}
+      {payModal && payEmp && (() => {
+        const empAv = avancesSalaire
+          .filter(a => a.employe_id === payEmp.id && a.date.startsWith(payMois))
+          .reduce((s, a) => s + a.montant, 0);
+        const bul = bulletinsPaie.find(b => b.employe_id === payEmp.id && b.mois === payMois);
+        const isPaid = bul ? bul.statut_paiement === 'paye' : false;
+        const netTheorique = Math.max(0, (payEmp.salaire_base || 0) - empAv);
+        const resteDu = isPaid ? 0 : netTheorique;
+        const inputNum = parseFloat(payMontant) || 0;
+        const isOver = inputNum > resteDu;
+        const excedent = Math.max(0, inputNum - resteDu);
+
+        // Next month label
+        const [yStr, mStr] = payMois.split('-');
+        const nextMois = mStr === '12' ? `${parseInt(yStr, 10)+1}-01` : `${yStr}-${String(parseInt(mStr, 10)+1).padStart(2,'0')}`;
+
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">Règlement Salaire — {payEmp.nom}</h3>
+                    <p className="text-xs text-gray-500">{payEmp.poste || 'Collaborateur atelier'}</p>
+                  </div>
+                </div>
+                <button onClick={() => setPayModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Monthly Breakdown Card */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 space-y-2 text-xs">
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>Salaire contractuel de base</span>
+                  <span className="font-mono font-bold text-gray-900">{(payEmp.salaire_base || 0).toFixed(2)} DT</span>
+                </div>
+                <div className="flex justify-between items-center text-amber-700">
+                  <span>Avances perçues ({payMois})</span>
+                  <span className="font-mono font-bold">-{empAv.toFixed(2)} DT</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-gray-200 pt-2 font-bold">
+                  <span className="text-gray-900">Reste net dû pour {payMois}</span>
+                  <span className={`font-mono text-sm ${resteDu > 0 ? 'text-emerald-700 font-extrabold' : 'text-gray-500'}`}>
+                    {resteDu.toFixed(2)} DT {isPaid && '(Déjà soldé)'}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleConfirmQuickPay} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Mois concerné *</label>
+                  <input
+                    type="month"
+                    required
+                    value={payMois}
+                    onChange={e => {
+                      const newMois = e.target.value;
+                      setPayMois(newMois);
+                      const newAv = avancesSalaire.filter(a => a.employe_id === payEmp.id && a.date.startsWith(newMois)).reduce((s, a) => s + a.montant, 0);
+                      const newBul = bulletinsPaie.find(b => b.employe_id === payEmp.id && b.mois === newMois);
+                      const newNet = Math.max(0, (payEmp.salaire_base || 0) - newAv);
+                      const newReste = newBul?.statut_paiement === 'paye' ? 0 : newNet;
+                      setPayMontant(newReste > 0 ? String(newReste) : String(newNet));
+                    }}
+                    className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Montant versé (DT) *</label>
+                  <input
+                    type="number"
+                    required
+                    step="0.001"
+                    min="0.001"
+                    value={payMontant}
+                    onChange={e => setPayMontant(e.target.value)}
+                    placeholder="0.000"
+                    className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-base font-mono font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Dynamic Explanation Alert */}
+                <div className="text-xs p-3 rounded-xl border space-y-1">
+                  {inputNum > 0 && !isOver && inputNum === resteDu && (
+                    <div className="text-emerald-800 bg-emerald-50/70 border-emerald-200 p-2 rounded-lg">
+                      🟢 <strong>Sortie Caisse: {inputNum.toFixed(2)} DT</strong>. Le salaire de <strong>{payMois}</strong> sera clôturé et marqué <strong>Payé à 100%</strong>.
+                    </div>
+                  )}
+                  {inputNum > 0 && !isOver && inputNum < resteDu && (
+                    <div className="text-amber-800 bg-amber-50/70 border-amber-200 p-2 rounded-lg">
+                      🟠 <strong>Sortie Caisse: {inputNum.toFixed(2)} DT</strong>. Règlement partiel. Il restera <strong>{(resteDu - inputNum).toFixed(2)} DT</strong> à régler pour {payMois}.
+                    </div>
+                  )}
+                  {inputNum > 0 && isOver && (
+                    <div className="text-blue-900 bg-blue-50/80 border-blue-200 p-2.5 rounded-lg space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-blue-700">
+                        ⚡ Excédent de trop-perçu : +{excedent.toFixed(2)} DT
+                      </p>
+                      <p className="text-[11px] text-blue-800 leading-relaxed">
+                        • <strong>Sortie Caisse: {inputNum.toFixed(2)} DT</strong> réels.<br />
+                        • Le mois de <strong>{payMois}</strong> sera soldé (0.00 DT).<br />
+                        • L'excédent de <strong>{excedent.toFixed(2)} DT</strong> sera automatiquement reporté en <strong>Avance sur {nextMois}</strong>.<br />
+                        • Reste à payer estimé en <strong>{nextMois}</strong> : <strong>{Math.max(0, (payEmp.salaire_base || 0) - excedent).toFixed(2)} DT</strong>.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Mode de règlement</label>
+                    <select
+                      value={payMode}
+                      onChange={e => setPayMode(e.target.value as any)}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs bg-white focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="especes">Espèces (Caisse)</option>
+                      <option value="virement">Virement bancaire</option>
+                      <option value="cheque">Chèque</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Date versement</label>
+                    <input
+                      type="date"
+                      required
+                      value={payDate}
+                      onChange={e => setPayDate(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Notes</label>
+                  <input
+                    type="text"
+                    value={payNotes}
+                    onChange={e => setPayNotes(e.target.value)}
+                    placeholder="Optionnel (ex: Réf virement, prime, reçu signé...)"
+                    className="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setPayModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Valider le Paiement</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

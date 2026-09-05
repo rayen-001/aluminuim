@@ -289,6 +289,14 @@ interface AppContextType {
   addBulletinPaie: (b: Omit<BulletinPaie, 'id' | 'created_at'>) => void;
   updateBulletinStatut: (id: string, statut: BulletinPaie['statut_paiement']) => void;
   paySalaryBulletin: (bulletinId: string, montantNet: number, mode: 'especes' | 'cheque' | 'virement', date?: string) => void;
+  settleSalaryPayment: (
+    employeId: string,
+    montantVerse: number,
+    mode?: 'especes' | 'cheque' | 'virement',
+    date?: string,
+    mois?: string,
+    notes?: string
+  ) => void;
   deleteBulletinPaie: (id: string) => void;
 }
 
@@ -2006,6 +2014,133 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const settleSalaryPayment = (
+    employeId: string,
+    montantVerse: number,
+    mode: 'especes' | 'cheque' | 'virement' = 'especes',
+    date?: string,
+    mois?: string,
+    notes?: string
+  ) => {
+    const emp = employes.find(e => e.id === employeId);
+    if (!emp) return;
+
+    const paymentDate = date || new Date().toISOString().split('T')[0];
+    const targetMois = mois || paymentDate.slice(0, 7);
+    const empNom = emp.nom;
+    const currentHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const totalVerse = Math.max(0, Number(montantVerse) || 0);
+    if (totalVerse <= 0) return;
+
+    // Calculate advances for target month
+    const avancesMonth = avancesSalaire
+      .filter(a => a.employe_id === employeId && a.date.startsWith(targetMois))
+      .reduce((s, a) => s + a.montant, 0);
+
+    const salaireBase = Number(emp.salaire_base) || 0;
+    const netDuCeMois = Math.max(0, salaireBase - avancesMonth);
+
+    // Existing bulletin for target month
+    const existingBul = bulletinsPaie.find(b => b.employe_id === employeId && b.mois === targetMois);
+    const bulletinId = existingBul ? existingBul.id : crypto.randomUUID();
+
+    // 1. Entire amount leaves Caisse
+    addCaisseMovement({
+      date: paymentDate,
+      heure: currentHeure,
+      type: 'sortie',
+      montant: totalVerse,
+      motif: `Règlement salaire (${targetMois}) — ${empNom}${notes ? ` (${notes})` : ''}`,
+      mode_paiement: mode,
+      client_ou_tiers: empNom,
+      categorie: 'rh_salaire',
+      source_id: bulletinId
+    });
+
+    // 2. Update / Create bulletin for target month
+    const isFullOrOver = totalVerse >= netDuCeMois;
+    if (existingBul) {
+      setBulletinsPaie(prev => prev.map(b => b.id === existingBul.id ? {
+        ...b,
+        statut_paiement: isFullOrOver ? 'paye' : 'non_paye',
+        net_a_payer: netDuCeMois
+      } : b));
+      if (user?.id) {
+        supabase.from('bulletins_paie').update({
+          statut_paiement: isFullOrOver ? 'paye' : 'non_paye',
+          net_a_payer: netDuCeMois
+        }).eq('id', existingBul.id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase update bulletin error:', error); });
+      }
+    } else {
+      const newBul: BulletinPaie = {
+        id: bulletinId,
+        employe_id: employeId,
+        employe_nom: empNom,
+        mois: targetMois,
+        salaire_base: salaireBase,
+        avances_deduites: avancesMonth,
+        net_a_payer: netDuCeMois,
+        statut_paiement: isFullOrOver ? 'paye' : 'non_paye',
+        created_at: new Date().toISOString()
+      };
+      setBulletinsPaie(prev => [newBul, ...prev]);
+      if (user?.id) {
+        supabase.from('bulletins_paie').upsert({
+          id: newBul.id,
+          user_id: user.id,
+          employe_id: newBul.employe_id,
+          employe_nom: newBul.employe_nom,
+          mois: newBul.mois,
+          salaire_base: newBul.salaire_base,
+          avances_deduites: newBul.avances_deduites,
+          net_a_payer: newBul.net_a_payer,
+          statut_paiement: newBul.statut_paiement
+        }).then(({ error }) => { if (error) console.error('Supabase upsert bulletin error:', error); });
+      }
+    }
+
+    // 3. If Overpayment (totalVerse > netDuCeMois), roll over excess to Next Month as Avance
+    if (totalVerse > netDuCeMois) {
+      const excedent = totalVerse - netDuCeMois;
+      const [yStr, mStr] = targetMois.split('-');
+      let y = parseInt(yStr, 10);
+      let m = parseInt(mStr, 10);
+      if (m === 12) {
+        y += 1;
+        m = 1;
+      } else {
+        m += 1;
+      }
+      const nextMois = `${y}-${String(m).padStart(2, '0')}`;
+      const nextDate = `${nextMois}-01`;
+
+      const newAdvance: AvanceSalaire = {
+        id: crypto.randomUUID(),
+        employe_id: employeId,
+        employe_nom: empNom,
+        date: nextDate,
+        montant: excedent,
+        motif: `Report trop-perçu salaire (${targetMois})`,
+        created_at: new Date().toISOString()
+      };
+
+      setAvancesSalaire(prev => [newAdvance, ...prev]);
+
+      if (user?.id) {
+        supabase.from('avances_salaire').upsert({
+          id: newAdvance.id,
+          user_id: user.id,
+          employe_id: newAdvance.employe_id,
+          employe_nom: newAdvance.employe_nom,
+          date: newAdvance.date,
+          montant: newAdvance.montant,
+          motif: newAdvance.motif
+        }).then(({ error }) => { if (error) console.error('Supabase upsert rollover advance error:', error); });
+      }
+    }
+  };
+
   const deleteBulletinPaie = (id: string) => {
     setBulletinsPaie(prev => prev.filter(x => x.id !== id));
     // Remove linked caisse movement
@@ -2167,6 +2302,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addBulletinPaie,
         updateBulletinStatut,
         paySalaryBulletin,
+        settleSalaryPayment,
         deleteBulletinPaie
       }}
     >
