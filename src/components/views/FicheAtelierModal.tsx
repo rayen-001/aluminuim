@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { DevisRecord, DevisItemState, useApp } from '../../context/AppContext';
 import { calculateAluFabrication, AluCalculResult } from '../../utils/aluCalculEngine';
 import { calculateDevisTotals } from '../../utils/devisCalculator';
@@ -241,24 +242,24 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
     window.print();
   };
 
-  return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-6xl w-full max-h-[94vh] flex flex-col overflow-hidden border border-slate-700/30 ring-1 ring-black/10">
+  const modalElement = (
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-6xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-700/40 ring-1 ring-black/10 mx-auto my-auto">
         
         {/* Top Header Bar (No Print) */}
-        <div className="no-print px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="no-print px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/30 shrink-0">
-              <Scissors className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/30 shrink-0">
+              <Scissors className="w-4 h-4" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-extrabold text-sm sm:text-base tracking-tight text-white">Fiche Technique Atelier & Découpe</h2>
-                <span className="text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-lg font-mono font-bold">
+                <span className="text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-md font-mono font-bold">
                   {currentDevis.numero}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400">
                 Client : <strong className="text-slate-200">{currentDevis.client_nom || 'Sans client'}</strong> • {currentDevis.items.length} ouvrage{currentDevis.items.length > 1 ? 's' : ''} à fabriquer
               </p>
             </div>
@@ -268,7 +269,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             {onEditDevis && (
               <button
                 onClick={() => onEditDevis(currentDevis.id)}
-                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700 cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-lg transition border border-slate-700 cursor-pointer"
                 title="Modifier dans l'éditeur de devis complet"
               >
                 <Edit3 className="w-3.5 h-3.5 text-blue-400" />
@@ -277,7 +278,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             )}
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-3 sm:px-4 py-2 rounded-xl transition shadow-md shadow-blue-600/30 cursor-pointer"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-3 sm:px-3.5 py-1.5 rounded-lg transition shadow-md shadow-blue-600/30 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">Imprimer (PDF Atelier)</span>
@@ -285,7 +286,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1199,4 +1200,6 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
       )}
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalElement, document.body) : modalElement;
 };
