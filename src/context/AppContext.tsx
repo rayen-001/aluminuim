@@ -201,6 +201,11 @@ export interface AtelierSettings {
   email: string;
   tva_default: number;
   devise: string;
+  // Marges par défaut (en %, appliquées automatiquement sur chaque nouveau devis)
+  marge_alu_default: number;
+  marge_gc_default: number;
+  marge_mousti_default: number;
+  marge_store_default: number;
 }
 interface AppContextType {
   user: any;
@@ -314,7 +319,11 @@ const DEFAULT_SETTINGS: AtelierSettings = {
   adresse: 'Zone Industrielle, Tunis',
   email: 'contact@atelierpro.tn',
   tva_default: 19,
-  devise: 'DT'
+  devise: 'DT',
+  marge_alu_default: 0,
+  marge_gc_default: 0,
+  marge_mousti_default: 0,
+  marge_store_default: 0
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

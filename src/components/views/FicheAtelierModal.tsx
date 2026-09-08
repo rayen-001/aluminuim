@@ -298,7 +298,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {[
               { id: 'decoupage', label: '1. Feuille de Découpage', sublabel: 'Scie à onglet', icon: Scissors, badge: `${totalPiecesCount} pièces` },
-              { id: 'debitage', label: '2. Débitage & Barres 6m', sublabel: 'Stock & Chutes', icon: Layers, badge: `${result.totalProfileBarsCount} barres 6m` },
+              { id: 'debitage', label: '2. Débitage & Barres', sublabel: 'Stock & Chutes', icon: Layers, badge: `${result.totalProfileBarsCount} barres` },
               { id: 'composants', label: '3. Composants & Quincaillerie', sublabel: 'Accessoires & Joints', icon: Box, badge: `${result.accessories.length} types` },
               { id: 'vitrage', label: '4. Cotes Miroiterie', sublabel: 'Plan de vitrage', icon: Grid, badge: `${result.totalGlassAreaM2} m²` }
             ].map(t => {
@@ -363,7 +363,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
 
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
               <div className="bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-xl text-center shadow-2xs">
-                <p className="text-[10px] text-blue-800 uppercase font-bold tracking-wider">Barres 6m Profilés</p>
+                <p className="text-[10px] text-blue-800 uppercase font-bold tracking-wider">Barres Profilés</p>
                 <p className="text-lg font-black text-blue-950 font-mono leading-none mt-0.5">
                   {result.totalProfileBarsCount} <span className="text-xs font-bold text-blue-800">barres</span>
                 </p>
@@ -605,7 +605,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             <div className="flex items-center justify-between">
               <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <Layers className="w-4 h-4 text-blue-600" />
-                <span>Besoins en Barres Brutes (Standard 6,00 m) & Optimisation des Chutes</span>
+                <span>Besoins en Barres Brutes & Optimisation des Chutes</span>
               </h3>
             </div>
 
@@ -626,7 +626,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                     </div>
                     <div className="text-right">
                       <span className={`font-mono font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs ${deb.isProfileBar ? 'bg-blue-600 text-white' : 'bg-slate-800 text-white'}`}>
-                        {deb.totalBarsCount} {deb.isProfileBar ? 'barre' : 'unité'}{deb.totalBarsCount > 1 ? 's' : ''} {deb.isProfileBar ? 'de 6m' : ''}
+                        {deb.totalBarsCount} {deb.isProfileBar ? 'barre' : 'unité'}{deb.totalBarsCount > 1 ? 's' : ''} {deb.isProfileBar ? `(${deb.barLengthMeters.toFixed(2)}m)` : ''}
                       </span>
                       <p className="text-[10px] text-slate-500 mt-1 font-mono font-semibold">Chute moy : {deb.scrapPercentageAverage.toFixed(1)}%</p>
                     </div>
@@ -650,7 +650,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                           <div className="flex justify-between items-center text-xs text-slate-800 font-semibold">
                             <span className="font-bold flex items-center gap-1.5 text-slate-900">
                               <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                              Barre #{bar.barIndex} (600 cm)
+                              Barre #{bar.barIndex} ({bar.barLengthCm} cm)
                             </span>
                             <span className="font-mono text-slate-700 text-xs bg-white border border-slate-200 px-2.5 py-0.5 rounded-md shadow-2xs">
                               Reste chute : <strong className="text-amber-800 font-bold">{bar.scrapCm.toFixed(1)} cm</strong>
@@ -660,7 +660,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                           {/* Progress bar of cuts with clear height and distinct colors */}
                           <div className="w-full bg-slate-200/80 h-7 sm:h-8 rounded-lg overflow-hidden flex border border-slate-300 shadow-inner">
                             {bar.cuts.map((c, cIdx) => {
-                              const pct = (c.lengthCm / 600) * 100;
+                              const pct = (c.lengthCm / bar.barLengthCm) * 100;
                               const colorClass = segmentColors[cIdx % segmentColors.length];
                               return (
                                 <div
@@ -675,7 +675,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                             })}
                             {bar.scrapCm > 0 && (
                               <div
-                                style={{ width: `${(bar.scrapCm / 600) * 100}%` }}
+                                style={{ width: `${(bar.scrapCm / bar.barLengthCm) * 100}%` }}
                                 title={`Chute inutilisée : ${bar.scrapCm.toFixed(1)} cm`}
                                 className="bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] flex items-center justify-center font-mono truncate font-bold border-dashed border-l border-amber-300 px-1"
                               >
@@ -723,10 +723,10 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
               <div className="flex items-center justify-between">
                 <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                   <Layers className="w-4 h-4 text-blue-600" />
-                  <span>1. Profilés Aluminium (Barres Standard 6,00 m à sortir du Stock)</span>
+                  <span>1. Profilés Aluminium (Barres Standard à sortir du Stock)</span>
                 </h3>
                 <span className="font-mono font-bold text-xs bg-blue-900 text-white px-3 py-1 rounded-xl shadow-2xs">
-                  {result.totalProfileBarsCount} barre{result.totalProfileBarsCount > 1 ? 's' : ''} 6m au total
+                  {result.totalProfileBarsCount} barre{result.totalProfileBarsCount > 1 ? 's' : ''} au total
                 </span>
               </div>
 
@@ -737,7 +737,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                       <th className="px-5 py-3">Composant Profilé</th>
                       <th className="px-5 py-3">Référence Série</th>
                       <th className="px-5 py-3">Métrage Net Nécessaire</th>
-                      <th className="px-5 py-3 text-center">Nombre de Barres 6m</th>
+                      <th className="px-5 py-3 text-center">Nombre de Barres</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">

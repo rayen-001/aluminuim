@@ -2,6 +2,16 @@ import { DevisItemState } from '../context/AppContext';
 import { FAMILIES, getProductTypesForFamily } from '../data/productCatalog';
 import { INITIAL_ACCESSORIES, AccessoryItemDef } from '../data/initialAccessories';
 
+/** Longueur standard des barres aluminium en cm (6 mètres 50 = 650 cm) */
+const STANDARD_BAR_LENGTH_CM = 650;
+
+/**
+ * Profils ouvrants sans parclose intégrée.
+ * Ces profils ont le vitrage maintenu différemment (clip, rainure intégrée...).
+ * Source : productCatalog.ts → ouvrant.eliminate_parclose
+ */
+const PROFILES_WITHOUT_PARCLOSE = ['40404', '40405', '40406'];
+
 export interface CuttingPiece {
   id: string;
   itemIndex: number;
@@ -645,7 +655,7 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
       hasFrappeItems = true;
       const dormantFrappeRef = item.comp_dormant_ref || '40100';
       const ouvrantFrappeRef = item.comp_ouvrant_ref || '40401';
-      const battementRef = '40154';
+      const battementRef = '40112';
       const parcloseFrappeRef = item.comp_parclose_ref || '40110';
 
       // 1. Dormant Montants H (45°)
@@ -731,37 +741,40 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
         });
       }
 
-      // 6. Parecloses H et L
-      const hParc = Math.max(5, parseFloat((hOuvrant - 8.0).toFixed(1)));
-      const lParc = Math.max(5, parseFloat((lOuvrant - 8.0).toFixed(1)));
+      // 6. Parécloses H et L (uniquement si le profil ouvrant n'est pas monobloc)
+      const skipParclose = PROFILES_WITHOUT_PARCLOSE.includes(item.comp_ouvrant_ref || '');
+      if (!skipParclose) {
+        const hParc = Math.max(5, parseFloat((hOuvrant - 8.0).toFixed(1)));
+        const lParc = Math.max(5, parseFloat((lOuvrant - 8.0).toFixed(1)));
 
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_frappe_parc_h`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'parclose',
-        profilRef: parcloseFrappeRef,
-        profilDesignation: `Parclose Montant verticale (${parcloseFrappeRef})`,
-        lengthCm: hParc,
-        quantity: 2 * nbVantaux * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: 'Pareclose verticale ouvrant'
-      });
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_parc_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'parclose',
+          profilRef: parcloseFrappeRef,
+          profilDesignation: `Parclose Montant verticale (${parcloseFrappeRef})`,
+          lengthCm: hParc,
+          quantity: 2 * nbVantaux * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Pareclose verticale ouvrant'
+        });
 
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_frappe_parc_l`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'parclose',
-        profilRef: parcloseFrappeRef,
-        profilDesignation: `Parclose Traverse horizontale (${parcloseFrappeRef})`,
-        lengthCm: lParc,
-        quantity: 2 * nbVantaux * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: 'Pareclose horizontale ouvrant'
-      });
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_parc_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'parclose',
+          profilRef: parcloseFrappeRef,
+          profilDesignation: `Parclose Traverse horizontale (${parcloseFrappeRef})`,
+          lengthCm: lParc,
+          quantity: 2 * nbVantaux * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Pareclose horizontale ouvrant'
+        });
+      }
 
       // 7. Traverse intermédiaire (UNIQUEMENT SI explicitement demandée — UNE SEULE fois)
       const hasTraverseFromSupplement = item.supplements?.includes('Traverse') ?? false;
@@ -973,7 +986,8 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
     // Frappe (Série 40 / TPR)
     '40100': 'Profilé Dormant Cadre (40100)',
     '40401': 'Profilé Ouvrant Battant (40401)',
-    '40154': 'Profilé Battement Central (40154)',
+    '40112': 'Profilé Battement Central (40112)',
+    '40154': 'Profilé Socle 142mm (40154)',
     '40110': 'Profilé Parclose Frappe (40110)',
     '40135': 'Profilé Traverse Intermédiaire (40135)',
     '40155': 'Profilé Meneau Fixe (40155)',
@@ -1034,13 +1048,18 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
     }
   });
 
+  const GARDE_CORPS_REFS = ['2984', '4080', '4085', '2878'];
+
   const debitageSummary: DebitageSummary[] = Object.keys(piecesByRef).map(ref => {
+    const isGardeCorps = GARDE_CORPS_REFS.includes(ref);
+    const isSlat = !piecesByRef[ref].isProfileBar;
+    const barLen = (isGardeCorps || isSlat) ? 600 : STANDARD_BAR_LENGTH_CM; // 6.00m (600cm) for store/garde-corps, 6.50m (650cm) for standard aluminium profile bars
     return optimizeCuttingStock(
       piecesByRef[ref].pieces,
       ref,
       piecesByRef[ref].designation,
       piecesByRef[ref].isProfileBar,
-      600 // Standard 6.00m bars
+      barLen
     );
   });
 

@@ -122,6 +122,11 @@ export interface DevisTotals {
   items_costs: CalculatedItemCost[];
 }
 
+export const BAR_LENGTH_M = 6.5; // Standard 6.50m bar for aluminium profiles
+export const BAR_LENGTH_CM = 650;
+export const GARDE_CORPS_BAR_LENGTH_CM = 600; // Standard 6.00m bar for Garde-corps
+export const PROFILES_WITHOUT_PARCLOSE = ['40404', '40405', '40406', 'AE_40404'];
+
 export function calculateItemCost(
   item: DevisItemState,
   articlesMap: Map<string, ArticleItem>,
@@ -243,9 +248,9 @@ export function calculateItemCost(
     const barreauP = getArticlePrice('2878') || 30;
     const poteauP = getArticlePrice('4085') || 143;
 
-    article_cost += (w / 600) * mainCouranteP; // Main courante
-    article_cost += nbPoteaux * ((h || 100) / 600) * poteauP; // Poteaux
-    article_cost += nbLignes * (w / 600) * barreauP; // Lisses/barreaux
+    article_cost += (w / GARDE_CORPS_BAR_LENGTH_CM) * mainCouranteP; // Main courante
+    article_cost += nbPoteaux * ((h || 100) / GARDE_CORPS_BAR_LENGTH_CM) * poteauP; // Poteaux
+    article_cost += nbLignes * (w / GARDE_CORPS_BAR_LENGTH_CM) * barreauP; // Lisses/barreaux
     accessoires_cost += nbCoudes * 18 + (item.gc_fin_qty || 0) * 12;
 
     if (item.remplissage_id) {
@@ -262,39 +267,43 @@ export function calculateItemCost(
     const pOuvrant = getArticlePrice(ouvrantRef);
     const pParclose = getArticlePrice(parcloseRef);
 
-    // Number of 6m bars approximated
-    const dormantBars = Math.max(0.5, perimeterM / 6);
+    // Number of standard 6.3m bars approximated
+    const dormantBars = Math.max(0.5, perimeterM / BAR_LENGTH_M);
     article_cost += dormantBars * pDormant;
 
     if (item.is_chassi_fix) {
       if (item.chassi_socle_ref) {
-        article_cost += (w / 600) * getArticlePrice(item.chassi_socle_ref);
+        article_cost += (w / BAR_LENGTH_CM) * getArticlePrice(item.chassi_socle_ref);
       }
       if (item.chassi_montant_enabled && item.chassi_montant_qty) {
-        article_cost += ((h * item.chassi_montant_qty) / 600) * getArticlePrice(item.chassi_montant_ref || '40155');
+        article_cost += ((h * item.chassi_montant_qty) / BAR_LENGTH_CM) * getArticlePrice(item.chassi_montant_ref || '40155');
       }
       if (item.chassi_traverse_enabled && item.chassi_traverse_qty) {
-        article_cost += ((w * item.chassi_traverse_qty) / 600) * getArticlePrice(item.chassi_traverse_ref || '40104');
+        article_cost += ((w * item.chassi_traverse_qty) / BAR_LENGTH_CM) * getArticlePrice(item.chassi_traverse_ref || '40104');
       }
     } else {
       // Sashes
-      const ouvrantBars = Math.max(0.6, (perimeterM * 1.5) / 6);
+      const ouvrantBars = Math.max(0.6, (perimeterM * 1.5) / BAR_LENGTH_M);
       article_cost += ouvrantBars * pOuvrant;
-      article_cost += (perimeterM / 6) * pParclose;
+
+      const skipParclose = PROFILES_WITHOUT_PARCLOSE.includes(ouvrantRef);
+      if (!skipParclose) {
+        article_cost += (perimeterM / BAR_LENGTH_M) * pParclose;
+      }
 
       // Coulissant lateral & central
       if (item.comp_lateral_qty) {
         Object.entries(item.comp_lateral_qty).forEach(([ref, q]) => {
-          article_cost += ((h * q) / 600) * getArticlePrice(ref);
+          article_cost += ((h * q) / BAR_LENGTH_CM) * getArticlePrice(ref);
         });
       }
       if (item.comp_central_qty) {
         Object.entries(item.comp_central_qty).forEach(([ref, q]) => {
-          article_cost += ((h * q) / 600) * getArticlePrice(ref);
+          article_cost += ((h * q) / BAR_LENGTH_CM) * getArticlePrice(ref);
         });
       }
       if (item.comp_seuil_ref && item.comp_seuil_ref !== '— Sans seuil —') {
-        article_cost += (w / 600) * getArticlePrice(item.comp_seuil_ref);
+        article_cost += (w / BAR_LENGTH_CM) * getArticlePrice(item.comp_seuil_ref);
       }
     }
 

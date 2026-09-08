@@ -132,25 +132,25 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
   const isCoulissant = fam.drawType === 'coulissante';
 
   const dormantDefault = isTPR ? (isCoulissant ? '67101' : '40100') : (isAluco ? (isCoulissant ? 'CSQ 103' : 'FSQ 102') : (isCoulissant ? 'AE_67101' : 'AE_40100'));
-  const dormantOptions = isTPR ? (isCoulissant ? ['67101', '67103', '67110', '67203'] : ['40100', '40102', '40148', '40150', '40165', '40402', '40405', '40407', '40408'])
-    : (isAluco ? (isCoulissant ? ['CSQ 103', 'CSQ 203', 'CSQ 210'] : ['FSQ 102', 'FSQ 104'])
-    : (isCoulissant ? ['AE_67101', 'AE_67103', 'AE_EX60 2114'] : ['AE_40100', 'AE_40102', 'AE_40402']));
+  const dormantOptions = isTPR ? (isCoulissant ? ['67101', '67103', '67110'] : ['40100', '40102', '40148', '40165', '40402'])
+    : (isAluco ? (isCoulissant ? ['CSQ 103', 'CSQ 203', 'CSQ 210'] : ['FSQ 102', 'FSQ 124', 'FSQ 408'])
+    : (isCoulissant ? ['AE_67101', 'AE_67103'] : ['AE_40100', 'AE_40102', 'AE_40402']));
 
   const ouvrantDefault = isTPR ? '40401' : (isAluco ? 'FSQ 104' : 'AE_40401');
-  const ouvrantOptions = isTPR ? ['40401', '40150', '40151', '40403', '40404'] : (isAluco ? ['FSQ 104', 'FSQ 102'] : ['AE_40401', 'AE_40150']);
+  const ouvrantOptions = isTPR ? ['40401', '40404', '40150', '40403'] : (isAluco ? ['FSQ 104', 'FSQ 102', 'FSQ 401', 'FSQ 404'] : ['AE_40401', 'AE_40404', 'AE_40150']);
 
-  const parcloseSimple = isTPR ? { default: '40110', options: ['40110', '40111', '40139', '40166', '40168', '80116', '67207'] } : (isAluco ? { default: 'CSQ 114', options: ['CSQ 114'] } : { default: 'AE_40110', options: ['AE_40110', 'AE_40139'] });
-  const parcloseDouble = isTPR ? { default: '40129', options: ['40129', '40135', '40410', '40411', '80116', '67207'] } : (isAluco ? { default: 'CSQ 124', options: ['CSQ 124', 'CSQ 125'] } : { default: 'AE_40129', options: ['AE_40129'] });
+  const parcloseSimple = isTPR ? { default: '40110', options: ['40110', '40111', '40139', '40166'] } : (isAluco ? { default: 'CSQ 114', options: ['CSQ 114'] } : { default: 'AE_40110', options: ['AE_40110', 'AE_40139'] });
+  const parcloseDouble = isTPR ? { default: '40129', options: ['40129', '40135', '40410', '40411'] } : (isAluco ? { default: 'CSQ 124', options: ['CSQ 124', 'CSQ 125'] } : { default: 'AE_40129', options: ['AE_40129'] });
 
   const latDefault = isTPR ? '67104' : (isAluco ? 'CSQ 104' : 'AE_67104');
-  const latOptions = isTPR ? ['67104', '67108', '67105', '67107', '67109', '67112', '67114', '67115'] : (isAluco ? ['CSQ 104', 'CSQ 108'] : ['AE_67104', 'AE_Ex60 2214']);
+  const latOptions = isTPR ? ['67104', '67108'] : (isAluco ? ['CSQ 104', 'CSQ 108'] : ['AE_67104']);
 
   const cenDefault = isTPR ? '67105' : (isAluco ? 'CSQ 105' : 'AE_67105');
-  const cenOptions = isTPR ? ['67105', '67107', '67104', '67108', '67109', '67112', '67114', '67115', '67117'] : (isAluco ? ['CSQ 105', 'CSQ 107'] : ['AE_67105', 'AE_Ex60 2213']);
+  const cenOptions = isTPR ? ['67105', '67107'] : (isAluco ? ['CSQ 105', 'CSQ 107'] : ['AE_67105']);
 
   const standardComposition: ProductTypeComposition = {
     coulissant: isCoulissant,
-    ouvrant: { default: ouvrantDefault, options: ouvrantOptions, eliminate_parclose: ['40404'] },
+    ouvrant: { default: ouvrantDefault, options: ouvrantOptions, eliminate_parclose: ['40404', '40405', '40406', 'AE_40404'] },
     dormant: { default: dormantDefault, options: dormantOptions },
     traverse: { default: isTPR ? '40104' : 'CSQ 106', options: isTPR ? ['40104', '40121', '40135', '40156'] : ['CSQ 106'] },
     parclose: { simple: parcloseSimple, double: parcloseDouble },
@@ -159,8 +159,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     lateral: isCoulissant ? { default: latDefault, count: 2, options: latOptions } : undefined,
     central: isCoulissant ? { default: cenDefault, count: 2, options: cenOptions } : undefined,
     dormant_composite: isCoulissant ? {
-      '67101': ['— Sans seuil —', '67201', '67202', '67205', '67207'],
-      '67103': ['— Sans seuil —', '67203', '67204', '67205', '67207'],
+      '67101': ['— Sans seuil —', '67201', '67202', '67203', '67205'],
+      '67103': ['— Sans seuil —', '67203', '67204', '67205'],
       'CSQ 103': ['— Sans seuil —', 'CSQ 116']
     } : undefined
   };
