@@ -1568,11 +1568,30 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
                   {/* Individual Item Subtotal */}
                   {itemCost && (
-                    <div className="mt-4 pt-3 border-t border-gray-200/80 flex items-center justify-between text-xs sm:text-sm">
-                      <span className="font-semibold text-gray-600">
-                        Sous-total ({item.quantity} unité{item.quantity > 1 ? 's' : ''}) :
-                      </span>
-                      <span className="font-mono font-bold text-gray-900 text-base">
+                    <div className="mt-4 pt-3 border-t border-gray-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs sm:text-sm">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-gray-600">
+                          Sous-total ({item.quantity} unité{item.quantity > 1 ? 's' : ''}) :
+                        </span>
+                        {((itemCost.net_store_ht || 0) > 0 || (itemCost.net_mousti_ht || 0) > 0) && (
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                            <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md text-gray-700 font-medium font-mono shadow-2xs">
+                              🪟 Menuiserie : <strong>{(itemCost.net_menuiserie_ht ?? (itemCost.net_ht - (itemCost.net_store_ht || 0) - (itemCost.net_mousti_ht || 0))).toFixed(3)} DT</strong>
+                            </span>
+                            {(itemCost.net_store_ht || 0) > 0 && (
+                              <span className="bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md text-blue-800 font-medium font-mono shadow-2xs">
+                                + 🪟 Store : <strong>{itemCost.net_store_ht!.toFixed(3)} DT</strong>
+                              </span>
+                            )}
+                            {(itemCost.net_mousti_ht || 0) > 0 && (
+                              <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-emerald-800 font-medium font-mono shadow-2xs">
+                                + 🦟 Mousti : <strong>{itemCost.net_mousti_ht!.toFixed(3)} DT</strong>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-mono font-extrabold text-gray-900 text-base sm:text-lg shrink-0">
                         {itemCost.total_ht.toFixed(3)} DT HT
                       </span>
                     </div>

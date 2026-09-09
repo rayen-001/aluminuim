@@ -106,6 +106,9 @@ export interface CalculatedItemCost {
   accessoires_cost: number;
   brut_ht: number;
   marge_amount: number;
+  net_menuiserie_ht?: number;
+  net_store_ht?: number;
+  net_mousti_ht?: number;
   net_ht: number;
   total_ht: number;
   total_ttc: number;
@@ -159,6 +162,9 @@ export function calculateItemCost(
       accessoires_cost: 0,
       brut_ht: unitPrice,
       marge_amount: 0,
+      net_menuiserie_ht: unitPrice,
+      net_store_ht: 0,
+      net_mousti_ht: 0,
       net_ht,
       total_ht,
       total_ttc
@@ -178,6 +184,9 @@ export function calculateItemCost(
       accessoires_cost: 0,
       brut_ht: 0,
       marge_amount: 0,
+      net_menuiserie_ht: 0,
+      net_store_ht: 0,
+      net_mousti_ht: 0,
       net_ht: 0,
       total_ht: 0,
       total_ttc: 0
@@ -194,6 +203,9 @@ export function calculateItemCost(
         accessoires_cost: 0,
         brut_ht: 0,
         marge_amount: 0,
+        net_menuiserie_ht: 0,
+        net_store_ht: 0,
+        net_mousti_ht: 0,
         net_ht: 0,
         total_ht: 0,
         total_ttc: 0
@@ -209,6 +221,9 @@ export function calculateItemCost(
         accessoires_cost: 0,
         brut_ht: 0,
         marge_amount: 0,
+        net_menuiserie_ht: 0,
+        net_store_ht: 0,
+        net_mousti_ht: 0,
         net_ht: 0,
         total_ht: 0,
         total_ttc: 0
@@ -423,45 +438,53 @@ export function calculateItemCost(
   }
 
   // Margin application
-  let marge_amount = 0;
+  let marge_menuiserie = 0;
+  let marge_store = 0;
+  let marge_mousti = 0;
+
   if (item.is_garde_corps) {
     if (marges.margeGcType === 'percent') {
-      marge_amount = (article_cost + vitrage_cost + accessoires_cost) * ((marges.margeGcValue || 0) / 100);
+      marge_menuiserie = (article_cost + vitrage_cost + accessoires_cost) * ((marges.margeGcValue || 0) / 100);
     } else {
-      marge_amount = marges.margeGcValue || 0;
+      marge_menuiserie = marges.margeGcValue || 0;
     }
   } else {
     // Window / door margin
     const windowBase = article_cost + vitrage_cost + accessoires_cost;
     if (marges.margeType === 'percent') {
-      marge_amount += windowBase * ((marges.margeValue || 0) / 100);
+      marge_menuiserie = windowBase * ((marges.margeValue || 0) / 100);
     } else {
-      marge_amount += marges.margeValue || 0;
+      marge_menuiserie = marges.margeValue || 0;
     }
 
     // Store margin
     if (store_cost > 0) {
       if (marges.margeStoreType === 'percent') {
-        marge_amount += store_cost * ((marges.margeStoreValue || 0) / 100);
+        marge_store = store_cost * ((marges.margeStoreValue || 0) / 100);
       } else {
-        marge_amount += marges.margeStoreValue || 0;
+        marge_store = marges.margeStoreValue || 0;
       }
     }
 
     // Mousti margin
     if (mousti_cost > 0) {
       if (marges.margeMoustiType === 'percent') {
-        marge_amount += mousti_cost * ((marges.margeMoustiValue || 0) / 100);
+        marge_mousti = mousti_cost * ((marges.margeMoustiValue || 0) / 100);
       } else {
-        marge_amount += marges.margeMoustiValue || 0;
+        marge_mousti = marges.margeMoustiValue || 0;
       }
     }
   }
 
+  const marge_amount = marge_menuiserie + marge_store + marge_mousti;
   const brut_ht = article_cost + vitrage_cost + store_cost + mousti_cost + accessoires_cost;
   const net_ht = brut_ht + marge_amount;
   const total_ht = net_ht * qty;
   const total_ttc = total_ht * (1 + (marges.tva || 0) / 100);
+
+  const net_menuiserie_ht = (article_cost + vitrage_cost + accessoires_cost) + marge_menuiserie;
+  const net_store_ht = store_cost > 0 ? store_cost + marge_store : 0;
+  const net_mousti_ht = mousti_cost > 0 ? mousti_cost + marge_mousti : 0;
 
   return {
     article_cost: Math.round(article_cost * 1000) / 1000,
@@ -471,6 +494,9 @@ export function calculateItemCost(
     accessoires_cost: Math.round(accessoires_cost * 1000) / 1000,
     brut_ht: Math.round(brut_ht * 1000) / 1000,
     marge_amount: Math.round(marge_amount * 1000) / 1000,
+    net_menuiserie_ht: Math.round(net_menuiserie_ht * 1000) / 1000,
+    net_store_ht: Math.round(net_store_ht * 1000) / 1000,
+    net_mousti_ht: Math.round(net_mousti_ht * 1000) / 1000,
     net_ht: Math.round(net_ht * 1000) / 1000,
     total_ht: Math.round(total_ht * 1000) / 1000,
     total_ttc: Math.round(total_ttc * 1000) / 1000

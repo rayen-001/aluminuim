@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useApp, FactureRecord } from '../../context/AppContext';
+import { useApp, FactureRecord, DevisRecord } from '../../context/AppContext';
+import { DevisPrintModal } from './DevisPrintModal';
+import { FacturePrintModal } from './FacturePrintModal';
 import { 
   Receipt, 
   DollarSign, 
@@ -10,14 +12,17 @@ import {
   AlertCircle, 
   CheckCircle2, 
   TrendingUp,
-  Clock
+  Clock,
+  FileText
 } from 'lucide-react';
 
 export const FacturesView: React.FC = () => {
-  const { factures, addPaymentToFacture, deleteFacture } = useApp();
+  const { factures, devisList, addPaymentToFacture, deleteFacture } = useApp();
 
   const [paymentModalFacture, setPaymentModalFacture] = useState<FactureRecord | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [printDevisModal, setPrintDevisModal] = useState<DevisRecord | null>(null);
+  const [printFactureModal, setPrintFactureModal] = useState<FactureRecord | null>(null);
   const [payMontant, setPayMontant] = useState('');
   const [payMode, setPayMode] = useState<'especes' | 'cheque' | 'virement'>('especes');
 
@@ -209,6 +214,7 @@ export const FacturesView: React.FC = () => {
               <tbody className="divide-y divide-gray-100">
                 {filteredFactures.map(f => {
                   const resteDu = Math.max(0, (f.total_ttc || 0) - (f.montant_paye || 0));
+                  const linkedDevis = devisList.find(d => d.id === f.devis_id);
                   return (
                     <tr key={f.id} className="hover:bg-gray-50/50 transition">
                       <td className="px-5 py-3.5 font-mono font-bold text-blue-700 whitespace-nowrap">{f.numero}</td>
@@ -237,6 +243,15 @@ export const FacturesView: React.FC = () => {
                       </td>
                       <td className="px-5 py-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
+                          {linkedDevis && (
+                            <button
+                              onClick={() => setPrintDevisModal(linkedDevis)}
+                              className="p-1.5 text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 rounded-lg transition"
+                              title="Imprimer Devis & Proposition Technique"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          )}
                           {f.status !== 'payee' && (
                             <button
                               onClick={() => openPayment(f)}
@@ -248,9 +263,9 @@ export const FacturesView: React.FC = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => window.print()}
-                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition"
-                            title="Imprimer Facture"
+                            onClick={() => setPrintFactureModal(f)}
+                            className="p-1.5 text-cyan-700 hover:text-white hover:bg-cyan-700 bg-cyan-50 rounded-lg transition font-semibold cursor-pointer"
+                            title="Imprimer Facture Officielle A4"
                           >
                             <Printer className="w-4 h-4" />
                           </button>
@@ -385,6 +400,22 @@ export const FacturesView: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Devis & Proposition Technique Modal */}
+      {printDevisModal && (
+        <DevisPrintModal
+          devis={printDevisModal}
+          onClose={() => setPrintDevisModal(null)}
+        />
+      )}
+
+      {/* Facture Officielle A4 Modal */}
+      {printFactureModal && (
+        <FacturePrintModal
+          facture={printFactureModal}
+          onClose={() => setPrintFactureModal(null)}
+        />
       )}
     </div>
   );

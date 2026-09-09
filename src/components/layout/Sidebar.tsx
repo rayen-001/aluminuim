@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }`}
                   >
                     <Truck className="w-4 h-4" />
-                    <span>Bons de Livraison</span>
+                    <span>Bons de Sortie & BL</span>
                   </button>
 
                   <button

@@ -45,7 +45,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
   } = useApp();
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('en_cours');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [printDevis, setPrintDevis] = useState<DevisRecord | null>(null);
   const [ficheDevis, setFicheDevis] = useState<DevisRecord | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -135,8 +135,8 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
         {/* Status Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-gray-100 p-1 rounded-xl border border-gray-200/80">
           {[
-            { id: 'en_cours', label: `En cours (${devisList.filter(d => d.status !== 'converti' && d.status !== 'refuse').length})` },
             { id: 'all', label: `Tous (${devisList.length})` },
+            { id: 'en_cours', label: `En cours (${devisList.filter(d => d.status !== 'converti' && d.status !== 'refuse').length})` },
             { id: 'brouillon', label: `Brouillons (${devisList.filter(d => d.status === 'brouillon').length})` },
             { id: 'envoye', label: `Envoyés (${devisList.filter(d => d.status === 'envoye').length})` },
             { id: 'accepte', label: `Acceptés (${devisList.filter(d => d.status === 'accepte').length})` },
@@ -509,7 +509,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                       </div>
 
                                       {/* Right: Item Cost breakdown */}
-                                      <div className="w-full md:w-44 shrink-0 bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-right space-y-1">
+                                      <div className="w-full md:w-48 shrink-0 bg-slate-50 rounded-xl p-3 border border-slate-200/80 text-right space-y-1">
                                         <p className="text-[11px] text-gray-500 font-semibold uppercase">Prix Article</p>
                                         {cost ? (
                                           <>
@@ -519,8 +519,28 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                             <div className="text-xs text-gray-600 font-mono">
                                               HT : {cost.total_ht.toFixed(3)} DT
                                             </div>
+                                            {((cost.net_store_ht || 0) > 0 || (cost.net_mousti_ht || 0) > 0) && (
+                                              <div className="text-[10px] space-y-0.5 pt-1 border-t border-slate-200 font-mono text-left">
+                                                <div className="text-slate-600 flex justify-between">
+                                                  <span>Fenêtre :</span>
+                                                  <span className="font-semibold">{(cost.net_menuiserie_ht ?? (cost.net_ht - (cost.net_store_ht || 0) - (cost.net_mousti_ht || 0))).toFixed(3)} DT</span>
+                                                </div>
+                                                {(cost.net_store_ht || 0) > 0 && (
+                                                  <div className="text-blue-700 flex justify-between font-medium">
+                                                    <span>+ Store :</span>
+                                                    <span className="font-bold">{cost.net_store_ht!.toFixed(3)} DT</span>
+                                                  </div>
+                                                )}
+                                                {(cost.net_mousti_ht || 0) > 0 && (
+                                                  <div className="text-emerald-700 flex justify-between font-medium">
+                                                    <span>+ Mousti :</span>
+                                                    <span className="font-bold">{cost.net_mousti_ht!.toFixed(3)} DT</span>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
                                             {it.quantity > 1 && (
-                                              <div className="text-[11px] text-blue-700 font-mono">
+                                              <div className="text-[11px] text-blue-700 font-mono pt-0.5 border-t border-slate-100">
                                                 {(cost.total_ttc / it.quantity).toFixed(3)} DT / unité
                                               </div>
                                             )}

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { ArticleItem, INITIAL_ARTICLES } from '../data/initialArticles';
 import { AccessoryItemDef, INITIAL_ACCESSORIES } from '../data/initialAccessories';
 import { DevisItemState, DevisTotals, calculateDevisTotals } from '../utils/devisCalculator';
+import { getProductTypesForFamily } from '../data/productCatalog';
 export type { DevisItemState, DevisTotals, AccessoryItemDef };
 
 export interface Client {
@@ -128,6 +129,10 @@ export interface BonLivraisonRecord {
   client_id?: string;
   client_nom: string;
   date: string;
+  chauffeur?: string;
+  matricule_vehicule?: string;
+  destination?: string;
+  heure_sortie?: string;
   items: Array<{
     designation: string;
     hauteur?: string | number;
@@ -199,6 +204,8 @@ export interface AtelierSettings {
   telephone: string;
   adresse: string;
   email: string;
+  matricule_fiscal?: string;
+  logo_url?: string;
   tva_default: number;
   devise: string;
   // Marges par défaut (en %, appliquées automatiquement sur chaque nouveau devis)
@@ -268,6 +275,7 @@ interface AppContextType {
 
   bonsLivraison: BonLivraisonRecord[];
   updateBLStatus: (id: string, status: 'livre' | 'en_cours') => void;
+  updateBLTransport: (id: string, transport: { chauffeur?: string; matricule_vehicule?: string; destination?: string; heure_sortie?: string }) => void;
   deleteBL: (id: string) => void;
   factures: FactureRecord[];
   addPaymentToFacture: (factureId: string, montant: number, mode: 'especes' | 'cheque' | 'virement') => void;
@@ -318,6 +326,8 @@ const DEFAULT_SETTINGS: AtelierSettings = {
   telephone: '+216 58 829 700',
   adresse: 'Zone Industrielle, Tunis',
   email: 'contact@atelierpro.tn',
+  matricule_fiscal: '1234567/A/M/000',
+  logo_url: '',
   tva_default: 19,
   devise: 'DT',
   marge_alu_default: 0,
@@ -433,8 +443,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             telephone: profile.telephone || prev.telephone,
             adresse: profile.adresse || prev.adresse,
             email: profile.email || user.email || prev.email,
+            matricule_fiscal: profile.matricule_fiscal || prev.matricule_fiscal,
+            logo_url: profile.logo_url || prev.logo_url,
             tva_default: Number(profile.tva_default) || prev.tva_default,
-            devise: profile.devise || prev.devise
+            devise: profile.devise || prev.devise,
+            marge_alu_default: profile.marge_alu_default !== undefined && profile.marge_alu_default !== null ? Number(profile.marge_alu_default) : prev.marge_alu_default,
+            marge_gc_default: profile.marge_gc_default !== undefined && profile.marge_gc_default !== null ? Number(profile.marge_gc_default) : prev.marge_gc_default,
+            marge_mousti_default: profile.marge_mousti_default !== undefined && profile.marge_mousti_default !== null ? Number(profile.marge_mousti_default) : prev.marge_mousti_default,
+            marge_store_default: profile.marge_store_default !== undefined && profile.marge_store_default !== null ? Number(profile.marge_store_default) : prev.marge_store_default
           }));
         } else {
           // If profile does not exist yet, create default user profile
@@ -1605,6 +1621,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const resolveItemName = (it: DevisItemState, idx: number): string => {
+    if (it.is_manual) {
+      return it.manual_nom || it.manual_designation || `Article manuel ${idx + 1}`;
+    }
+    if (it.family_id && it.product_type_id) {
+      const types = getProductTypesForFamily(it.family_id);
+      const typeDef = types.find(t => t.id === it.product_type_id);
+      if (typeDef?.name) return typeDef.name;
+    }
+    return `Menuiserie ${it.largeur}×${it.hauteur} cm`;
+  };
+
   const convertToBL = (devisId: string): BonLivraisonRecord => {
     const devis = devisList.find(d => d.id === devisId);
     if (!devis) throw new Error('Devis not found');
@@ -1620,7 +1648,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         client_nom: devis.client_nom || 'Client sans nom',
         date: new Date().toISOString().split('T')[0],
         items: devis.items.map((it, idx) => ({
-          designation: it.is_manual ? (it.manual_nom || 'Article manuel') : `Menuiserie ${it.largeur}×${it.hauteur} cm`,
+          designation: resolveItemName(it, idx),
           quantite: it.quantity,
           prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
           total_ht: devis.totals?.items_costs?.[idx]?.total_ht || 0
@@ -1675,8 +1703,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       client_id: devis.client_id,
       client_nom: devis.client_nom || 'Client sans nom',
       date: new Date().toISOString().split('T')[0],
+      chauffeur: '',
+      matricule_vehicule: '',
+      destination: devis.notes || '',
+      heure_sortie: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       items: devis.items.map((it, idx) => ({
-        designation: it.is_manual ? (it.manual_nom || `Ligne libre ${idx + 1}`) : `Produit ${idx + 1} (${it.couleur})`,
+        designation: resolveItemName(it, idx),
         hauteur: it.hauteur,
         largeur: it.largeur,
         quantite: it.quantity || 1,
@@ -1701,6 +1733,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         devis_id: bl.devis_id,
         client_nom: bl.client_nom,
         date: bl.date,
+        chauffeur: bl.chauffeur || '',
+        matricule_vehicule: bl.matricule_vehicule || '',
+        destination: bl.destination || '',
+        heure_sortie: bl.heure_sortie || '',
         items: bl.items,
         notes: bl.notes || '',
         status: bl.status
@@ -1715,6 +1751,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (user?.id) {
       supabase.from('bons_livraison').update({ status }).eq('id', id).eq('user_id', user.id)
         .then(({ error }) => { if (error) console.error('Supabase updateBLStatus error:', error); });
+    }
+  };
+
+  const updateBLTransport = (
+    id: string,
+    transport: { chauffeur?: string; matricule_vehicule?: string; destination?: string; heure_sortie?: string }
+  ) => {
+    setBonsLivraison(prev => prev.map(b => b.id === id ? { ...b, ...transport } : b));
+    if (user?.id) {
+      supabase.from('bons_livraison').update(transport).eq('id', id).eq('user_id', user.id)
+        .then(({ error }) => { if (error) console.error('Supabase updateBLTransport error:', error); });
     }
   };
 
@@ -1751,7 +1798,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       client_nom: devis.client_nom || 'Client sans nom',
       date: new Date().toISOString().split('T')[0],
       items: devis.items.map((it, idx) => ({
-        designation: it.is_manual ? (it.manual_nom || 'Article manuel') : `Menuiserie ${it.largeur}×${it.hauteur} cm`,
+        designation: resolveItemName(it, idx),
         quantite: it.quantity,
         prix_unitaire_ht: devis.totals.items_costs[idx]?.net_ht || 0,
         total_ht: devis.totals.items_costs[idx]?.total_ht || 0
@@ -2348,6 +2395,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = { ...settings, ...s };
     setSettings(updated);
 
+    try {
+      localStorage.setItem('atelierpro_settings', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Could not cache settings in localStorage:', e);
+    }
+
     if (user?.id) {
       supabase.from('profiles').upsert({
         id: user.id,
@@ -2356,8 +2409,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         telephone: updated.telephone,
         adresse: updated.adresse,
         email: updated.email,
+        matricule_fiscal: updated.matricule_fiscal,
+        logo_url: updated.logo_url,
         tva_default: updated.tva_default,
-        devise: updated.devise
+        devise: updated.devise,
+        marge_alu_default: updated.marge_alu_default,
+        marge_gc_default: updated.marge_gc_default,
+        marge_mousti_default: updated.marge_mousti_default,
+        marge_store_default: updated.marge_store_default
       }).then(({ error }) => { if (error) console.error('Supabase updateSettings error:', error); });
     }
   };
@@ -2406,6 +2465,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         convertToFacture,
         bonsLivraison,
         updateBLStatus,
+        updateBLTransport,
         deleteBL,
         factures,
         addPaymentToFacture,
