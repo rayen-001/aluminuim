@@ -28,27 +28,126 @@
   background: rgba(107, 114, 128, 0.6);
 }
 
-/* Print Stylesheet for Devis & Invoices */
+/* Print Stylesheet for Devis, Invoices & Workshop Documents (A4 Standard) */
+@page {
+  size: A4 portrait;
+  margin: 10mm 10mm 12mm 10mm;
+}
+
 @media print {
-  body {
+  /* 1. Global Print Reset */
+  html, body {
     background: white !important;
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    font-size: 12px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* 2. COMPLETELY HIDE the background SPA website */
+  #root {
+    display: none !important;
+  }
+
+  /* 3. Hide all non-printable UI, buttons, toolbars, and scrollbars */
   aside, 
   header, 
   .no-print, 
   nav, 
-  button {
+  button,
+  .print\:hidden {
     display: none !important;
   }
 
-  .printable-area {
-    display: block !important;
-    width: 100% !important;
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* 4. UN-CLAMP ALL MODAL CONTAINERS FOR FULL A4 MULTI-PAGE PAGINATION */
+  .fixed.inset-0,
+  div[class*="fixed inset-0"] {
+    position: static !important;
+    background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    z-index: auto !important;
+  }
+
+  .max-w-4xl, 
+  .max-w-5xl, 
+  .max-w-6xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .printable-area, 
+  #printable-facture-content, 
+  #printable-bl-content {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Fixed Logo Dimensions in Print */
+  .logo-print-box {
+    width: 64px !important;
+    height: 64px !important;
+    max-width: 64px !important;
+    max-height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .logo-print-box img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* 5. Anti-split rules: Guarantee elements never get sliced across A4 pages */
+  .break-inside-avoid,
+  .product-print-card,
+  .signature-box-print,
+  .totals-box-print,
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }

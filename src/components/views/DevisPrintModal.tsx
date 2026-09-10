@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { DevisRecord } from '../../context/AppContext';
 import { useApp } from '../../context/AppContext';
 import { renderAlumDrawing } from '../../utils/productDrawing';
@@ -18,7 +19,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
     window.print();
   };
 
-  // Re-calculate totals on the fly to guarantee exact breakdown (Window vs Store vs Moustiquaire) even on older saved quotes
+  // Re-calculate totals on the fly to guarantee exact breakdown
   const liveTotals = useMemo(() => {
     try {
       return calculateDevisTotals(devis.items, articlesMap, devis.marges);
@@ -30,9 +31,9 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
 
   const clientObj = clients.find(c => c.id === devis.client_id || c.nom.toLowerCase() === (devis.client_nom || '').toLowerCase());
 
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+  const modalElement = (
+    <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-2 sm:p-4 overflow-y-auto backdrop-blur-xs print:p-0 print:bg-white print:static print:block print:overflow-visible print:h-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 print:max-h-none print:h-auto print:overflow-visible print:shadow-none print:border-none print:rounded-none print:max-w-none print:w-full print:block">
         {/* Modal Controls (Not printed) */}
         <div className="no-print px-6 py-4 bg-gray-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -59,14 +60,14 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
         </div>
 
         {/* Document Body (Printable A4 Sheet) */}
-        <div className="flex-1 p-8 sm:p-12 overflow-y-auto bg-white text-gray-900 printable-area space-y-6 text-sm">
+        <div className="flex-1 p-6 sm:p-10 overflow-y-auto bg-white text-gray-900 printable-area space-y-6 text-sm print:p-0 print:overflow-visible print:h-auto print:max-h-none print:block">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-6 border-b-2 border-blue-900 pb-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6 border-b-2 border-blue-900 pb-5">
             {/* Workshop / Company Info with Logo */}
             <div className="flex items-start gap-4">
               {settings.logo_url ? (
-                <div className="w-16 h-16 rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
-                  <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                <div className="logo-print-box w-16 h-16 max-w-[64px] max-h-[64px] rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
+                  <img src={settings.logo_url} alt="Logo" className="max-w-full max-h-full w-auto h-auto object-contain" />
                 </div>
               ) : (
                 <div className="w-12 h-12 rounded-xl bg-blue-900 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
@@ -79,7 +80,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                 </h1>
                 <p className="text-xs font-semibold text-blue-800 tracking-wide">{settings.activite || 'Menuiserie Aluminium & Vitrerie'}</p>
                 
-                <div className="text-xs text-gray-600 space-y-0.5 mt-1.5 font-sans">
+                <div className="text-xs text-gray-600 space-y-0.5 mt-1 font-sans">
                   {settings.telephone && <p>Tél : <span className="font-semibold text-gray-800">{settings.telephone}</span></p>}
                   {settings.adresse && <p>Adresse : {settings.adresse}</p>}
                   {settings.email && <p>Email : {settings.email}</p>}
@@ -98,7 +99,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                 <span className="text-[10px] uppercase font-bold tracking-widest text-blue-300 block">
                   Proposition Commerciale & Technique
                 </span>
-                <h2 className="text-base sm:text-lg font-extrabold tracking-wide mt-0.5 text-white">
+                <h2 className="text-base sm:text-lg font-black tracking-wide mt-0.5 text-white">
                   DEVIS & PROPOSITION TECHNIQUE
                 </h2>
                 <div className="mt-2 pt-2 border-t border-blue-800/80 font-mono text-xs space-y-0.5">
@@ -108,42 +109,42 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                   <p className="text-blue-200 text-[11px]">
                     Date : <span className="font-semibold text-white">{devis.date}</span>
                   </p>
-                  <p className="text-blue-300 text-[10px]">
-                    Validité : 30 jours
+                  <p className="text-blue-200 text-[11px]">
+                    Validité : <span className="font-semibold text-white">30 jours</span>
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Client / Destinataire Info Box with Handwriting-ready dotted lines */}
-          <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4.5 space-y-3">
+          {/* Client Details Box (Handwriting Lines for clean printing) */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4.5 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <span className="text-[11px] text-blue-950 font-black uppercase tracking-wider flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-blue-700" />
                 Destinataire / Client
               </span>
-              <span className="text-[10px] text-gray-400 font-mono italic">
-                {clientObj?.id ? `Code Client : CLI-${clientObj.id.slice(0, 6).toUpperCase()}` : 'Client Particulier'}
-              </span>
+              {devis.client_id && (
+                <span className="text-[10px] text-gray-400 font-mono">Code Client : CLI-{devis.client_id.slice(0, 6).toUpperCase()}</span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-xs">
-              {/* Nom Client */}
+              {/* Client Name */}
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="text-gray-500 font-bold shrink-0 min-w-[95px]">Nom / Client :</span>
-                {(clientObj?.nom || (devis.client_nom && devis.client_nom !== 'Sans client')) ? (
-                  <span className="font-black text-gray-900 text-sm truncate">{clientObj?.nom || devis.client_nom}</span>
+                <span className="text-gray-500 font-bold shrink-0 min-w-[90px]">Nom / Client :</span>
+                {devis.client_nom && devis.client_nom !== 'Sans client' ? (
+                  <span className="font-black text-gray-900 text-sm truncate">{devis.client_nom}</span>
                 ) : (
                   <span className="flex-1 border-b border-dashed border-gray-400 self-end mb-1 min-w-[80px]"></span>
                 )}
               </div>
 
-              {/* Téléphone */}
+              {/* Telephone */}
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="text-gray-500 font-bold shrink-0 min-w-[95px]">Téléphone :</span>
+                <span className="text-gray-500 font-bold shrink-0 min-w-[90px]">Téléphone :</span>
                 {clientObj?.telephone ? (
-                  <span className="font-bold text-gray-900 font-mono">{clientObj.telephone}</span>
+                  <span className="font-mono font-bold text-gray-800 truncate">{clientObj.telephone}</span>
                 ) : (
                   <span className="flex-1 border-b border-dashed border-gray-400 self-end mb-1 min-w-[80px]"></span>
                 )}
@@ -151,37 +152,29 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
 
               {/* CIN / MF */}
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="text-gray-500 font-bold shrink-0 min-w-[95px]">CIN / MF Client :</span>
+                <span className="text-gray-500 font-bold shrink-0 min-w-[90px]">CIN / MF Client :</span>
                 {clientObj?.matricule_fiscale ? (
-                  <span className="font-bold text-gray-900 font-mono">{clientObj.matricule_fiscale}</span>
+                  <span className="font-mono font-bold text-gray-800 truncate">{clientObj.matricule_fiscale}</span>
                 ) : (
                   <span className="flex-1 border-b border-dashed border-gray-400 self-end mb-1 min-w-[80px]"></span>
                 )}
               </div>
 
-              {/* Adresse / Chantier */}
+              {/* Chantier / Ville */}
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="text-gray-500 font-bold shrink-0 min-w-[95px]">Chantier / Ville :</span>
-                {clientObj?.adresse ? (
-                  <span className="font-semibold text-gray-800 truncate">{clientObj.adresse}</span>
+                <span className="text-gray-500 font-bold shrink-0 min-w-[90px]">Chantier / Ville :</span>
+                {devis.notes || clientObj?.adresse ? (
+                  <span className="text-gray-700 truncate">{devis.notes || clientObj?.adresse}</span>
                 ) : (
                   <span className="flex-1 border-b border-dashed border-gray-400 self-end mb-1 min-w-[80px]"></span>
                 )}
               </div>
             </div>
-
-            {/* Observations / Notes Chantier */}
-            {devis.notes && (
-              <div className="mt-2 pt-2 border-t border-slate-200 flex items-start gap-2 text-xs">
-                <span className="text-gray-500 font-bold shrink-0 min-w-[95px]">Observations :</span>
-                <span className="text-gray-800 italic font-medium">{devis.notes}</span>
-              </div>
-            )}
           </div>
 
-          {/* Items Table */}
+          {/* Items Table: Product Cards in original full beauty */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 border-b border-gray-200 pb-1 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 border-b border-gray-200 pb-2 flex items-center justify-between">
               <span>Détails des articles et menuiseries ({devis.items.length})</span>
               <span className="text-[10px] font-normal text-gray-400 capitalize">Cotes & Dessins réels</span>
             </h3>
@@ -232,40 +225,38 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                 }
 
                 return (
-                  <div key={idx} className="border border-gray-200 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center justify-between bg-white shadow-2xs">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-gray-900 text-sm">
+                  <div
+                    key={idx}
+                    className="break-inside-avoid print:break-inside-avoid border border-gray-200 rounded-xl p-4 bg-white shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  >
+                    {/* Left: Info, Specs & Options */}
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-gray-900 text-sm sm:text-base">
                           {idx + 1}. {it.is_manual ? it.manual_nom : (typeDef?.name || `Produit ${idx + 1}`)}
                         </span>
-                        <span className="text-xs bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-bold text-slate-700 capitalize">
-                          {it.couleur}
+                        <span className="text-xs bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-bold text-slate-700 capitalize shrink-0">
+                          {it.couleur?.replace('_', ' ')}
                         </span>
                       </div>
 
-                      <p className="text-xs text-gray-600 font-medium">
-                        {it.hauteur && it.largeur ? `Dimensions : ${it.largeur} cm × ${it.hauteur} cm` : ''} • Quantité : <span className="font-bold font-mono text-gray-900">{it.quantity}</span>
-                      </p>
+                      <div className="flex items-center gap-3 text-xs text-gray-600 font-medium flex-wrap">
+                        <span>{it.hauteur && it.largeur ? `Dimensions : ${it.largeur} cm × ${it.hauteur} cm` : ''}</span>
+                        <span>•</span>
+                        <span className="font-mono bg-blue-50 text-blue-800 px-2 py-0.5 rounded font-bold">Qté : {it.quantity}</span>
+                        {it.vitrage_type && (
+                          <>
+                            <span>•</span>
+                            <span className="text-gray-500">Vitrage : {it.vitrage_type}</span>
+                          </>
+                        )}
+                      </div>
 
-                      {/* Suppléments Quincaillerie */}
-                      {it.supplements && it.supplements.length > 0 && (
-                        <p className="text-[11px] text-gray-700">
-                          <span className="font-semibold text-gray-500">Options : </span>
-                          {it.supplements.map(s => s === 'Fast Lock' ? `Fast Lock (${it.fast_lock_points || 1} pt)` : s).join(' • ')}
-                        </p>
-                      )}
-
-                      {/* Store Rideau */}
+                      {/* Store Details with Separate Price */}
                       {it.store_enabled && (
-                        <div className="text-[11px] text-blue-800 font-medium bg-blue-50/70 p-2 rounded-xl border border-blue-200/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2 text-xs bg-blue-50/80 border border-blue-200 p-2 rounded-xl text-blue-900 font-medium">
                           <span>
-                            + 🪟 <strong>Store rideau :</strong> {it.store_lame_type || 'Lame 55'} ({it.store_couleur || 'Blanc'}) 
-                            {it.store_manoeuvre === 'moteur_radio' ? ' • Moteur Radio' : 
-                             it.store_manoeuvre === 'moteur_filaire' ? ' • Moteur Filaire' : 
-                             it.store_manoeuvre === 'manuel_sangle' ? ' • Manuel Sangle' : 
-                             it.store_manoeuvre === 'tirage_direct' ? ' • Tirage Direct' : ' • Moteur Électrique'}
-                            {it.store_coffre ? ` • ${it.store_coffre}` : ''}
-                            {it.store_bloc_secu ? ' • Bloc sécurité' : ''}
+                            🪟 Store Volet Roulant : {it.store_lame_type || 'Lame 55'} ({it.store_couleur || 'Blanc'}) {it.store_coffre ? `• Coffre ${it.store_coffre}` : ''}
                           </span>
                           {(cost?.net_store_ht || 0) > 0 && (
                             <span className="font-mono font-black text-blue-950 bg-white px-2 py-0.5 rounded-lg border border-blue-200 shadow-2xs shrink-0 text-xs">
@@ -275,11 +266,11 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                         </div>
                       )}
 
-                      {/* Moustiquaire */}
+                      {/* Moustiquaire Details with Separate Price */}
                       {it.mousti_enabled && (
-                        <div className="text-[11px] text-emerald-800 font-medium bg-emerald-50/70 p-2 rounded-xl border border-emerald-200/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2 text-xs bg-emerald-50/80 border border-emerald-200 p-2 rounded-xl text-emerald-900 font-medium">
                           <span>
-                            + 🦟 <strong>Moustiquaire :</strong> {it.mousti_type === 'plissee' ? 'Plissée Coulissante' : 
+                            🦟 Moustiquaire Intégrée : {it.mousti_type === 'plissee' ? 'Plissée Latérale' : 
                                it.mousti_type === 'fixe' ? 'Cadre Fixe' : 
                                it.mousti_type === 'battante' ? 'Porte Battante' : 'Enroulable Verticale'}
                           </span>
@@ -288,6 +279,13 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                               + {(cost!.net_mousti_ht!).toFixed(3)} DT
                             </span>
                           )}
+                        </div>
+                      )}
+
+                      {/* Other Supplements */}
+                      {it.supplements && it.supplements.length > 0 && (
+                        <div className="text-xs text-gray-500 pt-1">
+                          Suppléments : <span className="font-medium text-gray-700">{it.supplements.join(', ')}</span>
                         </div>
                       )}
                     </div>
@@ -347,7 +345,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
           </div>
 
           {/* Totals Box */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="break-inside-avoid print:break-inside-avoid flex justify-end pt-4 border-t border-gray-200">
             <div className="w-80 space-y-2 font-mono text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
               {(devis.totals?.frais_pose > 0 || devis.totals?.frais_transport > 0) && (
                 <>
@@ -381,7 +379,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
           </div>
 
           {/* Double Signature & Validation Box */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-200">
+          <div className="break-inside-avoid print:break-inside-avoid grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-200">
             {/* Atelier Stamp Box */}
             <div className="border border-gray-300 rounded-xl p-4 min-h-[110px] flex flex-col justify-between bg-gray-50/50">
               <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">
@@ -410,7 +408,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
           </div>
 
           {/* Footer Terms */}
-          <div className="text-center text-[10px] text-gray-400 pt-4 border-t border-gray-100 space-y-0.5">
+          <div className="text-center text-[10px] text-gray-400 pt-4 border-t border-gray-100 space-y-0.5 font-sans">
             <p className="font-medium text-gray-500">Devis valable pour une durée de 30 jours à compter de sa date d'émission.</p>
             <p>{settings.nom_atelier || 'AtelierPro'} — Menuiserie Aluminium & Vitrerie professionnelle.</p>
           </div>
@@ -418,4 +416,6 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalElement, document.body) : modalElement;
 };

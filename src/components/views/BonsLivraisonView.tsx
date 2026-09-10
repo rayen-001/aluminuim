@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp, BonLivraisonRecord, DevisRecord } from '../../context/AppContext';
 import { FAMILIES, getProductTypesForFamily, REMPLISSAGES, MOTIFS } from '../../data/productCatalog';
 import { ProductVisualizer } from '../common/ProductVisualizer';
@@ -797,9 +798,9 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* PRINTABLE BON DE SORTIE & DE LIVRAISON MODAL (A4 READY) */}
       {/* ═══════════════════════════════════════════════════════════ */}
-      {printBL && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-150 my-auto">
+      {printBL && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white print:static print:block print:overflow-visible print:h-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-150 my-auto print:max-h-none print:h-auto print:overflow-visible print:shadow-none print:border-none print:rounded-none print:max-w-none print:w-full print:block print:p-0">
             {/* Modal Top Bar (Hidden on print) */}
             <div className="flex items-center justify-between border-b border-gray-200 pb-3 print:hidden">
               <div className="flex items-center gap-2">
@@ -824,14 +825,14 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
             </div>
 
             {/* Printable Document A4 Body */}
-            <div id="printable-bl-content" className="space-y-6 text-gray-900 font-sans p-2 sm:p-4">
+            <div id="printable-bl-content" className="space-y-6 text-gray-900 font-sans p-2 sm:p-4 print:p-0 print:overflow-visible print:h-auto">
               {/* Header with Workshop & Document info */}
               <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-purple-900 pb-5 gap-4">
                 {/* Workshop Logo & Coordinates */}
                 <div className="flex items-start gap-4">
                   {settings.logo_url ? (
-                    <div className="w-16 h-16 rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
-                      <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                    <div className="logo-print-box w-16 h-16 max-w-[64px] max-h-[64px] rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
+                      <img src={settings.logo_url} alt="Logo" className="max-w-full max-h-full w-auto h-auto object-contain" />
                     </div>
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-purple-900 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
@@ -1018,7 +1019,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
               </div>
 
               {/* Summary / Total items */}
-              <div className="flex justify-end pt-1">
+              <div className="break-inside-avoid print:break-inside-avoid flex justify-end pt-1">
                 <div className="bg-purple-50 border border-purple-200 rounded-xl px-5 py-2.5 text-right">
                   <span className="text-xs text-purple-900 font-semibold">Volume Total de Menuiseries Chargées : </span>
                   <span className="text-base font-black text-purple-950 font-mono ml-1">
@@ -1028,7 +1029,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
               </div>
 
               {/* Tripartite Signatures Box (3 Cases de signature) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t-2 border-gray-200 text-xs">
+              <div className="break-inside-avoid print:break-inside-avoid grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t-2 border-gray-200 text-xs">
                 {/* 1. Sortie Atelier */}
                 <div className="border border-gray-300 rounded-xl p-3.5 min-h-[115px] flex flex-col justify-between bg-gray-50/50">
                   <div>
@@ -1071,7 +1072,8 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useApp, FactureRecord } from '../../context/AppContext';
 import { FAMILIES, getProductTypesForFamily } from '../../data/productCatalog';
 import { numberToWordsDinar } from '../../utils/numberToWordsFr';
@@ -27,9 +28,9 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
   const montantPaye = facture.montant_paye || 0;
   const resteDu = Math.max(0, netAPayer - montantPaye);
 
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-150 my-auto">
+  const modalElement = (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white print:static print:block print:overflow-visible print:h-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-10 space-y-6 animate-in fade-in zoom-in-95 duration-150 my-auto print:max-h-none print:h-auto print:overflow-visible print:shadow-none print:border-none print:rounded-none print:max-w-none print:w-full print:block print:p-0">
         {/* Top Control Bar (Hidden when printing) */}
         <div className="flex items-center justify-between border-b border-gray-200 pb-3 print:hidden">
           <div className="flex items-center gap-2">
@@ -56,14 +57,14 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
         </div>
 
         {/* Printable Document A4 Body */}
-        <div id="printable-facture-content" className="space-y-6 text-gray-900 font-sans p-2 sm:p-4">
+        <div id="printable-facture-content" className="space-y-6 text-gray-900 font-sans p-2 sm:p-4 print:p-0 print:overflow-visible print:h-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-cyan-800 pb-5 gap-4">
             {/* Workshop Info & Logo */}
             <div className="flex items-start gap-4">
               {settings.logo_url ? (
-                <div className="w-16 h-16 rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
-                  <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                <div className="logo-print-box w-16 h-16 max-w-[64px] max-h-[64px] rounded-xl border border-gray-200 p-1 bg-white shadow-2xs shrink-0 flex items-center justify-center overflow-hidden">
+                  <img src={settings.logo_url} alt="Logo" className="max-w-full max-h-full w-auto h-auto object-contain" />
                 </div>
               ) : (
                 <div className="w-14 h-14 rounded-xl bg-cyan-800 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-xs">
@@ -249,7 +250,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
           </div>
 
           {/* TVA Summary & Totals Box */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 items-start">
+          <div className="break-inside-avoid print:break-inside-avoid grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 items-start">
             {/* Left: Tableau Récapitulatif TVA */}
             <div>
               <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
@@ -318,7 +319,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
           </div>
 
           {/* Arrêté en toutes lettres */}
-          <div className="border-l-4 border-cyan-700 bg-cyan-50/50 p-3.5 rounded-r-xl space-y-1">
+          <div className="break-inside-avoid print:break-inside-avoid border-l-4 border-cyan-700 bg-cyan-50/50 p-3.5 rounded-r-xl space-y-1">
             <p className="text-[11px] text-gray-600 italic">
               Arrêtée la présente facture, sauf erreur ou omission, à la somme de :
             </p>
@@ -328,7 +329,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
           </div>
 
           {/* Cachet & Signature */}
-          <div className="flex justify-end pt-4">
+          <div className="break-inside-avoid print:break-inside-avoid flex justify-end pt-4">
             <div className="border border-gray-300 rounded-xl p-4 w-64 min-h-[110px] flex flex-col justify-between bg-gray-50/40 text-center">
               <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Cachet & Signature</p>
               <p className="text-[10px] text-gray-400 italic">Pour l'entreprise</p>
@@ -348,4 +349,6 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalElement, document.body) : modalElement;
 };
