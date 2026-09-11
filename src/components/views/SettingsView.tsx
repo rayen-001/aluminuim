@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Settings, Save, Check, Percent } from 'lucide-react';
+import { Settings, Save, Check, Percent, Layers } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useApp();
@@ -17,6 +17,17 @@ export const SettingsView: React.FC = () => {
   const [margeGc, setMargeGc] = useState(String(settings.marge_gc_default ?? 0));
   const [margeMousti, setMargeMousti] = useState(String(settings.marge_mousti_default ?? 0));
   const [margeStore, setMargeStore] = useState(String(settings.marge_store_default ?? 0));
+
+  // Profilés par défaut de l'atelier
+  const [s40Dormant, setS40Dormant] = useState(settings.default_profiles?.s40_dormant || '40100');
+  const [s40Ouvrant, setS40Ouvrant] = useState(settings.default_profiles?.s40_ouvrant || '40401');
+  const [s40Parclose, setS40Parclose] = useState(settings.default_profiles?.s40_parclose || '40110');
+  const [s67Dormant, setS67Dormant] = useState(settings.default_profiles?.s67_dormant || '67101');
+  const [s67Lateral, setS67Lateral] = useState(settings.default_profiles?.s67_lateral || '67104');
+  const [s67Central, setS67Central] = useState(settings.default_profiles?.s67_central || '67105');
+  const [fixCadre, setFixCadre] = useState(settings.default_profiles?.fix_cadre || '40100');
+  const [fixSocle, setFixSocle] = useState(settings.default_profiles?.fix_socle || '40154');
+
   const [savedMsg, setSavedMsg] = useState(false);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +55,17 @@ export const SettingsView: React.FC = () => {
       marge_alu_default: parseFloat(margeAlu) || 0,
       marge_gc_default: parseFloat(margeGc) || 0,
       marge_mousti_default: parseFloat(margeMousti) || 0,
-      marge_store_default: parseFloat(margeStore) || 0
+      marge_store_default: parseFloat(margeStore) || 0,
+      default_profiles: {
+        s40_dormant: s40Dormant,
+        s40_ouvrant: s40Ouvrant,
+        s40_parclose: s40Parclose,
+        s67_dormant: s67Dormant,
+        s67_lateral: s67Lateral,
+        s67_central: s67Central,
+        fix_cadre: fixCadre,
+        fix_socle: fixSocle
+      }
     });
     setSavedMsg(true);
     setTimeout(() => setSavedMsg(false), 3000);
@@ -255,6 +276,160 @@ export const SettingsView: React.FC = () => {
                     className="w-full border border-gray-300 rounded-xl px-3.5 py-2 pr-8 text-sm font-mono font-bold focus:ring-2 focus:ring-amber-400"
                   />
                   <span className="absolute right-3 top-2 text-gray-400 text-xs font-bold">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Profilés & Références par Défaut de l'Atelier */}
+          <div className="border-t border-gray-100 pt-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Layers className="w-4 h-4 text-blue-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Profilés & Références Préférés de l'Atelier</p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Sélectionnez les références d'aluminium que vous utilisez couramment. Elles seront chargées automatiquement par défaut lors de la création de vos nouveaux devis (avec possibilité de les changer par devis).
+            </p>
+
+            {/* S40 Frappe Card */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  🪟 Série 40 — Frappe (Fenêtres & Portes à la française)
+                </span>
+                {s40Ouvrant === '40404' && (
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                    ⭐ Ouvrant Monobloc (Parclose intégrée)
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Dormant par défaut</label>
+                  <select
+                    value={s40Dormant}
+                    onChange={e => setS40Dormant(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="40100">40100 — Dormant standard</option>
+                    <option value="40402">40402 — Dormant avec couvre-joint (35mm)</option>
+                    <option value="40102">40102 — Dormant tubulaire</option>
+                    <option value="40148">40148 — Dormant rénovation</option>
+                    <option value="40165">40165 — Dormant large</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Ouvrant par défaut</label>
+                  <select
+                    value={s40Ouvrant}
+                    onChange={e => setS40Ouvrant(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="40401">40401 — Ouvrant standard</option>
+                    <option value="40404">40404 — Ouvrant monobloc (Sans parclose)</option>
+                    <option value="40150">40150 — Ouvrant porte</option>
+                    <option value="40403">40403 — Ouvrant arrondi</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                    Parclose {s40Ouvrant === '40404' ? '(Désactivée car Monobloc)' : 'par défaut'}
+                  </label>
+                  <select
+                    disabled={s40Ouvrant === '40404'}
+                    value={s40Parclose}
+                    onChange={e => setS40Parclose(e.target.value)}
+                    className={`w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white ${s40Ouvrant === '40404' ? 'opacity-40 cursor-not-allowed bg-gray-100' : ''}`}
+                  >
+                    <option value="40110">40110 — Parclose simple 15mm</option>
+                    <option value="40111">40111 — Parclose simple 19mm</option>
+                    <option value="40139">40139 — Parclose simple moulurée</option>
+                    <option value="40166">40166 — Parclose simple ronde</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* S67 Coulissant Card */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                🪟 Série 67 — Coulissant
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Dormant par défaut</label>
+                  <select
+                    value={s67Dormant}
+                    onChange={e => setS67Dormant(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="67101">67101 — Dormant standard 2 rails</option>
+                    <option value="67103">67103 — Dormant avec couvre-joint</option>
+                    <option value="67110">67110 — Dormant 3 rails</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Montant Latéral par défaut</label>
+                  <select
+                    value={s67Lateral}
+                    onChange={e => setS67Lateral(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="67104">67104 — Montant latéral standard</option>
+                    <option value="67108">67108 — Montant latéral renforcé</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Chicane Centrale par défaut</label>
+                  <select
+                    value={s67Central}
+                    onChange={e => setS67Central(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="67105">67105 — Chicane centrale standard</option>
+                    <option value="67107">67107 — Chicane centrale renforcée</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Châssis Fixe Card */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                🖼️ Châssis Fixe
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Cadre par défaut</label>
+                  <select
+                    value={fixCadre}
+                    onChange={e => setFixCadre(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="40100">40100 — Cadre standard</option>
+                    <option value="40402">40402 — Cadre avec couvre-joint</option>
+                    <option value="40102">40102 — Cadre tubulaire</option>
+                    <option value="40148">40148 — Cadre rénovation</option>
+                    <option value="40165">40165 — Cadre large</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">Socle par défaut</label>
+                  <select
+                    value={fixSocle}
+                    onChange={e => setFixSocle(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="40154">40154 — Socle standard</option>
+                    <option value="40121">40121 — Socle renforcé</option>
+                    <option value="40100">40100 — Socle 40100</option>
+                    <option value="40102">40102 — Socle 40102</option>
+                  </select>
                 </div>
               </div>
             </div>

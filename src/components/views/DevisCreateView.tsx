@@ -321,6 +321,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     const fam = FAMILIES.find(f => f.id === familyId);
     const isAluco = fam?.group === 'ALUCO';
     const isAluEco = fam?.group === 'ALU ECO';
+    const isTPR = fam?.group === 'TPR' || (!isAluco && !isAluEco);
 
     let chassiRefs = CHASSI_FIX_REFS_DEFAULT;
     if (isAluco) chassiRefs = CHASSI_FIX_REFS_ALUCO;
@@ -328,21 +329,50 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
     const comp = typeDef.composition;
 
+    // Profilés configurés par défaut par l'atelier dans Paramètres
+    const defaultDormant = comp?.coulissant
+      ? (isTPR && settings?.default_profiles?.s67_dormant ? settings.default_profiles.s67_dormant : (comp?.dormant.default || ''))
+      : (isTPR && settings?.default_profiles?.s40_dormant ? settings.default_profiles.s40_dormant : (comp?.dormant.default || ''));
+
+    const defaultOuvrant = (isTPR && !comp?.coulissant && settings?.default_profiles?.s40_ouvrant)
+      ? settings.default_profiles.s40_ouvrant
+      : (comp?.ouvrant.default || '');
+
+    const defaultParclose = (isTPR && !comp?.coulissant && settings?.default_profiles?.s40_parclose)
+      ? settings.default_profiles.s40_parclose
+      : (comp?.parclose.simple.default || '');
+
+    const defaultLateral = (isTPR && comp?.coulissant && settings?.default_profiles?.s67_lateral)
+      ? settings.default_profiles.s67_lateral
+      : (comp?.lateral?.default || '');
+
+    const defaultCentral = (isTPR && comp?.coulissant && settings?.default_profiles?.s67_central)
+      ? settings.default_profiles.s67_central
+      : (comp?.central?.default || '');
+
+    const defaultFixCadre = (isTPR && settings?.default_profiles?.fix_cadre)
+      ? settings.default_profiles.fix_cadre
+      : chassiRefs.cadre[0];
+
+    const defaultFixSocle = (isTPR && settings?.default_profiles?.fix_socle)
+      ? settings.default_profiles.fix_socle
+      : chassiRefs.socle[0];
+
     updateItem(idx, {
       include_menuiserie: !(isStore || isMousti),
       is_chassi_fix: isChassi,
       is_garde_corps: isGardeCorps,
-      chassi_cadre_ref: chassiRefs.cadre[0],
-      chassi_socle_ref: chassiRefs.socle[0],
+      chassi_cadre_ref: defaultFixCadre,
+      chassi_socle_ref: defaultFixSocle,
       chassi_montant_ref: chassiRefs.montant[0],
       chassi_traverse_ref: chassiRefs.traverse[0],
-      comp_dormant_ref: comp?.dormant.default || '',
-      comp_ouvrant_ref: comp?.ouvrant.default || '',
-      comp_parclose_ref: comp?.parclose.simple.default || '',
+      comp_dormant_ref: defaultDormant,
+      comp_ouvrant_ref: defaultOuvrant,
+      comp_parclose_ref: defaultParclose,
       comp_traverse_ref: comp?.traverse.default || '',
-      comp_lateral_qty: comp?.lateral ? { [comp.lateral.default]: comp.lateral.count } : {},
-      comp_central_qty: comp?.central ? { [comp.central.default]: comp.central.count } : {},
-      comp_seuil_ref: (comp?.dormant_composite && comp.dormant_composite[comp.dormant.default]) ? comp.dormant_composite[comp.dormant.default][0] : '',
+      comp_lateral_qty: comp?.lateral ? { [defaultLateral || comp.lateral.default]: comp.lateral.count } : {},
+      comp_central_qty: comp?.central ? { [defaultCentral || comp.central.default]: comp.central.count } : {},
+      comp_seuil_ref: (comp?.dormant_composite && comp.dormant_composite[defaultDormant || comp.dormant.default]) ? comp.dormant_composite[defaultDormant || comp.dormant.default][0] : '',
       store_enabled: isStore,
       mousti_enabled: isMousti,
       gc_nb_poteaux: isGardeCorps ? 3 : undefined,

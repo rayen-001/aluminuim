@@ -198,6 +198,17 @@ export interface CaisseMovement {
   created_at: string;
 }
 
+export interface DefaultProfilesConfig {
+  s40_dormant?: string;   // e.g. '40402' (Dormant couvre-joint) or '40100'
+  s40_ouvrant?: string;   // e.g. '40404' (Monobloc) or '40401'
+  s40_parclose?: string;  // e.g. '40110'
+  s67_dormant?: string;   // e.g. '67101' or '67103'
+  s67_lateral?: string;   // e.g. '67104' or '67108'
+  s67_central?: string;   // e.g. '67105' or '67107'
+  fix_cadre?: string;     // e.g. '40100' or '40402'
+  fix_socle?: string;     // e.g. '40154' or '40121'
+}
+
 export interface AtelierSettings {
   nom_atelier: string;
   activite: string;
@@ -213,6 +224,8 @@ export interface AtelierSettings {
   marge_gc_default: number;
   marge_mousti_default: number;
   marge_store_default: number;
+  // Profilés & Références par défaut de l'atelier
+  default_profiles?: DefaultProfilesConfig;
 }
 interface AppContextType {
   user: any;
@@ -333,7 +346,17 @@ const DEFAULT_SETTINGS: AtelierSettings = {
   marge_alu_default: 0,
   marge_gc_default: 0,
   marge_mousti_default: 0,
-  marge_store_default: 0
+  marge_store_default: 0,
+  default_profiles: {
+    s40_dormant: '40100',
+    s40_ouvrant: '40401',
+    s40_parclose: '40110',
+    s67_dormant: '67101',
+    s67_lateral: '67104',
+    s67_central: '67105',
+    fix_cadre: '40100',
+    fix_socle: '40154'
+  }
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -471,7 +494,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             marge_alu_default: profile.marge_alu_default !== undefined && profile.marge_alu_default !== null ? Number(profile.marge_alu_default) : prev.marge_alu_default,
             marge_gc_default: profile.marge_gc_default !== undefined && profile.marge_gc_default !== null ? Number(profile.marge_gc_default) : prev.marge_gc_default,
             marge_mousti_default: profile.marge_mousti_default !== undefined && profile.marge_mousti_default !== null ? Number(profile.marge_mousti_default) : prev.marge_mousti_default,
-            marge_store_default: profile.marge_store_default !== undefined && profile.marge_store_default !== null ? Number(profile.marge_store_default) : prev.marge_store_default
+            marge_store_default: profile.marge_store_default !== undefined && profile.marge_store_default !== null ? Number(profile.marge_store_default) : prev.marge_store_default,
+            default_profiles: profile.default_profiles || prev.default_profiles
           }));
         } else {
           // If profile does not exist yet, create default user profile
@@ -2612,7 +2636,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     if (user?.id) {
-      supabase.from('profiles').upsert({
+      const payload: Record<string, any> = {
         id: user.id,
         nom_atelier: updated.nom_atelier,
         activite: updated.activite,
@@ -2627,7 +2651,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         marge_gc_default: updated.marge_gc_default,
         marge_mousti_default: updated.marge_mousti_default,
         marge_store_default: updated.marge_store_default
-      }).then(({ error }) => { if (error) console.error('Supabase updateSettings error:', error); });
+      };
+      if (updated.default_profiles) {
+        payload.default_profiles = updated.default_profiles;
+      }
+      supabase.from('profiles').upsert(payload).then(({ error }) => {
+        if (error) {
+          // If error is caused by missing column in Supabase profiles table, fallback gracefully
+          if (error.message?.includes('default_profiles') || error.code === 'PGRST204') {
+            const fallbackPayload = { ...payload };
+            delete fallbackPayload.default_profiles;
+            supabase.from('profiles').upsert(fallbackPayload);
+          } else {
+            console.error('Supabase updateSettings error:', error);
+          }
+        }
+      });
     }
   };
 
