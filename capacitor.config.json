@@ -1,6 +1,6 @@
 {
-  "appId": "com.atelierpro.app",
-  "appName": "AtelierPro",
+  "appId": "com.alupro.app",
+  "appName": "AluPro",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {

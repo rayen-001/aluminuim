@@ -5,7 +5,7 @@ const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error(
-    '[AtelierPro] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing. ' +
+    '[AluPro] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing. ' +
     'Please check your .env file.'
   );
 }

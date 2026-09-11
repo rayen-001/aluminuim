@@ -73,7 +73,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
               )}
               <div>
                 <h2 className="text-2xl font-black text-cyan-950 uppercase tracking-tight">
-                  {settings.nom_atelier || 'ATELIER PRO'}
+                  {settings.nom_atelier || 'ALUPRO'}
                 </h2>
                 <p className="text-xs font-semibold text-cyan-800">
                   {settings.activite || 'Menuiserie Aluminium & Vitrerie'}
@@ -338,7 +338,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
 
           {/* Footer */}
           <div className="border-t border-gray-200 pt-3 text-center text-[10px] text-gray-500 space-y-0.5 font-sans">
-            <p className="font-semibold text-gray-700">{settings.nom_atelier || 'AtelierPro'} — {settings.activite || 'Menuiserie Aluminium & Vitrerie'}</p>
+            <p className="font-semibold text-gray-700">{settings.nom_atelier || 'AluPro'} — {settings.activite || 'Menuiserie Aluminium & Vitrerie'}</p>
             <p>
               {settings.matricule_fiscal && <span>MF : {settings.matricule_fiscal} • </span>}
               {settings.telephone && <span>Tél : {settings.telephone} • </span>}

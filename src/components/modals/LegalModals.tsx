@@ -20,7 +20,7 @@ export const CGUModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="text-xs sm:text-sm text-gray-600 space-y-3 leading-relaxed">
-          <p><strong>1. Objet</strong><br />AtelierPro est une plateforme destinée à la gestion des devis, bons de livraison et factures pour les ateliers de menuiserie aluminium.</p>
+          <p><strong>1. Objet</strong><br />AluPro est une plateforme destinée à la gestion des devis, bons de livraison et factures pour les ateliers de menuiserie aluminium.</p>
           <p><strong>2. Accès au service</strong><br />L'accès est réservé aux utilisateurs autorisés. Chaque atelier est responsable de ses chiffrages et de la conformité de ses devis.</p>
           <p><strong>3. Confidentialité</strong><br />Les tarifs, prix des profilés et données clients restent la propriété stricte de votre atelier.</p>
           <p><strong>4. Responsabilités</strong><br />Les formules de calcul fournies permettent une estimation précise des matériaux (aluminium, vitrage, quincaillerie).</p>
@@ -53,7 +53,7 @@ export const CharteModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="text-xs sm:text-sm text-gray-600 space-y-3 leading-relaxed">
-          <p><strong>1. Données collectées</strong><br />AtelierPro conserve vos données localement pour un fonctionnement fluide et autonome même sans connexion Internet (hors-ligne).</p>
+          <p><strong>1. Données collectées</strong><br />AluPro conserve vos données localement pour un fonctionnement fluide et autonome même sans connexion Internet (hors-ligne).</p>
           <p><strong>2. Sécurité</strong><br />Vos devis et factures sont stockés en toute sécurité dans la mémoire de votre appareil.</p>
           <p><strong>3. Respect de la vie privée</strong><br />Aucune donnée confidentielle ou financière n'est transmise à des tiers sans votre consentement.</p>
         </div>

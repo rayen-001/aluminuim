@@ -102,7 +102,7 @@ for (let i = 1; i < allLines.length; i++) {
 const outDir = path.resolve('src/data');
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-const tsContent = `// Auto-generated initial articles dataset from AtelierPro CSV catalog (${articles.length} items)
+const tsContent = `// Auto-generated initial articles dataset from AluPro CSV catalog (${articles.length} items)
 export interface ArticlePrice {
   ht: number;
   ttc: number;

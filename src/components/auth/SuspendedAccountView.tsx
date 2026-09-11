@@ -56,11 +56,11 @@ export const SuspendedAccountView: React.FC = () => {
             </a>
 
             <a
-              href="mailto:contact@atelierpro.tn"
+              href="mailto:contact@alupro.tn"
               className="flex items-center justify-center gap-2.5 w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2.5 px-4 rounded-xl transition text-xs cursor-pointer border border-slate-700"
             >
               <Mail className="w-4 h-4" />
-              <span>Envoyer un Email : contact@atelierpro.tn</span>
+              <span>Envoyer un Email : contact@alupro.tn</span>
             </a>
           </div>
 
@@ -79,7 +79,7 @@ export const SuspendedAccountView: React.FC = () => {
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-600">
-          AtelierPro SaaS • Plateforme Sécurisée Cloud
+          AluPro SaaS • Plateforme Sécurisée Cloud
         </p>
 
       </div>

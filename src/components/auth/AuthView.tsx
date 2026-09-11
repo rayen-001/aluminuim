@@ -90,7 +90,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
             <Building2 className="w-7 h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            AtelierPro <span className="text-blue-500 font-normal">Cloud</span>
+            AluPro <span className="text-blue-500 font-normal">Cloud</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
             Plateforme Sécurisée de Menuiserie Aluminium & Découpe

@@ -204,7 +204,7 @@ export const AdminPortal: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-black text-white tracking-tight">
-                  AtelierPro <span className="text-purple-400 font-normal">Super-Admin</span>
+                  AluPro <span className="text-purple-400 font-normal">Super-Admin</span>
                 </h1>
                 <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Portail Gestion SaaS

@@ -80,75 +80,80 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Top Banner Notice */}
-      <div className="bg-amber-500 text-white px-4 py-3 rounded-xl shadow-xs flex items-center justify-between text-xs sm:text-sm font-medium">
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 border border-blue-700/50 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-950/20 flex items-center justify-between text-xs sm:text-sm font-medium">
         <div className="flex items-center gap-2">
           <span>✨</span>
-          <span>Bienvenue sur AtelierPro — Système de gestion de menuiserie aluminium & calcul de devis.</span>
+          <span>Bienvenue sur AluPro — Système de gestion de menuiserie aluminium & calcul de devis.</span>
         </div>
-        <span className="hidden md:inline-block opacity-90">Support : {settings.telephone}</span>
+        <a 
+          href="tel:+21658829700" 
+          className="hidden md:inline-flex items-center gap-1.5 bg-blue-600/40 hover:bg-blue-600/60 border border-blue-400/30 px-3 py-1 rounded-lg text-xs font-bold transition text-blue-100 hover:text-white"
+        >
+          <span>Support : +216 58 829 700</span>
+        </a>
       </div>
 
       {/* Stats Cards Grid (5 Financial KPI Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Solde Caisse Réel */}
-        <div className="bg-blue-600 rounded-2xl p-5 text-white shadow-md shadow-blue-600/10 flex items-center justify-between">
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-5 text-white shadow-lg shadow-blue-600/20 hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex items-center justify-between border border-blue-400/20 cursor-default">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-xs font-semibold text-blue-100 uppercase tracking-wider">Solde Caisse Réel</p>
+              <p className="text-xs font-bold text-blue-100 uppercase tracking-wider">Solde Caisse Réel</p>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold mt-1 font-mono">
-              {soldeCaisse.toFixed(2)} <span className="text-base font-bold">DT</span>
+            <h3 className="text-2xl sm:text-3xl font-black mt-1 font-mono tracking-tight">
+              {soldeCaisse.toFixed(2)} <span className="text-base font-bold text-blue-200">DT</span>
             </h3>
-            <p className="text-[11px] text-blue-200 mt-0.5">Espèces & fonds encaissés</p>
+            <p className="text-[11px] text-blue-200/90 mt-0.5 font-medium">Espèces & fonds encaissés</p>
           </div>
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-xs shrink-0">
+          <div className="w-12 h-12 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-xs shrink-0 shadow-inner">
             <Wallet className="w-6 h-6 text-white" />
           </div>
         </div>
 
         {/* Card 2: Créances Clients (Factures Impayées) */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-orange-300 transition-all duration-200 flex items-center justify-between cursor-default">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Créances Clients (Crédits)</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-orange-600 mt-1 font-mono">
-              {totalCreances.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Créances Clients (Crédits)</p>
+            <h3 className="text-2xl sm:text-3xl font-black text-orange-600 mt-1 font-mono tracking-tight">
+              {totalCreances.toFixed(2)} <span className="text-base font-bold text-slate-700">DT</span>
             </h3>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
               {facturesImpayees.length} facture{facturesImpayees.length > 1 ? 's' : ''} en attente
             </p>
           </div>
-          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-orange-50 border border-orange-200/60 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
             <AlertCircle className="w-6 h-6" />
           </div>
         </div>
 
         {/* Card 3: Entrées Mois (Flux Encaissé) */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-emerald-300 transition-all duration-200 flex items-center justify-between cursor-default">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Entrées du Mois</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 font-mono">
-              {entreesMois.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Entrées du Mois</p>
+            <h3 className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 font-mono tracking-tight">
+              {entreesMois.toFixed(2)} <span className="text-base font-bold text-slate-700">DT</span>
             </h3>
-            <p className="text-[11px] text-gray-500 mt-0.5">Total encaissé ce mois</p>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Total encaissé ce mois</p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-emerald-50 border border-emerald-200/60 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
             <TrendingUp className="w-6 h-6" />
           </div>
         </div>
 
         {/* Card 4: Devis en Cours (Estimations / Non convertis) */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-indigo-300 transition-all duration-200 flex items-center justify-between cursor-default">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Devis en Cours</p>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1 font-mono">
-              {totalDevisEnCours.toFixed(2)} <span className="text-base font-bold text-gray-700">DT</span>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Devis en Cours</p>
+            <h3 className="text-2xl sm:text-3xl font-black text-indigo-600 mt-1 font-mono tracking-tight">
+              {totalDevisEnCours.toFixed(2)} <span className="text-base font-bold text-slate-700">DT</span>
             </h3>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
               {devisEnCours.length} devis non converti{devisEnCours.length > 1 ? 's' : ''}
             </p>
           </div>
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-indigo-50 border border-indigo-200/60 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
             <FileText className="w-6 h-6" />
           </div>
         </div>
@@ -158,28 +163,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setCurrentTab('devis_create')}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4.5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Nouveau Devis Aluminium</span>
         </button>
         <button
           onClick={() => setCurrentTab('factures')}
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
+          className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
         >
           <Receipt className="w-4 h-4 text-emerald-600" />
           <span>Facturation & Règlements</span>
         </button>
         <button
           onClick={() => setCurrentTab('articles')}
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
+          className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
         >
           <Package className="w-4 h-4 text-blue-600" />
           <span>Catalogue & Prix (318 Profilés)</span>
         </button>
         <button
           onClick={() => setCurrentTab('clients')}
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition"
+          className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
         >
           <Users className="w-4 h-4 text-indigo-600" />
           <span>Gestion Clients ({clients.length})</span>

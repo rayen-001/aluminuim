@@ -350,7 +350,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                 Atelier de Menuiserie Aluminium
               </span>
               <h1 className="text-base sm:text-xl font-black text-slate-900 mt-0.5">
-                {settings.nom_atelier || 'AtelierPro'} — FICHE DE FABRICATION ATELIER
+                {settings.nom_atelier || 'AluPro'} — FICHE DE FABRICATION ATELIER
               </h1>
               <p className="text-xs text-slate-600 mt-0.5 flex flex-wrap items-center gap-2 sm:gap-3">
                 <span>Dossier : <strong className="text-slate-900 font-mono font-bold">{currentDevis.numero}</strong></span>
@@ -868,7 +868,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
 
           {/* Footer Notes for Workshop */}
           <div className="text-xs text-slate-500 border-t border-slate-200 pt-3 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>Document généré par AtelierPro — Module ALU CALCUL de Fabrication Aluminium.</p>
+            <p>Document généré par AluPro — Module ALU CALCUL de Fabrication Aluminium.</p>
             <p className="font-mono font-semibold text-slate-700">Feuille prête pour exécution atelier</p>
           </div>
         </div>

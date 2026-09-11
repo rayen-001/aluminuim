@@ -1,4 +1,4 @@
-// Auto-generated initial articles dataset from AtelierPro CSV catalog (318 items)
+// Auto-generated initial articles dataset from AluPro CSV catalog (318 items)
 export interface ArticlePrice {
   ht: number;
   ttc: number;

@@ -321,11 +321,11 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 const DEFAULT_SETTINGS: AtelierSettings = {
-  nom_atelier: 'AtelierPro',
+  nom_atelier: 'AluPro',
   activite: 'Menuiserie Aluminium & Vitrerie',
   telephone: '+216 58 829 700',
   adresse: 'Zone Industrielle, Tunis',
-  email: 'contact@atelierpro.tn',
+  email: 'contact@alupro.tn',
   matricule_fiscal: '1234567/A/M/000',
   logo_url: '',
   tva_default: 19,
@@ -346,7 +346,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Articles & Catalog State
   const [articles, setArticles] = useState<ArticleItem[]>(() => {
-    const saved = localStorage.getItem('atelierpro_articles');
+    const saved = localStorage.getItem('alupro_articles') || localStorage.getItem('atelierpro_articles');
     return saved ? JSON.parse(saved) : INITIAL_ARTICLES;
   });
 
@@ -359,14 +359,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [articles]);
 
   const [accessories, setAccessories] = useState<AccessoryItemDef[]>(() => {
-    const saved = localStorage.getItem('atelierpro_accessories');
+    const saved = localStorage.getItem('alupro_accessories') || localStorage.getItem('atelierpro_accessories');
     return saved ? JSON.parse(saved) : INITIAL_ACCESSORIES;
   });
 
   // Clients (Loaded per-user from Supabase + cached in localStorage)
   const [clients, setClients] = useState<Client[]>(() => {
     try {
-      const saved = localStorage.getItem('atelierpro_clients');
+      const saved = localStorage.getItem('alupro_clients') || localStorage.getItem('atelierpro_clients');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -398,7 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Settings
   const [settings, setSettings] = useState<AtelierSettings>(() => {
-    const saved = localStorage.getItem('atelierpro_settings');
+    const saved = localStorage.getItem('alupro_settings') || localStorage.getItem('atelierpro_settings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
@@ -940,7 +940,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // 1. Scan Local Storage for clients
         try {
-          const cachedClientsRaw = localStorage.getItem('atelierpro_clients');
+          const cachedClientsRaw = localStorage.getItem('alupro_clients') || localStorage.getItem('atelierpro_clients');
           if (cachedClientsRaw) {
             const parsed = JSON.parse(cachedClientsRaw);
             if (Array.isArray(parsed)) {
@@ -1002,7 +1002,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         setEmployes(finalEmployes);
         setClients(finalClients);
-        localStorage.setItem('atelierpro_clients', JSON.stringify(finalClients));
+        localStorage.setItem('alupro_clients', JSON.stringify(finalClients));
         setFournisseurs(finalFournisseurs);
       } catch (err) {
         console.error('Error loading data from Supabase:', err);
@@ -1034,63 +1034,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sync state to local storage cache for offline / instant availability
   useEffect(() => {
-    localStorage.setItem('atelierpro_articles', JSON.stringify(articles));
+    localStorage.setItem('alupro_articles', JSON.stringify(articles));
   }, [articles]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_accessories', JSON.stringify(accessories));
+    localStorage.setItem('alupro_accessories', JSON.stringify(accessories));
   }, [accessories]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_clients', JSON.stringify(clients));
+    localStorage.setItem('alupro_clients', JSON.stringify(clients));
   }, [clients]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_fournisseurs', JSON.stringify(fournisseurs));
+    localStorage.setItem('alupro_fournisseurs', JSON.stringify(fournisseurs));
   }, [fournisseurs]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_devis', JSON.stringify(devisList));
+    localStorage.setItem('alupro_devis', JSON.stringify(devisList));
   }, [devisList]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_bl', JSON.stringify(bonsLivraison));
+    localStorage.setItem('alupro_bl', JSON.stringify(bonsLivraison));
   }, [bonsLivraison]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_factures', JSON.stringify(factures));
+    localStorage.setItem('alupro_factures', JSON.stringify(factures));
   }, [factures]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_caisse', JSON.stringify(caisseMovements));
+    localStorage.setItem('alupro_caisse', JSON.stringify(caisseMovements));
   }, [caisseMovements]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_achats', JSON.stringify(achatsFournisseur));
+    localStorage.setItem('alupro_achats', JSON.stringify(achatsFournisseur));
   }, [achatsFournisseur]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_paiements_f', JSON.stringify(paiementsFournisseur));
+    localStorage.setItem('alupro_paiements_f', JSON.stringify(paiementsFournisseur));
   }, [paiementsFournisseur]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_employes', JSON.stringify(employes));
+    localStorage.setItem('alupro_employes', JSON.stringify(employes));
   }, [employes]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_avances', JSON.stringify(avancesSalaire));
+    localStorage.setItem('alupro_avances', JSON.stringify(avancesSalaire));
   }, [avancesSalaire]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_conges', JSON.stringify(conges));
+    localStorage.setItem('alupro_conges', JSON.stringify(conges));
   }, [conges]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_bulletins', JSON.stringify(bulletinsPaie));
+    localStorage.setItem('alupro_bulletins', JSON.stringify(bulletinsPaie));
   }, [bulletinsPaie]);
 
   useEffect(() => {
-    localStorage.setItem('atelierpro_settings', JSON.stringify(settings));
+    localStorage.setItem('alupro_settings', JSON.stringify(settings));
   }, [settings]);
 
   // Sign out function
@@ -1274,7 +1274,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setClients(prev => {
       const updated = [newClient, ...prev.filter(item => item.id !== newClient.id && item.nom.toLowerCase().trim() !== cleanNom.toLowerCase())];
-      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      localStorage.setItem('alupro_clients', JSON.stringify(updated));
       return updated;
     });
 
@@ -1300,7 +1300,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateClient = (id: string, c: Partial<Client>) => {
     setClients(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, ...c } : item);
-      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      localStorage.setItem('alupro_clients', JSON.stringify(updated));
       return updated;
     });
 
@@ -1313,7 +1313,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteClient = (id: string) => {
     setClients(prev => {
       const updated = prev.filter(c => c.id !== id);
-      localStorage.setItem('atelierpro_clients', JSON.stringify(updated));
+      localStorage.setItem('alupro_clients', JSON.stringify(updated));
       return updated;
     });
 
@@ -2396,7 +2396,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSettings(updated);
 
     try {
-      localStorage.setItem('atelierpro_settings', JSON.stringify(updated));
+      localStorage.setItem('alupro_settings', JSON.stringify(updated));
     } catch (e) {
       console.warn('Could not cache settings in localStorage:', e);
     }

@@ -58,7 +58,7 @@ const MainLayout: React.FC = () => {
           <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
         </div>
         <div className="text-center space-y-1">
-          <p className="text-sm font-bold text-slate-200">AtelierPro Cloud</p>
+          <p className="text-sm font-bold text-slate-200">AluPro Cloud</p>
           <p className="text-xs text-slate-500 font-mono">Connexion sécurisée Supabase...</p>
         </div>
       </div>
@@ -131,7 +131,7 @@ const MainLayout: React.FC = () => {
       case 'admin_super':
         return { title: 'Console Super-Admin SaaS', subtitle: 'Gestion des abonnements & activation ateliers' };
       default:
-        return { title: 'AtelierPro', subtitle: 'Gestion Atelier Aluminium' };
+        return { title: 'AluPro', subtitle: 'Gestion Atelier Aluminium' };
     }
   };
 

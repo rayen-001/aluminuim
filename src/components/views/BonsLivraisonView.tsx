@@ -840,7 +840,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
                     </div>
                   )}
                   <div>
-                    <h2 className="text-2xl font-black text-purple-950 uppercase tracking-tight">{settings.nom_atelier || 'ATELIER PRO'}</h2>
+                    <h2 className="text-2xl font-black text-purple-950 uppercase tracking-tight">{settings.nom_atelier || 'ALUPRO'}</h2>
                     <p className="text-xs font-semibold text-purple-800">{settings.activite || 'Menuiserie Aluminium & Vitrerie'}</p>
                     <div className="text-xs text-gray-600 space-y-0.5 mt-1 font-sans">
                       {settings.telephone && <p>Tél : <span className="font-semibold text-gray-800">{settings.telephone}</span></p>}
@@ -1068,7 +1068,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
               {/* Footer Legal Terms */}
               <div className="text-center text-[10px] text-gray-400 pt-3 border-t border-gray-100 space-y-0.5">
                 <p className="font-medium text-gray-500">Document officiel tenant lieu de bon de transport et de livraison conforme aux réglementations de contrôle routier.</p>
-                <p>{settings.nom_atelier || 'AtelierPro'} — Menuiserie Aluminium & Vitrerie professionnelle.</p>
+                <p>{settings.nom_atelier || 'AluPro'} — Menuiserie Aluminium & Vitrerie professionnelle.</p>
               </div>
             </div>
           </div>

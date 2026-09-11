@@ -61,39 +61,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar container */}
       <aside 
-        className={`w-64 bg-gradient-to-b from-blue-900 via-blue-900 to-indigo-950 text-white flex-shrink-0 fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col justify-between ${
+        className={`w-64 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 text-white flex-shrink-0 fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col justify-between border-r border-slate-800/60 shadow-xl ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo & Brand Header */}
-          <div className="flex items-center justify-between px-6 h-20 border-b border-blue-800/60 bg-blue-950/30">
+          <div className="flex items-center justify-between px-6 h-20 border-b border-slate-800/80 bg-slate-950/50 backdrop-blur-md">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-400 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
+              <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/25 border border-blue-400/30">
                 <Layers className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">AtelierPro</h1>
-                <p className="text-xs text-blue-300 font-medium">Gestion Atelier</p>
+                <h1 className="text-xl font-bold tracking-tight text-white">AluPro</h1>
+                <p className="text-[11px] text-blue-400 font-medium">Gestion Atelier Aluminium</p>
               </div>
             </div>
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 text-blue-300 hover:text-white rounded-lg"
+              className="lg:hidden p-1 text-slate-400 hover:text-white rounded-lg transition"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-5 space-y-1.5 overflow-y-auto custom-scrollbar">
+          <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
             {/* Tableau de bord */}
             <button
               onClick={() => navigateTo('dashboard')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
                 currentTab === 'dashboard'
-                  ? 'bg-white/20 text-white shadow-sm'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
               }`}
             >
               <LayoutDashboard className="w-5 h-5" />
@@ -104,86 +104,86 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-1">
               <button
                 onClick={() => setAlumOpen(!alumOpen)}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 text-blue-100 hover:bg-white/10 hover:text-white"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 text-slate-300 hover:bg-slate-800/70 hover:text-white cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
-                  <Layers className="w-5 h-5" />
+                  <Layers className="w-5 h-5 text-blue-400" />
                   <span>Aluminium</span>
                 </div>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${alumOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${alumOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {alumOpen && (
-                <div className="ml-4 pl-3 border-l border-blue-700/50 space-y-1 py-0.5">
+                <div className="ml-3 pl-3 border-l-2 border-blue-500/30 space-y-1 py-1">
                   <button
                     onClick={() => navigateTo('chantiers')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab === 'chantiers'
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <Building2 className="w-4 h-4" />
+                    <Building2 className="w-4 h-4 text-blue-400" />
                     <span>Chantiers & Débit</span>
                   </button>
 
                   <button
                     onClick={() => navigateTo('devis')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab.startsWith('devis')
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <FileText className="w-4 h-4" />
+                    <FileText className="w-4 h-4 text-blue-400" />
                     <span>Devis</span>
                   </button>
 
                   <button
                     onClick={() => navigateTo('bl')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab === 'bl'
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <Truck className="w-4 h-4" />
+                    <Truck className="w-4 h-4 text-blue-400" />
                     <span>Bons de Sortie & BL</span>
                   </button>
 
                   <button
                     onClick={() => navigateTo('factures')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab === 'factures'
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <Receipt className="w-4 h-4" />
+                    <Receipt className="w-4 h-4 text-blue-400" />
                     <span>Factures</span>
                   </button>
 
                   <button
                     onClick={() => navigateTo('articles')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab === 'articles'
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <Package className="w-4 h-4" />
+                    <Package className="w-4 h-4 text-blue-400" />
                     <span>Articles (Profilés)</span>
                   </button>
 
                   <button
                     onClick={() => navigateTo('accessoires')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 ${
+                    className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
                       currentTab === 'accessoires'
-                        ? 'bg-blue-600/60 text-white font-semibold shadow-inner'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600/80 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
-                    <Layers className="w-4 h-4" />
+                    <Layers className="w-4 h-4 text-blue-400" />
                     <span>Quincaillerie (40)</span>
                   </button>
                 </div>
@@ -193,26 +193,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Clients */}
             <button
               onClick={() => navigateTo('clients')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
                 currentTab === 'clients'
-                  ? 'bg-white/20 text-white shadow-sm'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
               }`}
             >
-              <Users className="w-5 h-5" />
+              <Users className="w-5 h-5 text-indigo-400" />
               <span>Clients</span>
             </button>
 
             {/* Fournisseurs */}
             <button
               onClick={() => navigateTo('fournisseurs')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
                 currentTab === 'fournisseurs'
-                  ? 'bg-white/20 text-white shadow-sm'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
               }`}
             >
-              <Building2 className="w-5 h-5" />
+              <Building2 className="w-5 h-5 text-indigo-400" />
               <span>Fournisseurs</span>
             </button>
 
@@ -220,45 +220,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-1">
               <button
                 onClick={() => setRhOpen(!rhOpen)}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 text-blue-100 hover:bg-white/10 hover:text-white"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 text-slate-300 hover:bg-slate-800/70 hover:text-white cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
-                  <UserCheck className="w-5 h-5" />
-                  <span>RH</span>
+                  <UserCheck className="w-5 h-5 text-emerald-400" />
+                  <span>RH & Salaires</span>
                 </div>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${rhOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${rhOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {rhOpen && (
-                <div className="ml-4 pl-3 border-l border-blue-700/50 space-y-1 py-0.5">
+                <div className="ml-3 pl-3 border-l-2 border-emerald-500/30 space-y-1 py-1">
                   <button
                     onClick={() => navigateTo('rh_employes')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 ${
-                      currentTab === 'rh_employes' ? 'bg-blue-600/60 text-white' : 'text-blue-200 hover:bg-white/10'
+                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
+                      currentTab === 'rh_employes' ? 'bg-emerald-600/80 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
                     <span>Employés</span>
                   </button>
                   <button
                     onClick={() => navigateTo('rh_avances')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 ${
-                      currentTab === 'rh_avances' ? 'bg-blue-600/60 text-white' : 'text-blue-200 hover:bg-white/10'
+                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
+                      currentTab === 'rh_avances' ? 'bg-emerald-600/80 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
                     <span>Avances sur Salaire</span>
                   </button>
                   <button
                     onClick={() => navigateTo('rh_conges')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 ${
-                      currentTab === 'rh_conges' ? 'bg-blue-600/60 text-white' : 'text-blue-200 hover:bg-white/10'
+                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
+                      currentTab === 'rh_conges' ? 'bg-emerald-600/80 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
                     <span>Congés</span>
                   </button>
                   <button
                     onClick={() => navigateTo('rh_paies')}
-                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 ${
-                      currentTab === 'rh_paies' ? 'bg-blue-600/60 text-white' : 'text-blue-200 hover:bg-white/10'
+                    className={`w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition duration-150 cursor-pointer ${
+                      currentTab === 'rh_paies' ? 'bg-emerald-600/80 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
                     <span>Bulletins de Paie</span>
@@ -270,59 +270,61 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Gestion Caisse */}
             <button
               onClick={() => navigateTo('caisse')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
                 currentTab === 'caisse'
-                  ? 'bg-white/20 text-white shadow-sm'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
               }`}
             >
-              <Wallet className="w-5 h-5" />
+              <Wallet className="w-5 h-5 text-amber-400" />
               <span>Gestion Caisse</span>
             </button>
 
             {/* Paramètres */}
-            <div className="pt-2 mt-2 border-t border-blue-800/50">
+            <div className="pt-2 mt-2 border-t border-slate-800/80">
               <button
                 onClick={() => navigateTo('settings')}
-                className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition duration-150 ${
+                className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
                   currentTab === 'settings'
-                    ? 'bg-white/20 text-white shadow-sm'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+                    : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
                 }`}
               >
-                <Settings className="w-5 h-5" />
-                <span>Paramètres</span>
+                <Settings className="w-5 h-5 text-slate-400" />
+                <span>Paramètres Atelier</span>
               </button>
             </div>
           </nav>
 
           {/* Legal Links */}
-          <div className="px-4 py-2 text-center text-[11px] text-blue-300/80 space-y-1">
+          <div className="px-4 py-2 text-center text-[10px] text-slate-400/80 space-y-1">
             <div>
-              <button type="button" onClick={openCGU} className="hover:text-white underline">
-                Conditions générales d'utilisation
+              <button type="button" onClick={openCGU} className="hover:text-slate-200 underline cursor-pointer">
+                Conditions d'utilisation
               </button>
-            </div>
-            <div>
-              <button type="button" onClick={openCharte} className="hover:text-white underline">
-                Charte des données & cookies
+              <span className="mx-1.5">•</span>
+              <button type="button" onClick={openCharte} className="hover:text-slate-200 underline cursor-pointer">
+                Charte des données
               </button>
             </div>
           </div>
 
           {/* User Info & Profile */}
-          <div className="px-4 py-3.5 border-t border-blue-800/60 bg-blue-950/40">
-            <div className="flex items-center space-x-3 px-3 py-2 bg-white/10 rounded-xl">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center shadow shrink-0">
+          <div className="px-4 py-3.5 border-t border-slate-800/80 bg-slate-950/60">
+            <div className="flex items-center space-x-3 px-3 py-2 bg-slate-900/80 border border-slate-800 rounded-xl">
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
                 <span className="text-xs font-bold text-white uppercase">
-                  {(settings.nom_atelier || user?.email || 'AP').slice(0, 2)}
+                  {(settings.nom_atelier || user?.email || 'AL').slice(0, 2)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">
-                  {settings.nom_atelier || 'Mon Atelier'}
-                </p>
-                <p className="text-[10px] text-blue-200 truncate">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <p className="text-xs font-semibold text-white truncate">
+                    {settings.nom_atelier || 'Mon Atelier'}
+                  </p>
+                </div>
+                <p className="text-[10px] text-slate-400 truncate">
                   {user?.email || 'Compte Cloud'}
                 </p>
               </div>
@@ -330,7 +332,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => signOut()}
                 title="Se déconnecter" 
-                className="p-1.5 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg text-blue-200 transition cursor-pointer"
+                className="p-1.5 hover:bg-rose-500/20 hover:text-rose-300 rounded-lg text-slate-400 transition cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
