@@ -1739,19 +1739,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resolveItemName = (it: DevisItemState, idx: number): string => {
+    if (!it) return `Menuiserie ${idx + 1}`;
     if (it.is_manual) {
       return it.manual_nom || it.manual_designation || `Article manuel ${idx + 1}`;
     }
     if (it.family_id && it.product_type_id) {
-      const types = getProductTypesForFamily(it.family_id);
-      const typeDef = types.find(t => t.id === it.product_type_id);
-      if (typeDef?.name) return typeDef.name;
+      try {
+        const types = getProductTypesForFamily(it.family_id);
+        const typeDef = (types || []).find(t => t.id === it.product_type_id);
+        if (typeDef?.name) return typeDef.name;
+      } catch (e) {
+        console.error('Error resolving type name:', e);
+      }
     }
-    return `Menuiserie ${it.largeur}×${it.hauteur} cm`;
+    if (it.largeur && it.hauteur) {
+      return `Menuiserie ${it.largeur}×${it.hauteur} cm`;
+    }
+    return `Menuiserie ${idx + 1}`;
   };
 
   const convertToBL = (devisId: string): BonLivraisonRecord => {
-    const devis = devisList.find(d => d.id === devisId);
+    let devis = devisList.find(d => d.id === devisId);
+    if (!devis) {
+      const savedDevisRaw = localStorage.getItem('alupro_devis') || localStorage.getItem('atelierpro_devis');
+      if (savedDevisRaw) {
+        try {
+          const list: DevisRecord[] = JSON.parse(savedDevisRaw);
+          devis = list.find(d => d.id === devisId);
+        } catch (e) {}
+      }
+    }
     if (!devis) throw new Error('Devis not found');
 
     const existingBL = bonsLivraison.find(b => b.devis_id === devisId);
@@ -1763,57 +1780,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 1. Ensure linked Facture exists (auto-create if missing to track customer debt / créance)
     let linkedFac = factures.find(f => f.devis_id === devisId);
     if (!linkedFac) {
-      const nextFac = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-      linkedFac = {
-        id: crypto.randomUUID(),
-        numero: nextFac,
-        devis_id: devis.id,
-        client_nom: devis.client_nom || 'Client sans nom',
-        date: new Date().toISOString().split('T')[0],
-        items: (devis.items || []).map((it, idx) => ({
-          designation: resolveItemName(it, idx),
-          quantite: it.quantity,
-          prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
-          total_ht: devis.totals?.items_costs?.[idx]?.total_ht || 0
-        })),
-        total_ht: devis.totals?.total_ht || 0,
-        tva_taux: devis.marges?.tva || 0,
-        total_tva: devis.totals?.total_tva || 0,
-        total_ttc: devis.totals?.total_ttc || 0,
-        montant_paye: 0,
-        status: 'impayee',
-        created_at: new Date().toISOString()
-      };
-      setFactures(prev => [linkedFac!, ...prev]);
-
-      if (devis.client_id) {
-        const clientObj = clients.find(c => c.id === devis.client_id);
-        const newSolde = (clientObj?.solde_creance || 0) + linkedFac.total_ttc;
-        setClients(prev => prev.map(c => c.id === devis.client_id ? { ...c, solde_creance: newSolde } : c));
-        if (user?.id) {
-          supabase.from('clients').update({ solde_creance: newSolde }).eq('id', devis.client_id).eq('user_id', user.id)
-            .then(({ error }) => { if (error) console.error('Supabase client solde update error:', error); });
-        }
-      }
-
-      if (user?.id) {
-        supabase.from('factures').insert({
-          id: linkedFac.id,
-          user_id: user.id,
-          numero: linkedFac.numero,
-          devis_id: linkedFac.devis_id,
-          client_nom: linkedFac.client_nom,
-          date: linkedFac.date,
-          items: linkedFac.items,
-          total_ht: linkedFac.total_ht,
-          tva_taux: linkedFac.tva_taux,
-          total_tva: linkedFac.total_tva,
-          total_ttc: linkedFac.total_ttc,
-          montant_paye: 0,
-          status: 'impayee',
-          paiements: []
-        }).then(({ error }) => { if (error) console.error('Supabase auto-create facture on BL error:', error); });
-      }
+      linkedFac = convertToFacture(devisId);
     }
 
     // 2. Build rich BonLivraisonRecord
@@ -1830,13 +1797,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       matricule_vehicule: '',
       destination: devis.notes || '',
       heure_sortie: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      items: devis.items.map((it, idx) => ({
+      items: (devis.items || []).map((it, idx) => ({
         designation: resolveItemName(it, idx),
         hauteur: it.hauteur,
         largeur: it.largeur,
         quantite: it.quantity || 1,
-        prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
-        total_ht: devis.totals?.items_costs?.[idx]?.total_ht || 0
+        prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
+        total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
       })),
       devis_items: devis.items,
       totals: devis.totals,
@@ -1845,11 +1812,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'en_cours',
       created_at: new Date().toISOString()
     };
-    setBonsLivraison(prev => [bl, ...prev]);
+    setBonsLivraison(prev => [bl, ...prev.filter(x => x.id !== bl.id)]);
     updateDevisStatus(devisId, 'converti');
 
+    try {
+      const currentSaved = localStorage.getItem('alupro_bl') || localStorage.getItem('atelierpro_bl');
+      const parsed: BonLivraisonRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
+      const updatedList = [bl, ...parsed.filter(x => x.id !== bl.id)];
+      localStorage.setItem('alupro_bl', JSON.stringify(updatedList));
+    } catch (e) {
+      console.error('Error saving BL to localStorage:', e);
+    }
+
     if (user?.id) {
-      supabase.from('bons_livraison').insert({
+      supabase.from('bons_livraison').upsert({
         id: bl.id,
         user_id: user.id,
         numero: bl.numero,
@@ -1905,7 +1881,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const convertToFacture = (devisId: string): FactureRecord => {
-    const devis = devisList.find(d => d.id === devisId);
+    let devis = devisList.find(d => d.id === devisId);
+    if (!devis) {
+      const savedDevisRaw = localStorage.getItem('alupro_devis') || localStorage.getItem('atelierpro_devis');
+      if (savedDevisRaw) {
+        try {
+          const list: DevisRecord[] = JSON.parse(savedDevisRaw);
+          devis = list.find(d => d.id === devisId);
+        } catch (e) {}
+      }
+    }
     if (!devis) throw new Error('Devis not found');
 
     const existingFacture = factures.find(f => f.devis_id === devisId);
@@ -1924,19 +1909,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: (devis.items || []).map((it, idx) => ({
         designation: resolveItemName(it, idx),
         quantite: it.quantity || 1,
-        prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht ?? 0,
-        total_ht: devis.totals?.items_costs?.[idx]?.total_ht ?? 0
+        prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
+        total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
       })),
-      total_ht: devis.totals?.total_ht ?? 0,
-      tva_taux: devis.marges?.tva ?? 0,
-      total_tva: devis.totals?.total_tva ?? 0,
-      total_ttc: devis.totals?.total_ttc ?? 0,
+      total_ht: Number(devis?.totals?.total_ht) || 0,
+      tva_taux: Number(devis?.marges?.tva) || 0,
+      total_tva: Number(devis?.totals?.total_tva) || 0,
+      total_ttc: Number(devis?.totals?.total_ttc) || 0,
       montant_paye: 0,
       status: 'impayee',
       created_at: new Date().toISOString()
     };
-    setFactures(prev => [fac, ...prev]);
+    setFactures(prev => [fac, ...prev.filter(x => x.id !== fac.id)]);
     updateDevisStatus(devisId, 'converti');
+
+    try {
+      const currentSaved = localStorage.getItem('alupro_factures') || localStorage.getItem('atelierpro_factures');
+      const parsed: FactureRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
+      const updatedList = [fac, ...parsed.filter(x => x.id !== fac.id)];
+      localStorage.setItem('alupro_factures', JSON.stringify(updatedList));
+    } catch (e) {
+      console.error('Error saving facture to localStorage:', e);
+    }
 
     if (devis.client_id) {
       const clientObj = clients.find(c => c.id === devis.client_id);
@@ -1949,7 +1943,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     if (user?.id) {
-      supabase.from('factures').insert({
+      supabase.from('factures').upsert({
         id: fac.id,
         user_id: user.id,
         numero: fac.numero,
@@ -1962,8 +1956,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         total_tva: fac.total_tva,
         total_ttc: fac.total_ttc,
         montant_paye: fac.montant_paye,
-        status: fac.status,
-        paiements: []
+        status: fac.status
       }).then(({ error }) => { if (error) console.error('Supabase convertToFacture error:', error); });
     }
 

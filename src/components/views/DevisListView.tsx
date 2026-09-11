@@ -303,33 +303,29 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                             </button>
                             <button
                               onClick={() => {
-                                if (confirm('Convertir ce devis en Bon de Livraison ?')) {
-                                  try {
-                                    convertToBL(d.id);
-                                  } catch (err) {
-                                    console.error('Erreur conversion BL:', err);
-                                  }
-                                  setCurrentTab('bl');
+                                try {
+                                  convertToBL(d.id);
+                                } catch (err) {
+                                  console.error('Erreur conversion BL:', err);
                                 }
+                                setCurrentTab('bl');
                               }}
-                              title="Convertir en BL"
-                              className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-lg transition"
+                              title="Convertir en Bon de Sortie (BL)"
+                              className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition cursor-pointer"
                             >
                               <Truck className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => {
-                                if (confirm('Convertir ce devis en Facture ?')) {
-                                  try {
-                                    convertToFacture(d.id);
-                                  } catch (err) {
-                                    console.error('Erreur conversion Facture:', err);
-                                  }
-                                  setCurrentTab('factures');
+                                try {
+                                  convertToFacture(d.id);
+                                } catch (err) {
+                                  console.error('Erreur conversion Facture:', err);
                                 }
+                                setCurrentTab('factures');
                               }}
                               title="Convertir en Facture"
-                              className="p-1.5 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-lg transition"
+                              className="p-1.5 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
                             >
                               <Receipt className="w-4 h-4" />
                             </button>
@@ -340,7 +336,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                 }
                               }}
                               title="Supprimer"
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -364,13 +360,43 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                     Devis {d.numero}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        convertToFacture(d.id);
+                                      } catch (err) {
+                                        console.error('Erreur conversion Facture:', err);
+                                      }
+                                      setCurrentTab('factures');
+                                    }}
+                                    className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-xs transition cursor-pointer"
+                                  >
+                                    <Receipt className="w-3.5 h-3.5" />
+                                    <span>Convertir en Facture</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        convertToBL(d.id);
+                                      } catch (err) {
+                                        console.error('Erreur conversion BL:', err);
+                                      }
+                                      setCurrentTab('bl');
+                                    }}
+                                    className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-xs transition cursor-pointer"
+                                  >
+                                    <Truck className="w-3.5 h-3.5" />
+                                    <span>Bon de Sortie (BL)</span>
+                                  </button>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setFicheDevis(d);
                                     }}
-                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 bg-white border border-blue-200 px-2.5 py-1 rounded-lg font-medium shadow-2xs hover:bg-blue-50 transition"
+                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 bg-white border border-blue-200 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs hover:bg-blue-50 transition cursor-pointer"
                                   >
                                     <Scissors className="w-3.5 h-3.5" />
                                     <span>Ouvrir Fiche Débit</span>
@@ -380,7 +406,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                       e.stopPropagation();
                                       onEditDevis(d.id);
                                     }}
-                                    className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium shadow-2xs hover:bg-gray-50 transition"
+                                    className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 bg-white border border-gray-200 px-2.5 py-1.5 rounded-lg font-medium shadow-2xs hover:bg-gray-50 transition cursor-pointer"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                     <span>Modifier Devis</span>
