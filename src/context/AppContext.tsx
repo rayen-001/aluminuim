@@ -379,13 +379,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [paiementsFournisseur, setPaiementsFournisseur] = useState<PaiementFournisseur[]>([]);
 
   // Devis
-  const [devisList, setDevisList] = useState<DevisRecord[]>([]);
+  const [devisList, setDevisList] = useState<DevisRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('alupro_devis') || localStorage.getItem('atelierpro_devis');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // BL
-  const [bonsLivraison, setBonsLivraison] = useState<BonLivraisonRecord[]>([]);
+  const [bonsLivraison, setBonsLivraison] = useState<BonLivraisonRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('alupro_bl') || localStorage.getItem('atelierpro_bl');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Factures
-  const [factures, setFactures] = useState<FactureRecord[]>([]);
+  const [factures, setFactures] = useState<FactureRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('alupro_factures') || localStorage.getItem('atelierpro_factures');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // RH
   const [employes, setEmployes] = useState<Employe[]>([]);
@@ -567,7 +588,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-        setDevisList(remoteDevis || []);
+
+        let finalDevis: DevisRecord[] = remoteDevis ? [...remoteDevis] : [];
+        const localDevisRaw = localStorage.getItem('alupro_devis') || localStorage.getItem('atelierpro_devis');
+        if (localDevisRaw) {
+          try {
+            const localD: DevisRecord[] = JSON.parse(localDevisRaw);
+            const remoteDevisIds = new Set(finalDevis.map(d => d.id));
+            localD.forEach(ld => {
+              if (!remoteDevisIds.has(ld.id)) {
+                finalDevis.push(ld);
+                if (user?.id) {
+                  supabase.from('devis').upsert({
+                    id: ld.id,
+                    user_id: user.id,
+                    numero: ld.numero,
+                    client_id: ld.client_id || null,
+                    client_nom: ld.client_nom || '',
+                    date: ld.date,
+                    notes: ld.notes || '',
+                    items: ld.items,
+                    marges: ld.marges,
+                    totals: ld.totals,
+                    status: ld.status
+                  }).then(({ error }) => { if (error) console.error('Supabase auto-sync devis error:', error); });
+                }
+              }
+            });
+          } catch (e) {
+            console.error('Error parsing local devis:', e);
+          }
+        }
+        setDevisList(finalDevis);
 
         // Fetch BL
         const { data: remoteBL } = await supabase
@@ -575,7 +627,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-        setBonsLivraison(remoteBL || []);
+
+        let finalBL: BonLivraisonRecord[] = remoteBL ? [...remoteBL] : [];
+        const localBLRaw = localStorage.getItem('alupro_bl') || localStorage.getItem('atelierpro_bl');
+        if (localBLRaw) {
+          try {
+            const localB: BonLivraisonRecord[] = JSON.parse(localBLRaw);
+            const remoteBLIds = new Set(finalBL.map(b => b.id));
+            localB.forEach(lb => {
+              if (!remoteBLIds.has(lb.id)) {
+                finalBL.push(lb);
+                if (user?.id) {
+                  supabase.from('bons_livraison').upsert({
+                    id: lb.id,
+                    user_id: user.id,
+                    numero: lb.numero,
+                    devis_id: lb.devis_id,
+                    client_nom: lb.client_nom,
+                    date: lb.date,
+                    chauffeur: lb.chauffeur || '',
+                    matricule_vehicule: lb.matricule_vehicule || '',
+                    destination: lb.destination || '',
+                    heure_sortie: lb.heure_sortie || '',
+                    items: lb.items,
+                    notes: lb.notes || '',
+                    status: lb.status
+                  }).then(({ error }) => { if (error) console.error('Supabase auto-sync BL error:', error); });
+                }
+              }
+            });
+          } catch (e) {
+            console.error('Error parsing local BL:', e);
+          }
+        }
+        setBonsLivraison(finalBL);
 
         // Fetch Factures
         const { data: remoteFactures } = await supabase
@@ -678,6 +763,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const status = totalPaid >= f.total_ttc ? ('payee' as const) : (totalPaid > 0 ? ('partielle' as const) : ('impayee' as const));
           return { ...f, montant_paye: totalPaid, status };
         });
+
+        const localFacturesRaw = localStorage.getItem('alupro_factures') || localStorage.getItem('atelierpro_factures');
+        if (localFacturesRaw) {
+          try {
+            const localFacs: FactureRecord[] = JSON.parse(localFacturesRaw);
+            const remoteFactureIds = new Set(sanitizedFactures.map(f => f.id));
+            localFacs.forEach(lf => {
+              if (!remoteFactureIds.has(lf.id)) {
+                sanitizedFactures.push(lf);
+                if (user?.id) {
+                  supabase.from('factures').upsert({
+                    id: lf.id,
+                    user_id: user.id,
+                    numero: lf.numero,
+                    devis_id: lf.devis_id,
+                    client_nom: lf.client_nom,
+                    date: lf.date,
+                    items: lf.items,
+                    total_ht: lf.total_ht,
+                    tva_taux: lf.tva_taux,
+                    total_tva: lf.total_tva,
+                    total_ttc: lf.total_ttc,
+                    montant_paye: lf.montant_paye,
+                    status: lf.status
+                  }).then(({ error }) => { if (error) console.error('Supabase auto-sync facture error:', error); });
+                }
+              }
+            });
+          } catch (e) {
+            console.error('Error parsing local factures:', e);
+          }
+        }
 
         setFactures(sanitizedFactures);
 

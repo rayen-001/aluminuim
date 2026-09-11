@@ -220,11 +220,11 @@ export const FacturesView: React.FC = () => {
                       <td className="px-5 py-3.5 font-mono font-bold text-blue-700 whitespace-nowrap">{f.numero}</td>
                       <td className="px-5 py-3.5 font-bold text-gray-900">{f.client_nom}</td>
                       <td className="px-5 py-3.5 text-gray-600 whitespace-nowrap">{f.date}</td>
-                      <td className="px-5 py-3.5 text-right font-mono text-gray-700 whitespace-nowrap">{f.total_ht.toFixed(3)} DT</td>
-                      <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900 whitespace-nowrap">{f.total_ttc.toFixed(3)} DT</td>
-                      <td className="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 whitespace-nowrap">{f.montant_paye.toFixed(3)} DT</td>
+                      <td className="px-5 py-3.5 text-right font-mono text-gray-700 whitespace-nowrap">{(Number(f.total_ht) || 0).toFixed(3)} DT</td>
+                      <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900 whitespace-nowrap">{(Number(f.total_ttc) || 0).toFixed(3)} DT</td>
+                      <td className="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 whitespace-nowrap">{(Number(f.montant_paye) || 0).toFixed(3)} DT</td>
                       <td className={`px-5 py-3.5 text-right font-mono font-bold whitespace-nowrap ${resteDu > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                        {resteDu.toFixed(3)} DT
+                        {(Number(resteDu) || 0).toFixed(3)} DT
                       </td>
                       <td className="px-5 py-3.5 text-center whitespace-nowrap">
                         {f.status === 'payee' ? (
@@ -341,16 +341,16 @@ export const FacturesView: React.FC = () => {
               <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-100 flex justify-between items-center text-xs">
                 <div>
                   <span className="text-gray-500">Total Facture :</span>
-                  <p className="font-bold text-gray-900 font-mono">{paymentModalFacture.total_ttc.toFixed(3)} DT</p>
+                  <p className="font-bold text-gray-900 font-mono">{(Number(paymentModalFacture.total_ttc) || 0).toFixed(3)} DT</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Déjà Payé :</span>
-                  <p className="font-bold text-emerald-600 font-mono">{paymentModalFacture.montant_paye.toFixed(3)} DT</p>
+                  <p className="font-bold text-emerald-600 font-mono">{(Number(paymentModalFacture.montant_paye) || 0).toFixed(3)} DT</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Reste Dû :</span>
                   <p className="font-bold text-orange-600 font-mono">
-                    {(paymentModalFacture.total_ttc - paymentModalFacture.montant_paye).toFixed(3)} DT
+                    {(Math.max(0, (Number(paymentModalFacture.total_ttc) || 0) - (Number(paymentModalFacture.montant_paye) || 0))).toFixed(3)} DT
                   </p>
                 </div>
               </div>
