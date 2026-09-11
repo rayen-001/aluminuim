@@ -1637,6 +1637,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const devis = devisList.find(d => d.id === devisId);
     if (!devis) throw new Error('Devis not found');
 
+    const existingBL = bonsLivraison.find(b => b.devis_id === devisId);
+    if (existingBL) {
+      updateDevisStatus(devisId, 'converti');
+      return existingBL;
+    }
+
     // 1. Ensure linked Facture exists (auto-create if missing to track customer debt / créance)
     let linkedFac = factures.find(f => f.devis_id === devisId);
     if (!linkedFac) {
@@ -1647,7 +1653,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         devis_id: devis.id,
         client_nom: devis.client_nom || 'Client sans nom',
         date: new Date().toISOString().split('T')[0],
-        items: devis.items.map((it, idx) => ({
+        items: (devis.items || []).map((it, idx) => ({
           designation: resolveItemName(it, idx),
           quantite: it.quantity,
           prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht || 0,
@@ -1785,9 +1791,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const devis = devisList.find(d => d.id === devisId);
     if (!devis) throw new Error('Devis not found');
 
-    const alreadyConverted = factures.some(f => f.devis_id === devisId);
-    if (alreadyConverted) {
-      throw new Error(`Ce devis a déjà été converti en facture. Conversion multiple interdite.`);
+    const existingFacture = factures.find(f => f.devis_id === devisId);
+    if (existingFacture) {
+      updateDevisStatus(devisId, 'converti');
+      return existingFacture;
     }
 
     const nextFac = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
@@ -1797,16 +1804,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       devis_id: devis.id,
       client_nom: devis.client_nom || 'Client sans nom',
       date: new Date().toISOString().split('T')[0],
-      items: devis.items.map((it, idx) => ({
+      items: (devis.items || []).map((it, idx) => ({
         designation: resolveItemName(it, idx),
-        quantite: it.quantity,
-        prix_unitaire_ht: devis.totals.items_costs[idx]?.net_ht || 0,
-        total_ht: devis.totals.items_costs[idx]?.total_ht || 0
+        quantite: it.quantity || 1,
+        prix_unitaire_ht: devis.totals?.items_costs?.[idx]?.net_ht ?? 0,
+        total_ht: devis.totals?.items_costs?.[idx]?.total_ht ?? 0
       })),
-      total_ht: devis.totals.total_ht,
-      tva_taux: devis.marges.tva,
-      total_tva: devis.totals.total_tva,
-      total_ttc: devis.totals.total_ttc,
+      total_ht: devis.totals?.total_ht ?? 0,
+      tva_taux: devis.marges?.tva ?? 0,
+      total_tva: devis.totals?.total_tva ?? 0,
+      total_ttc: devis.totals?.total_ttc ?? 0,
       montant_paye: 0,
       status: 'impayee',
       created_at: new Date().toISOString()

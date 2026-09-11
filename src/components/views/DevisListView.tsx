@@ -304,7 +304,11 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                             <button
                               onClick={() => {
                                 if (confirm('Convertir ce devis en Bon de Livraison ?')) {
-                                  convertToBL(d.id);
+                                  try {
+                                    convertToBL(d.id);
+                                  } catch (err) {
+                                    console.error('Erreur conversion BL:', err);
+                                  }
                                   setCurrentTab('bl');
                                 }
                               }}
@@ -316,7 +320,11 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                             <button
                               onClick={() => {
                                 if (confirm('Convertir ce devis en Facture ?')) {
-                                  convertToFacture(d.id);
+                                  try {
+                                    convertToFacture(d.id);
+                                  } catch (err) {
+                                    console.error('Erreur conversion Facture:', err);
+                                  }
                                   setCurrentTab('factures');
                                 }
                               }}
