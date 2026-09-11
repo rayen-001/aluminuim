@@ -426,6 +426,12 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
 
                                   const surfaceM2 = (parseFloat(String(it.largeur || 0)) / 100) * (parseFloat(String(it.hauteur || 0)) / 100);
 
+                                  const isStoreOnly = it.include_menuiserie === false && Boolean(it.store_enabled || it.family_id === '67' || typeDef?.category === 'standalone_store');
+                                  const isMoustiOnly = it.include_menuiserie === false && Boolean(it.mousti_enabled || it.family_id === '68' || typeDef?.category === 'standalone_mousti');
+                                  const itemTitle = it.is_manual 
+                                    ? (it.manual_nom || it.manual_designation || 'Article Personnalisé')
+                                    : (isStoreOnly ? 'Store Rideau (Volet Roulant)' : (isMoustiOnly ? 'Moustiquaire' : (typeDef?.name || `Produit ${idx + 1}`)));
+
                                   return (
                                     <div 
                                       key={idx} 
@@ -438,13 +444,19 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                             {idx + 1}
                                           </span>
                                           <h4 className="font-bold text-gray-900 text-sm sm:text-base">
-                                            {it.is_manual 
-                                              ? (it.manual_nom || it.manual_designation || 'Article Personnalisé')
-                                              : (typeDef?.name || `Produit ${idx + 1}`)}
+                                            {itemTitle}
                                           </h4>
                                           {it.is_manual ? (
                                             <span className="text-[11px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">
                                               Manuel
+                                            </span>
+                                          ) : isStoreOnly ? (
+                                            <span className="text-[11px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">
+                                              Store Seul
+                                            </span>
+                                          ) : isMoustiOnly ? (
+                                            <span className="text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">
+                                              Moustiquaire Seule
                                             </span>
                                           ) : fam ? (
                                             <span className="text-[11px] bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded border border-blue-200">
@@ -472,7 +484,7 @@ export const DevisListView: React.FC<DevisListViewProps> = ({
                                         {/* Specs & Options Chips */}
                                         <div className="flex flex-wrap gap-1.5 text-[11px]">
                                           {/* Remplissage / Vitrage */}
-                                          {!it.is_manual && (
+                                          {!it.is_manual && it.include_menuiserie !== false && (
                                             <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-medium">
                                               🪟 {remplissage ? remplissage.label : (it.remplissage_id || 'Vitrage standard')} ({it.vitrage_type === 'double' ? 'Double vitrage' : 'Simple'})
                                             </span>

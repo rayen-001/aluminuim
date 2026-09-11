@@ -184,15 +184,23 @@ export function calculateAluFabrication(items: DevisItemState[]): AluCalculResul
 
     const desLower = ((item.manual_designation || item.manual_nom || '') as string).toLowerCase();
     const typeNameLower = (typeDef?.name || '').toLowerCase();
+    const includeMenuiserie = item.include_menuiserie !== false;
     
-    const isStandaloneStore = (typeDef?.category === 'standalone_store' || fam?.drawType === 'store' || item.family_id === '67') && !desLower.includes('fenêtre') && !desLower.includes('porte') && !desLower.includes('couliss');
-    const hasAttachedStore = !isStandaloneStore && Boolean(item.store_enabled || (item as any).volet_integre || item.supplements?.some((s: string) => s.toLowerCase().includes('volet') || s.toLowerCase().includes('store')));
-    const isMousti = typeDef?.category === 'standalone_mousti' || fam?.drawType === 'mousti' || item.family_id === '68' || desLower.includes('mousti') || typeNameLower.includes('mousti');
+    const isExplicitStore = (typeDef?.category === 'standalone_store' || fam?.drawType === 'store' || item.family_id === '67') && !desLower.includes('fenêtre') && !desLower.includes('porte') && !desLower.includes('couliss');
+    const hasStoreFeature = Boolean(item.store_enabled || (item as any).volet_integre || item.supplements?.some((s: string) => s.toLowerCase().includes('volet') || s.toLowerCase().includes('store')));
+    const isExplicitMousti = typeDef?.category === 'standalone_mousti' || fam?.drawType === 'mousti' || item.family_id === '68' || desLower.includes('mousti') || typeNameLower.includes('mousti');
+    const hasMoustiFeature = Boolean(item.mousti_enabled);
+
+    // Standalone Store: either explicit product, or window with store where menuiserie frame is excluded
+    const isStore = (isExplicitStore || (!includeMenuiserie && hasStoreFeature)) && !isExplicitMousti;
+    const hasAttachedStore = !isStore && includeMenuiserie && hasStoreFeature;
+
+    // Standalone Moustiquaire: either explicit product, or window with moustiquaire where menuiserie frame is excluded
+    const isMousti = (isExplicitMousti || (!includeMenuiserie && hasMoustiFeature && !hasStoreFeature));
     const isGardeCorps = typeDef?.category === 'garde_corps' || fam?.drawType === 'garde_corps' || item.family_id === '46' || desLower.includes('garde') || typeNameLower.includes('garde');
-    const isChassiFix = typeDef?.category === 'chassi_fix' || fam?.drawType === 'fixe' || desLower.includes('châssis fixe') || desLower.includes('chassis fixe') || typeNameLower.includes('fixe');
-    const isCoulissant = !isStandaloneStore && !isMousti && !isGardeCorps && !isChassiFix && (fam?.drawType === 'coulissante' || typeDef?.category === 'coulissant' || item.family_id === '60' || item.family_id === '61' || item.family_id === '62' || item.family_id === '65' || item.family_id === '66' || desLower.includes('couliss') || typeNameLower.includes('couliss'));
-    const isFrappe = !isCoulissant && !isStandaloneStore && !isMousti && !isGardeCorps && !isChassiFix;
-    const isStore = isStandaloneStore;
+    const isChassiFix = includeMenuiserie && (typeDef?.category === 'chassi_fix' || fam?.drawType === 'fixe' || desLower.includes('châssis fixe') || desLower.includes('chassis fixe') || typeNameLower.includes('fixe'));
+    const isCoulissant = includeMenuiserie && !isStore && !isMousti && !isGardeCorps && !isChassiFix && (fam?.drawType === 'coulissante' || typeDef?.category === 'coulissant' || item.family_id === '60' || item.family_id === '61' || item.family_id === '62' || item.family_id === '65' || item.family_id === '66' || desLower.includes('couliss') || typeNameLower.includes('couliss'));
+    const isFrappe = includeMenuiserie && !isCoulissant && !isStore && !isMousti && !isGardeCorps && !isChassiFix;
 
     let nbVantaux = 2;
     const vantauxMatch = typeDef?.name.match(/(\d+)\s*vantaux/i);

@@ -79,6 +79,9 @@ export interface DevisItemState {
   sans_couvre_joint?: boolean;
   couvre_joint_type?: string;
 
+  // Standalone vs Window frame inclusion control
+  include_menuiserie?: boolean;
+
   _showErrors?: boolean;
 }
 
@@ -254,6 +257,10 @@ export function calculateItemCost(
   let mousti_cost = 0;
   let accessoires_cost = 0;
 
+  const isStandaloneStore = item.family_id === '67' || item.product_type_id === 'store_1';
+  const isStandaloneMousti = item.family_id === '68' || item.product_type_id === 'mousti_1';
+  const includeMenuiserie = !isStandaloneStore && !isStandaloneMousti && !item.is_garde_corps && (item.include_menuiserie !== false);
+
   if (item.is_garde_corps) {
     // Garde corps calculation
     const nbPoteaux = item.gc_nb_poteaux || 2;
@@ -272,7 +279,7 @@ export function calculateItemCost(
       const remp = REMPLISSAGES.find(r => r.id === item.remplissage_id);
       if (remp) vitrage_cost += surfaceM2 * remp.pricePerM2;
     }
-  } else {
+  } else if (includeMenuiserie) {
     // Standard windows / doors / chassi
     const dormantRef = item.is_chassi_fix ? (item.chassi_cadre_ref || '40100') : (item.comp_dormant_ref || '40100');
     const ouvrantRef = item.comp_ouvrant_ref || '40401';
@@ -360,8 +367,8 @@ export function calculateItemCost(
     accessoires_cost += perimeterM * 4.5 + 15;
   }
 
-  // Store Rideau (Volet Roulant)
-  if (item.store_enabled) {
+  // Store Rideau (Volet Roulant) - Calculated if enabled or standalone store
+  if (isStandaloneStore || item.store_enabled) {
     const isExtrude = item.store_lame_type === 'lame extrud';
     let pricePerM2 = 95;
     if (isExtrude) pricePerM2 = 145;
@@ -415,8 +422,8 @@ export function calculateItemCost(
     store_cost = storeBase + coffreCost + manoeuvreCost;
   }
 
-  // Moustiquaire
-  if (item.mousti_enabled) {
+  // Moustiquaire - Calculated if enabled or standalone moustiquaire
+  if (isStandaloneMousti || item.mousti_enabled) {
     const mH = parseFloat(String(item.mousti_hauteur || h)) || h;
     const mW = parseFloat(String(item.mousti_largeur || w)) || w;
     const mSurf = (mH * mW) / 10000;
@@ -448,7 +455,7 @@ export function calculateItemCost(
     } else {
       marge_menuiserie = marges.margeGcValue || 0;
     }
-  } else {
+  } else if (includeMenuiserie) {
     // Window / door margin
     const windowBase = article_cost + vitrage_cost + accessoires_cost;
     if (marges.margeType === 'percent') {
@@ -456,23 +463,23 @@ export function calculateItemCost(
     } else {
       marge_menuiserie = marges.margeValue || 0;
     }
+  }
 
-    // Store margin
-    if (store_cost > 0) {
-      if (marges.margeStoreType === 'percent') {
-        marge_store = store_cost * ((marges.margeStoreValue || 0) / 100);
-      } else {
-        marge_store = marges.margeStoreValue || 0;
-      }
+  // Store margin
+  if (store_cost > 0) {
+    if (marges.margeStoreType === 'percent') {
+      marge_store = store_cost * ((marges.margeStoreValue || 0) / 100);
+    } else {
+      marge_store = marges.margeStoreValue || 0;
     }
+  }
 
-    // Mousti margin
-    if (mousti_cost > 0) {
-      if (marges.margeMoustiType === 'percent') {
-        marge_mousti = mousti_cost * ((marges.margeMoustiValue || 0) / 100);
-      } else {
-        marge_mousti = marges.margeMoustiValue || 0;
-      }
+  // Mousti margin
+  if (mousti_cost > 0) {
+    if (marges.margeMoustiType === 'percent') {
+      marge_mousti = mousti_cost * ((marges.margeMoustiValue || 0) / 100);
+    } else {
+      marge_mousti = marges.margeMoustiValue || 0;
     }
   }
 

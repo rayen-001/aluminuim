@@ -209,8 +209,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     store_axe70: false,
     mousti_enabled: false,
     mousti_type: 'enroulable',
-    mousti_hauteur: '',
-    mousti_largeur: '',
+    include_menuiserie: true,
     _showErrors: false
   });
 
@@ -315,8 +314,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
   const applyTypeOptions = (idx: number, typeDef: ProductTypeDef, familyId: string) => {
     const isChassi = typeDef.category === 'chassi_fix';
     const isGardeCorps = typeDef.category === 'garde_corps';
-    const isStore = typeDef.category === 'standalone_store';
-    const isMousti = typeDef.category === 'standalone_mousti';
+    const isStore = typeDef.category === 'standalone_store' || familyId === '67';
+    const isMousti = typeDef.category === 'standalone_mousti' || familyId === '68';
     const isPorte = typeDef.category === 'porte' || typeDef.name.toLowerCase().startsWith('porte');
 
     const fam = FAMILIES.find(f => f.id === familyId);
@@ -330,6 +329,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     const comp = typeDef.composition;
 
     updateItem(idx, {
+      include_menuiserie: !(isStore || isMousti),
       is_chassi_fix: isChassi,
       is_garde_corps: isGardeCorps,
       chassi_cadre_ref: chassiRefs.cadre[0],
@@ -363,8 +363,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     let drawType = fam?.drawType || 'francaise';
     if (typeDef.category === 'chassi_fix') drawType = 'fixe';
     if (typeDef.category === 'garde_corps') drawType = 'garde_corps';
-    if (typeDef.category === 'standalone_store') drawType = 'store';
-    if (typeDef.category === 'standalone_mousti') drawType = 'mousti';
+    if (typeDef.category === 'standalone_store' || item.family_id === '67' || (item.include_menuiserie === false && item.store_enabled)) drawType = 'store';
+    if (typeDef.category === 'standalone_mousti' || item.family_id === '68' || (item.include_menuiserie === false && item.mousti_enabled)) drawType = 'mousti';
 
     let nbVantaux = 1;
     const match = typeDef.name.match(/(\d+)\s*vantaux/i);
@@ -891,452 +891,491 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                         </div>
                       </div>
 
-                      {/* Remplissage + Vitrage + Motif */}
+                      {/* Section Menuiserie Aluminium (Châssis) avec Contrôle d'inclusion */}
                       {!item.is_garde_corps && !isStandaloneStore && !isStandaloneMousti && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Remplissage / Verre
-                            </label>
-                            <select
-                              value={item.remplissage_id || ''}
-                              onChange={e => updateItem(index, { remplissage_id: e.target.value })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">— Choisir un remplissage —</option>
-                              {REMPLISSAGES.map(r => (
-                                <option key={r.id} value={r.id}>
-                                  {r.label} ({r.pricePerM2.toFixed(3)} DT/m²)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Vitrage
-                            </label>
-                            <select
-                              value={item.vitrage_type || 'simple'}
-                              onChange={e => updateItem(index, { vitrage_type: e.target.value as any })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="simple">Simple vitrage (Standard)</option>
-                              <option value="double">Double vitrage (Isolation thermique / acoustique)</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Finition & Motif
-                            </label>
-                            <select
-                              value={item.motif_id || ''}
-                              onChange={e => updateItem(index, { motif_id: e.target.value })}
-                              className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">— Sans motif (Standard) —</option>
-                              {MOTIFS.map(m => (
-                                <option key={m.id} value={m.id}>
-                                  {m.label} (+{m.pricePerM2.toFixed(3)} DT/m²)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Composition & Choix des Profilés (Dormant, Ouvrant, Parclose) - Accordéon Rétractable */}
-                      {!item.is_garde_corps && !isStandaloneStore && !isStandaloneMousti && (() => {
-                        const isExpanded = !!expandedProfiles[index];
-                        const isFrappe = !isChassiFixe && !isCoulissant;
-                        const currentOuvrant = item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401';
-                        const isMonobloc = isFrappe && PROFILES_WITHOUT_PARCLOSE.includes(currentOuvrant);
-
-                        let badges: { label: string; val: string; highlight?: boolean }[] = [];
-                        if (isChassiFixe) {
-                          badges = [
-                            { label: 'Cadre', val: item.chassi_cadre_ref || '40100' },
-                            { label: 'Socle', val: item.chassi_socle_ref || '40154' },
-                            { label: 'Meneau', val: item.chassi_montant_ref || '40155' },
-                            { label: 'Traverse', val: item.chassi_traverse_ref || '40104' }
-                          ];
-                        } else if (isCoulissant) {
-                          const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101';
-                          const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104';
-                          const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105';
-                          const s = item.comp_seuil_ref;
-                          badges = [
-                            { label: 'Dormant', val: d },
-                            { label: 'Latéral', val: lat },
-                            { label: 'Chicane', val: cen }
-                          ];
-                          if (s && s !== '— Sans seuil —') {
-                            badges.push({ label: 'Seuil', val: s });
-                          }
-                        } else {
-                          const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100';
-                          const o = currentOuvrant;
-                          const p = isMonobloc 
-                            ? 'Intégrée (Sans parclose)' 
-                            : (item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110');
-                          badges = [
-                            { label: 'Dormant', val: d },
-                            { label: 'Ouvrant', val: o },
-                            { label: 'Parclose', val: p, highlight: isMonobloc }
-                          ];
-                        }
-
-                        return (
-                          <div className="pt-2 border-t border-gray-100">
-                            {/* Bouton Accordéon Réductible & Résumé en direct */}
-                            <button
-                              type="button"
-                              onClick={() => setExpandedProfiles(prev => ({ ...prev, [index]: !prev[index] }))}
-                              className="w-full flex items-center justify-between p-2.5 bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/80 rounded-xl transition-all duration-200 text-left group cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-xs shrink-0">
-                                  <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
-                                  <span>Profilés :</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  {badges.map((b, i) => (
-                                    <span
-                                      key={i}
-                                      className={`text-[11px] px-2 py-0.5 rounded-md font-medium border ${
-                                        b.highlight
-                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
-                                          : 'bg-white text-slate-700 border-slate-200 shadow-2xs'
-                                      }`}
-                                    >
-                                      <span className="text-slate-400 font-normal">{b.label}: </span>
-                                      <span className="font-mono font-bold">{b.val}</span>
-                                    </span>
-                                  ))}
-                                  {isMonobloc && (
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-1">
-                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                      ⭐ Monobloc
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 group-hover:text-blue-700 shrink-0 ml-2">
-                                <span>{isExpanded ? 'Masquer' : 'Personnaliser'}</span>
-                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                              </div>
-                            </button>
-
-                            {/* Formulaire complet dépliable */}
-                            {isExpanded && (
-                              <div className="mt-2.5 transition-all duration-200">
-                                {/* Cas 1 : Châssis Fixe */}
-                                {isChassiFixe ? (
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Cadre Fixe (Dormant)</label>
-                                      <select
-                                        value={item.chassi_cadre_ref || '40100'}
-                                        onChange={e => updateItem(index, { chassi_cadre_ref: e.target.value, comp_dormant_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.cadre : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.cadre : CHASSI_FIX_REFS_DEFAULT.cadre).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Socle / Seuil bas</label>
-                                      <select
-                                        value={item.chassi_socle_ref || '40154'}
-                                        onChange={e => updateItem(index, { chassi_socle_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.socle : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.socle : CHASSI_FIX_REFS_DEFAULT.socle).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Meneau / Montant</label>
-                                      <select
-                                        value={item.chassi_montant_ref || '40155'}
-                                        onChange={e => updateItem(index, { chassi_montant_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.montant : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.montant : CHASSI_FIX_REFS_DEFAULT.montant).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Traverse fixe</label>
-                                      <select
-                                        value={item.chassi_traverse_ref || '40104'}
-                                        onChange={e => updateItem(index, { chassi_traverse_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.traverse : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.traverse : CHASSI_FIX_REFS_DEFAULT.traverse).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-                                ) : isCoulissant ? (
-                                  /* Cas 2 : Coulissant (Série 67, etc.) */
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Dormant Coulissant</label>
-                                      <select
-                                        value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101'}
-                                        onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(typeDef?.composition?.dormant.options || ['67101', '67103', '67110']).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Latéral Ouvrant</label>
-                                      <select
-                                        value={Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104'}
-                                        onChange={e => {
-                                          const count = typeDef?.composition?.lateral?.count || 2;
-                                          updateItem(index, { comp_lateral_qty: { [e.target.value]: count } });
-                                        }}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(typeDef?.composition?.lateral?.options || ['67104', '67108']).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Central (Chicane)</label>
-                                      <select
-                                        value={Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105'}
-                                        onChange={e => {
-                                          const count = typeDef?.composition?.central?.count || 2;
-                                          updateItem(index, { comp_central_qty: { [e.target.value]: count } });
-                                        }}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(typeDef?.composition?.central?.options || ['67105', '67107']).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Seuil / Rail bas</label>
-                                      <select
-                                        value={item.comp_seuil_ref || '— Sans seuil —'}
-                                        onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {((typeDef?.composition?.dormant_composite && item.comp_dormant_ref && typeDef.composition.dormant_composite[item.comp_dormant_ref]) || ['— Sans seuil —', '67201', '67202', '67203', '67205', 'CSQ 116']).map(r => (
-                                          <option key={r} value={r}>{r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  /* Cas 3 : Frappe / Porte / Fenêtre (Série 40 / EX45) */
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
-                                    {/* Dormant */}
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                                        Profilé Dormant (Cadre)
-                                      </label>
-                                      <select
-                                        value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100'}
-                                        onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(typeDef?.composition?.dormant.options || ['40100', '40102', '40148', '40165', '40402']).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-
-                                    {/* Ouvrant */}
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                                        Profilé Ouvrant (Vantail)
-                                      </label>
-                                      <select
-                                        value={item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401'}
-                                        onChange={e => updateItem(index, { comp_ouvrant_ref: e.target.value })}
-                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                      >
-                                        {(typeDef?.composition?.ouvrant.options || ['40401', '40404', '40150', '40403']).map(r => (
-                                          <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-
-                                    {/* Parclose */}
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                                        Profilé Parclose
-                                      </label>
-                                      {PROFILES_WITHOUT_PARCLOSE.includes(item.comp_ouvrant_ref || '') ? (
-                                        <div className="flex items-center gap-1.5 bg-emerald-100/90 border border-emerald-300 text-emerald-950 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs">
-                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                                          <span className="truncate" title="Parclose incorporée dans l'ouvrant monobloc (aucun débit requis)">
-                                            Intégrée dans {item.comp_ouvrant_ref} (sans parclose)
-                                          </span>
-                                        </div>
-                                      ) : (
-                                        <select
-                                          value={item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110'}
-                                          onChange={e => updateItem(index, { comp_parclose_ref: e.target.value })}
-                                          className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                        >
-                                          {((item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.options : typeDef?.composition?.parclose.simple.options) || ['40110', '40111', '40139', '40166']).map(r => (
-                                            <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                          ))}
-                                        </select>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-
-                      {/* Suppléments Quincaillerie Contextuels */}
-                      {!isChassiFixe && !item.is_garde_corps && !isStandaloneStore && !isStandaloneMousti && (
-                        <div className="pt-2 border-t border-gray-100">
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600">
-                              Quincaillerie & Accessoires spécifiques
-                            </label>
-                            <span className="text-[10px] text-gray-400">
-                              {isCoulissant ? 'Châssis Coulissant' : isPorte ? 'Bloc Porte' : 'Châssis Ouvrant'}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-3">
-                            {/* Fast Lock - Seulement pour Coulissant */}
-                            {isCoulissant && (
-                              <div className="flex items-center gap-2">
-                                <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                                  <input
-                                    type="checkbox"
-                                    checked={item.supplements?.includes('Fast Lock')}
-                                    onChange={e => {
-                                      const sups = item.supplements || [];
-                                      updateItem(index, {
-                                        supplements: e.target.checked
-                                          ? [...sups, 'Fast Lock']
-                                          : sups.filter(s => s !== 'Fast Lock')
-                                      });
-                                    }}
-                                    className="rounded text-blue-600"
-                                  />
-                                  <span>🔒 Fast Lock</span>
-                                </label>
-
-                                {item.supplements?.includes('Fast Lock') && (
-                                  <div className="flex items-center gap-1.5 bg-blue-100/80 border border-blue-300 px-2 py-0.5 rounded-lg">
-                                    <span className="text-[11px] font-bold text-blue-900">Points :</span>
-                                    <select
-                                      value={item.fast_lock_points || '1'}
-                                      onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
-                                      className="bg-white border border-blue-400 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900"
-                                    >
-                                      <option value="1">1 point</option>
-                                      <option value="2">2 points</option>
-                                      <option value="3">3 points</option>
-                                    </select>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Poignée Béquille - Seulement pour Portes */}
-                            {isPorte && (
-                              <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                                <input
-                                  type="checkbox"
-                                  checked={item.supplements?.includes('Poignée béquille')}
-                                  onChange={e => {
-                                    const sups = item.supplements || [];
-                                    updateItem(index, {
-                                      supplements: e.target.checked
-                                        ? [...sups, 'Poignée béquille']
-                                        : sups.filter(s => s !== 'Poignée béquille')
-                                    });
-                                  }}
-                                  className="rounded text-blue-600"
-                                />
-                                <span>🚪 Poignée béquille double</span>
-                              </label>
-                            )}
-
-                            {/* Serrure à clé - Seulement pour Portes */}
-                            {isPorte && (
-                              <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                                <input
-                                  type="checkbox"
-                                  checked={item.supplements?.includes('Serrure à clé')}
-                                  onChange={e => {
-                                    const sups = item.supplements || [];
-                                    updateItem(index, {
-                                      supplements: e.target.checked
-                                        ? [...sups, 'Serrure à clé']
-                                        : sups.filter(s => s !== 'Serrure à clé')
-                                    });
-                                  }}
-                                  className="rounded text-blue-600"
-                                />
-                                <span>🔑 Serrure à clé / Cylindre</span>
-                              </label>
-                            )}
-
-                            {/* Ferme-porte Groom - Seulement pour Portes */}
-                            {isPorte && (
-                              <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
-                                <input
-                                  type="checkbox"
-                                  checked={item.supplements?.includes('Ferme-porte Groom')}
-                                  onChange={e => {
-                                    const sups = item.supplements || [];
-                                    updateItem(index, {
-                                      supplements: e.target.checked
-                                        ? [...sups, 'Ferme-porte Groom']
-                                        : sups.filter(s => s !== 'Ferme-porte Groom')
-                                    });
-                                  }}
-                                  className="rounded text-amber-600"
-                                />
-                                <span>🛡️ Ferme-porte hydraulique (Groom)</span>
-                              </label>
-                            )}
-
-                            {/* Traverse intermédiaire */}
-                            <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                        <div className="pt-2 border-t border-gray-200/80 space-y-3">
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
+                            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
                               <input
                                 type="checkbox"
-                                checked={item.supplements?.includes('Traverse')}
-                                onChange={e => {
-                                  const sups = item.supplements || [];
-                                  updateItem(index, {
-                                    supplements: e.target.checked
-                                      ? [...sups, 'Traverse']
-                                      : sups.filter(s => s !== 'Traverse')
-                                  });
-                                }}
-                                className="rounded text-blue-600"
+                                checked={item.include_menuiserie !== false}
+                                onChange={e => updateItem(index, { include_menuiserie: e.target.checked })}
+                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                               />
-                              <span>➕ Traverse intermédiaire</span>
+                              <span className="flex items-center gap-1.5">
+                                🪟 Inclure le châssis / cadre Menuiserie Aluminium (Fenêtre / Porte)
+                              </span>
                             </label>
+                            {item.include_menuiserie === false ? (
+                              <span className="text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md shadow-2xs">
+                                ❌ Châssis exclu (0.000 DT)
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold text-blue-800 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-md shadow-2xs">
+                                ✓ Châssis inclus
+                              </span>
+                            )}
                           </div>
+
+                          {item.include_menuiserie === false ? (
+                            <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2 font-medium">
+                              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span>
+                                Le coût du châssis aluminium (profilés, vitrage et accessoires fenêtre) est fixé à <strong>0.000 DT</strong>. Seuls les équipements configurés ci-dessous (Store Volet Roulant ou Moustiquaire) seront calculés et facturés dans le devis.
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {/* Remplissage + Vitrage + Motif */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    Remplissage / Verre
+                                  </label>
+                                  <select
+                                    value={item.remplissage_id || ''}
+                                    onChange={e => updateItem(index, { remplissage_id: e.target.value })}
+                                    className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="">— Choisir un remplissage —</option>
+                                    {REMPLISSAGES.map(r => (
+                                      <option key={r.id} value={r.id}>
+                                        {r.label} ({r.pricePerM2.toFixed(3)} DT/m²)
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    Vitrage
+                                  </label>
+                                  <select
+                                    value={item.vitrage_type || 'simple'}
+                                    onChange={e => updateItem(index, { vitrage_type: e.target.value as any })}
+                                    className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="simple">Simple vitrage (Standard)</option>
+                                    <option value="double">Double vitrage (Isolation thermique / acoustique)</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    Finition & Motif
+                                  </label>
+                                  <select
+                                    value={item.motif_id || ''}
+                                    onChange={e => updateItem(index, { motif_id: e.target.value })}
+                                    className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="">— Sans motif (Standard) —</option>
+                                    {MOTIFS.map(m => (
+                                      <option key={m.id} value={m.id}>
+                                        {m.label} (+{m.pricePerM2.toFixed(3)} DT/m²)
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Composition & Choix des Profilés (Dormant, Ouvrant, Parclose) - Accordéon Rétractable */}
+                              {(() => {
+                                const isExpanded = !!expandedProfiles[index];
+                                const currentOuvrant = item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401';
+                                const isMonobloc = isFrappe && PROFILES_WITHOUT_PARCLOSE.includes(currentOuvrant);
+
+                                let badges: { label: string; val: string; highlight?: boolean }[] = [];
+                                if (isChassiFixe) {
+                                  badges = [
+                                    { label: 'Cadre', val: item.chassi_cadre_ref || '40100' },
+                                    { label: 'Socle', val: item.chassi_socle_ref || '40154' },
+                                    { label: 'Meneau', val: item.chassi_montant_ref || '40155' },
+                                    { label: 'Traverse', val: item.chassi_traverse_ref || '40104' }
+                                  ];
+                                } else if (isCoulissant) {
+                                  const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101';
+                                  const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104';
+                                  const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105';
+                                  const s = item.comp_seuil_ref;
+                                  badges = [
+                                    { label: 'Dormant', val: d },
+                                    { label: 'Latéral', val: lat },
+                                    { label: 'Chicane', val: cen }
+                                  ];
+                                  if (s && s !== '— Sans seuil —') {
+                                    badges.push({ label: 'Seuil', val: s });
+                                  }
+                                } else {
+                                  const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100';
+                                  const o = currentOuvrant;
+                                  const p = isMonobloc 
+                                    ? 'Intégrée (Sans parclose)' 
+                                    : (item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110');
+                                  badges = [
+                                    { label: 'Dormant', val: d },
+                                    { label: 'Ouvrant', val: o },
+                                    { label: 'Parclose', val: p, highlight: isMonobloc }
+                                  ];
+                                }
+
+                                return (
+                                  <div className="pt-2 border-t border-gray-100">
+                                    {/* Bouton Accordéon Réductible & Résumé en direct */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedProfiles(prev => ({ ...prev, [index]: !prev[index] }))}
+                                      className="w-full flex items-center justify-between p-2.5 bg-slate-50/80 hover:bg-slate-100/90 border border-slate-200/80 rounded-xl transition-all duration-200 text-left group cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-xs shrink-0">
+                                          <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                                          <span>Profilés :</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          {badges.map((b, i) => (
+                                            <span
+                                              key={i}
+                                              className={`text-[11px] px-2 py-0.5 rounded-md font-medium border ${
+                                                b.highlight
+                                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                                                  : 'bg-white text-slate-700 border-slate-200 shadow-2xs'
+                                              }`}
+                                            >
+                                              <span className="text-slate-400 font-normal">{b.label}: </span>
+                                              <span className="font-mono font-bold">{b.val}</span>
+                                            </span>
+                                          ))}
+                                          {isMonobloc && (
+                                            <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-1">
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                              ⭐ Monobloc
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 group-hover:text-blue-700 shrink-0 ml-2">
+                                        <span>{isExpanded ? 'Masquer' : 'Personnaliser'}</span>
+                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                      </div>
+                                    </button>
+
+                                    {/* Formulaire complet dépliable */}
+                                    {isExpanded && (
+                                      <div className="mt-2.5 transition-all duration-200">
+                                        {/* Cas 1 : Châssis Fixe */}
+                                        {isChassiFixe ? (
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Cadre Fixe (Dormant)</label>
+                                              <select
+                                                value={item.chassi_cadre_ref || '40100'}
+                                                onChange={e => updateItem(index, { chassi_cadre_ref: e.target.value, comp_dormant_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.cadre : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.cadre : CHASSI_FIX_REFS_DEFAULT.cadre).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Socle / Seuil bas</label>
+                                              <select
+                                                value={item.chassi_socle_ref || '40154'}
+                                                onChange={e => updateItem(index, { chassi_socle_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.socle : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.socle : CHASSI_FIX_REFS_DEFAULT.socle).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Meneau / Montant</label>
+                                              <select
+                                                value={item.chassi_montant_ref || '40155'}
+                                                onChange={e => updateItem(index, { chassi_montant_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.montant : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.montant : CHASSI_FIX_REFS_DEFAULT.montant).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Traverse fixe</label>
+                                              <select
+                                                value={item.chassi_traverse_ref || '40104'}
+                                                onChange={e => updateItem(index, { chassi_traverse_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.traverse : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.traverse : CHASSI_FIX_REFS_DEFAULT.traverse).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                          </div>
+                                        ) : isCoulissant ? (
+                                          /* Cas 2 : Coulissant (Série 67, etc.) */
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Dormant Coulissant</label>
+                                              <select
+                                                value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101'}
+                                                onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(typeDef?.composition?.dormant.options || ['67101', '67103', '67110']).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Latéral Ouvrant</label>
+                                              <select
+                                                value={Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104'}
+                                                onChange={e => {
+                                                  const count = typeDef?.composition?.lateral?.count || 2;
+                                                  updateItem(index, { comp_lateral_qty: { [e.target.value]: count } });
+                                                }}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(typeDef?.composition?.lateral?.options || ['67104', '67108']).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Central (Chicane)</label>
+                                              <select
+                                                value={Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105'}
+                                                onChange={e => {
+                                                  const count = typeDef?.composition?.central?.count || 2;
+                                                  updateItem(index, { comp_central_qty: { [e.target.value]: count } });
+                                                }}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(typeDef?.composition?.central?.options || ['67105', '67107']).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Seuil / Rail bas</label>
+                                              <select
+                                                value={item.comp_seuil_ref || '— Sans seuil —'}
+                                                onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {((typeDef?.composition?.dormant_composite && item.comp_dormant_ref && typeDef.composition.dormant_composite[item.comp_dormant_ref]) || ['— Sans seuil —', '67201', '67202', '67203', '67205', 'CSQ 116']).map(r => (
+                                                  <option key={r} value={r}>{r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          /* Cas 3 : Frappe / Porte / Fenêtre (Série 40 / EX45) */
+                                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
+                                            {/* Dormant */}
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                Profilé Dormant (Cadre)
+                                              </label>
+                                              <select
+                                                value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100'}
+                                                onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(typeDef?.composition?.dormant.options || ['40100', '40102', '40148', '40165', '40402']).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+
+                                            {/* Ouvrant */}
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                Profilé Ouvrant (Vantail)
+                                              </label>
+                                              <select
+                                                value={item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401'}
+                                                onChange={e => updateItem(index, { comp_ouvrant_ref: e.target.value })}
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                              >
+                                                {(typeDef?.composition?.ouvrant.options || ['40401', '40404', '40150', '40403']).map(r => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                ))}
+                                              </select>
+                                            </div>
+
+                                            {/* Parclose */}
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                Profilé Parclose
+                                              </label>
+                                              {PROFILES_WITHOUT_PARCLOSE.includes(item.comp_ouvrant_ref || '') ? (
+                                                <div className="flex items-center gap-1.5 bg-emerald-100/90 border border-emerald-300 text-emerald-950 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs">
+                                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                                                  <span className="truncate" title="Parclose incorporée dans l'ouvrant monobloc (aucun débit requis)">
+                                                    Intégrée dans {item.comp_ouvrant_ref} (sans parclose)
+                                                  </span>
+                                                </div>
+                                              ) : (
+                                                <select
+                                                  value={item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110'}
+                                                  onChange={e => updateItem(index, { comp_parclose_ref: e.target.value })}
+                                                  className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {((item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.options : typeDef?.composition?.parclose.simple.options) || ['40110', '40111', '40139', '40166']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Suppléments Quincaillerie Contextuels */}
+                              {!isChassiFixe && !item.is_garde_corps && (
+                                <div className="pt-2 border-t border-gray-100">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600">
+                                      Quincaillerie & Accessoires spécifiques
+                                    </label>
+                                    <span className="text-[10px] text-gray-400">
+                                      {isCoulissant ? 'Châssis Coulissant' : isPorte ? 'Bloc Porte' : 'Châssis Ouvrant'}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    {/* Fast Lock - Seulement pour Coulissant */}
+                                    {isCoulissant && (
+                                      <div className="flex items-center gap-2">
+                                        <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                          <input
+                                            type="checkbox"
+                                            checked={item.supplements?.includes('Fast Lock')}
+                                            onChange={e => {
+                                              const sups = item.supplements || [];
+                                              updateItem(index, {
+                                                supplements: e.target.checked
+                                                  ? [...sups, 'Fast Lock']
+                                                  : sups.filter(s => s !== 'Fast Lock')
+                                              });
+                                            }}
+                                            className="rounded text-blue-600"
+                                          />
+                                          <span>🔒 Fast Lock</span>
+                                        </label>
+
+                                        {item.supplements?.includes('Fast Lock') && (
+                                          <div className="flex items-center gap-1.5 bg-blue-100/80 border border-blue-300 px-2 py-0.5 rounded-lg">
+                                            <span className="text-[11px] font-bold text-blue-900">Points :</span>
+                                            <select
+                                              value={item.fast_lock_points || '1'}
+                                              onChange={e => updateItem(index, { fast_lock_points: e.target.value })}
+                                              className="bg-white border border-blue-400 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900"
+                                            >
+                                              <option value="1">1 point</option>
+                                              <option value="2">2 points</option>
+                                              <option value="3">3 points</option>
+                                            </select>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Poignée Béquille - Seulement pour Portes */}
+                                    {isPorte && (
+                                      <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                        <input
+                                          type="checkbox"
+                                          checked={item.supplements?.includes('Poignée béquille')}
+                                          onChange={e => {
+                                            const sups = item.supplements || [];
+                                            updateItem(index, {
+                                              supplements: e.target.checked
+                                                ? [...sups, 'Poignée béquille']
+                                                : sups.filter(s => s !== 'Poignée béquille')
+                                            });
+                                          }}
+                                          className="rounded text-blue-600"
+                                        />
+                                        <span>🚪 Poignée béquille double</span>
+                                      </label>
+                                    )}
+
+                                    {/* Serrure à clé - Seulement pour Portes */}
+                                    {isPorte && (
+                                      <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                        <input
+                                          type="checkbox"
+                                          checked={item.supplements?.includes('Serrure à clé')}
+                                          onChange={e => {
+                                            const sups = item.supplements || [];
+                                            updateItem(index, {
+                                              supplements: e.target.checked
+                                                ? [...sups, 'Serrure à clé']
+                                                : sups.filter(s => s !== 'Serrure à clé')
+                                            });
+                                          }}
+                                          className="rounded text-blue-600"
+                                        />
+                                        <span>🔑 Serrure à clé / Cylindre</span>
+                                      </label>
+                                    )}
+
+                                    {/* Ferme-porte Groom - Seulement pour Portes */}
+                                    {isPorte && (
+                                      <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                        <input
+                                          type="checkbox"
+                                          checked={item.supplements?.includes('Ferme-porte Groom')}
+                                          onChange={e => {
+                                            const sups = item.supplements || [];
+                                            updateItem(index, {
+                                              supplements: e.target.checked
+                                                ? [...sups, 'Ferme-porte Groom']
+                                                : sups.filter(s => s !== 'Ferme-porte Groom')
+                                            });
+                                          }}
+                                          className="rounded text-amber-600"
+                                        />
+                                        <span>🛡️ Ferme-porte hydraulique (Groom)</span>
+                                      </label>
+                                    )}
+
+                                    {/* Traverse intermédiaire */}
+                                    <label className="flex items-center space-x-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                                      <input
+                                        type="checkbox"
+                                        checked={item.supplements?.includes('Traverse')}
+                                        onChange={e => {
+                                          const sups = item.supplements || [];
+                                          updateItem(index, {
+                                            supplements: e.target.checked
+                                              ? [...sups, 'Traverse']
+                                              : sups.filter(s => s !== 'Traverse')
+                                          });
+                                        }}
+                                        className="rounded text-blue-600"
+                                      />
+                                      <span>➕ Traverse intermédiaire</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
 

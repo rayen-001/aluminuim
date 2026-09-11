@@ -191,8 +191,8 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                   let drawType = fam?.drawType || 'francaise';
                   if (typeDef?.category === 'chassi_fix') drawType = 'fixe';
                   if (typeDef?.category === 'garde_corps') drawType = 'garde_corps';
-                  if (typeDef?.category === 'standalone_store') drawType = 'store';
-                  if (typeDef?.category === 'standalone_mousti') drawType = 'mousti';
+                  if (typeDef?.category === 'standalone_store' || it.family_id === '67' || (it.include_menuiserie === false && it.store_enabled)) drawType = 'store';
+                  if (typeDef?.category === 'standalone_mousti' || it.family_id === '68' || (it.include_menuiserie === false && it.mousti_enabled)) drawType = 'mousti';
 
                   let nbVantaux = 1;
                   const match = (typeDef?.name || '').match(/(\d+)\s*vantaux/i);
@@ -224,6 +224,12 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                   });
                 }
 
+                const isStoreOnly = it.include_menuiserie === false && Boolean(it.store_enabled || it.family_id === '67' || typeDef?.category === 'standalone_store');
+                const isMoustiOnly = it.include_menuiserie === false && Boolean(it.mousti_enabled || it.family_id === '68' || typeDef?.category === 'standalone_mousti');
+                const titleLabel = it.is_manual 
+                  ? it.manual_nom 
+                  : (isStoreOnly ? 'Store Rideau (Volet Roulant)' : (isMoustiOnly ? 'Moustiquaire' : (typeDef?.name || `Produit ${idx + 1}`)));
+
                 return (
                   <div
                     key={idx}
@@ -233,7 +239,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                     <div className="flex-1 space-y-1.5 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-gray-900 text-sm sm:text-base">
-                          {idx + 1}. {it.is_manual ? it.manual_nom : (typeDef?.name || `Produit ${idx + 1}`)}
+                          {idx + 1}. {titleLabel}
                         </span>
                         <span className="text-[11px] bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-bold text-slate-700 capitalize shrink-0">
                           {it.couleur?.replace('_', ' ')}
@@ -244,7 +250,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                         <span>{it.hauteur && it.largeur ? `Dimensions : ${it.largeur} cm × ${it.hauteur} cm` : ''}</span>
                         <span>•</span>
                         <span className="font-mono bg-blue-50 text-blue-800 px-2 py-0.5 rounded font-bold text-xs">Qté : {it.quantity}</span>
-                        {it.vitrage_type && (
+                        {it.vitrage_type && it.include_menuiserie !== false && (
                           <>
                             <span>•</span>
                             <span className="text-gray-500">Vitrage : {it.vitrage_type}</span>
@@ -260,7 +266,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                           </span>
                           {(cost?.net_store_ht || 0) > 0 && (
                             <span className="font-mono font-black text-blue-950 bg-white px-2 py-0.5 rounded border border-blue-200 shadow-2xs shrink-0 text-xs">
-                              + {(cost!.net_store_ht!).toFixed(3)} DT
+                              {(cost!.net_store_ht!).toFixed(3)} DT
                             </span>
                           )}
                         </div>
@@ -270,20 +276,20 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                       {it.mousti_enabled && (
                         <div className="flex items-center justify-between gap-2 text-xs bg-emerald-50/80 border border-emerald-200 py-1 px-2.5 rounded-lg text-emerald-900 font-medium">
                           <span className="truncate">
-                            🦟 Moustiquaire Intégrée : {it.mousti_type === 'plissee' ? 'Plissée Latérale' : 
+                            🦟 Moustiquaire : {it.mousti_type === 'plissee' ? 'Plissée Latérale' : 
                                it.mousti_type === 'fixe' ? 'Cadre Fixe' : 
                                it.mousti_type === 'battante' ? 'Porte Battante' : 'Enroulable Verticale'}
                           </span>
                           {(cost?.net_mousti_ht || 0) > 0 && (
                             <span className="font-mono font-black text-emerald-950 bg-white px-2 py-0.5 rounded border border-emerald-200 shadow-2xs shrink-0 text-xs">
-                              + {(cost!.net_mousti_ht!).toFixed(3)} DT
+                              {(cost!.net_mousti_ht!).toFixed(3)} DT
                             </span>
                           )}
                         </div>
                       )}
 
                       {/* Other Supplements */}
-                      {it.supplements && it.supplements.length > 0 && (
+                      {it.supplements && it.supplements.length > 0 && it.include_menuiserie !== false && (
                         <div className="text-xs text-gray-500 pt-0.5">
                           Suppléments : <span className="font-medium text-gray-700">{it.supplements.join(', ')}</span>
                         </div>
@@ -301,12 +307,12 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                     {/* Cost Breakdown */}
                     {cost && (
                       <div className="text-right shrink-0 font-mono min-w-[155px]">
-                        {((cost.net_store_ht || 0) > 0 || (cost.net_mousti_ht || 0) > 0 || it.store_enabled || it.mousti_enabled) ? (
+                        {((cost.net_menuiserie_ht || 0) > 0 && ((cost.net_store_ht || 0) > 0 || (cost.net_mousti_ht || 0) > 0)) ? (
                           <div className="space-y-1 bg-slate-50/80 p-2.5 rounded-lg border border-slate-200">
                             <div className="text-xs text-gray-600 flex items-center justify-between gap-2">
                               <span className="font-sans text-gray-500 text-[10px] uppercase font-bold">Menuiserie :</span>
                               <span className="font-bold text-gray-900">
-                                {(cost.net_menuiserie_ht ?? (cost.net_ht - (cost.net_store_ht || 0) - (cost.net_mousti_ht || 0))).toFixed(3)} DT
+                                {cost.net_menuiserie_ht!.toFixed(3)} DT
                               </span>
                             </div>
                             {(cost.net_store_ht || 0) > 0 && (
