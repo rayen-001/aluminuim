@@ -1771,16 +1771,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     if (!devis) throw new Error('Devis not found');
 
-    const existingBL = bonsLivraison.find(b => b.devis_id === devisId);
-    if (existingBL) {
-      updateDevisStatus(devisId, 'converti');
-      return existingBL;
+    // 1. Ensure linked Facture exists and is updated with all latest items
+    let linkedFac: FactureRecord | null = null;
+    try {
+      linkedFac = convertToFacture(devisId);
+    } catch (e) {
+      console.error('Error auto-syncing facture during BL conversion:', e);
     }
 
-    // 1. Ensure linked Facture exists (auto-create if missing to track customer debt / créance)
-    let linkedFac = factures.find(f => f.devis_id === devisId);
-    if (!linkedFac) {
-      linkedFac = convertToFacture(devisId);
+    const mappedItems = (devis.items || []).map((it, idx) => ({
+      designation: resolveItemName(it, idx),
+      hauteur: it.hauteur,
+      largeur: it.largeur,
+      quantite: it.quantity || 1,
+      prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
+      total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
+    }));
+
+    const todayDate = new Date().toISOString().split('T')[0];
+    const existingBL = bonsLivraison.find(b => b.devis_id === devisId);
+
+    if (existingBL) {
+      const updatedBL: BonLivraisonRecord = {
+        ...existingBL,
+        client_nom: devis.client_nom || existingBL.client_nom || 'Client sans nom',
+        date: todayDate,
+        items: mappedItems,
+        devis_items: devis.items,
+        totals: devis.totals,
+        facture_id: linkedFac ? linkedFac.id : existingBL.facture_id,
+        destination: devis.notes || existingBL.destination || '',
+        notes: devis.notes || existingBL.notes || ''
+      };
+
+      setBonsLivraison(prev => [updatedBL, ...prev.filter(b => b.id !== existingBL.id)]);
+      updateDevisStatus(devisId, 'converti');
+
+      try {
+        const currentSaved = localStorage.getItem('alupro_bl') || localStorage.getItem('atelierpro_bl');
+        const parsed: BonLivraisonRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
+        const updatedList = [updatedBL, ...parsed.filter(x => x.id !== existingBL.id)];
+        localStorage.setItem('alupro_bl', JSON.stringify(updatedList));
+        localStorage.setItem('atelierpro_bl', JSON.stringify(updatedList));
+      } catch (e) {
+        console.error('Error saving updated BL to localStorage:', e);
+      }
+
+      if (user?.id) {
+        supabase.from('bons_livraison').update({
+          client_nom: updatedBL.client_nom,
+          date: updatedBL.date,
+          items: updatedBL.items,
+          notes: updatedBL.notes || '',
+          destination: updatedBL.destination || '',
+          status: updatedBL.status
+        }).eq('id', existingBL.id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase update BL error:', error); });
+      }
+
+      return updatedBL;
     }
 
     // 2. Build rich BonLivraisonRecord
@@ -1792,22 +1841,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       devis_numero: devis.numero,
       client_id: devis.client_id,
       client_nom: devis.client_nom || 'Client sans nom',
-      date: new Date().toISOString().split('T')[0],
+      date: todayDate,
       chauffeur: '',
       matricule_vehicule: '',
       destination: devis.notes || '',
       heure_sortie: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      items: (devis.items || []).map((it, idx) => ({
-        designation: resolveItemName(it, idx),
-        hauteur: it.hauteur,
-        largeur: it.largeur,
-        quantite: it.quantity || 1,
-        prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
-        total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
-      })),
+      items: mappedItems,
       devis_items: devis.items,
       totals: devis.totals,
-      facture_id: linkedFac?.id,
+      facture_id: linkedFac ? linkedFac.id : undefined,
       notes: devis.notes,
       status: 'en_cours',
       created_at: new Date().toISOString()
@@ -1820,6 +1862,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const parsed: BonLivraisonRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
       const updatedList = [bl, ...parsed.filter(x => x.id !== bl.id)];
       localStorage.setItem('alupro_bl', JSON.stringify(updatedList));
+      localStorage.setItem('atelierpro_bl', JSON.stringify(updatedList));
     } catch (e) {
       console.error('Error saving BL to localStorage:', e);
     }
@@ -1893,10 +1936,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     if (!devis) throw new Error('Devis not found');
 
+    const mappedItems = (devis.items || []).map((it, idx) => ({
+      designation: resolveItemName(it, idx),
+      quantite: it.quantity || 1,
+      prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
+      total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
+    }));
+
+    const totalHt = Number(devis?.totals?.total_ht) || 0;
+    const tvaTaux = Number(devis?.marges?.tva) || 0;
+    const totalTva = Number(devis?.totals?.total_tva) || 0;
+    const totalTtc = Number(devis?.totals?.total_ttc) || 0;
+    const todayDate = new Date().toISOString().split('T')[0];
+
     const existingFacture = factures.find(f => f.devis_id === devisId);
     if (existingFacture) {
+      // Synchronize and update existing facture with current devis data and items
+      const updatedFac: FactureRecord = {
+        ...existingFacture,
+        client_nom: devis.client_nom || existingFacture.client_nom || 'Client sans nom',
+        date: todayDate,
+        items: mappedItems,
+        total_ht: totalHt,
+        tva_taux: tvaTaux,
+        total_tva: totalTva,
+        total_ttc: totalTtc,
+        status: ((existingFacture.montant_paye || 0) >= totalTtc && totalTtc > 0) 
+          ? 'payee' 
+          : ((existingFacture.montant_paye || 0) > 0 ? 'partielle' : 'impayee')
+      };
+
+      setFactures(prev => [updatedFac, ...prev.filter(f => f.id !== existingFacture.id)]);
       updateDevisStatus(devisId, 'converti');
-      return existingFacture;
+
+      try {
+        const currentSaved = localStorage.getItem('alupro_factures') || localStorage.getItem('atelierpro_factures');
+        const parsed: FactureRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
+        const updatedList = [updatedFac, ...parsed.filter(x => x.id !== existingFacture.id)];
+        localStorage.setItem('alupro_factures', JSON.stringify(updatedList));
+        localStorage.setItem('atelierpro_factures', JSON.stringify(updatedList));
+      } catch (e) {
+        console.error('Error saving updated facture to localStorage:', e);
+      }
+
+      if (user?.id) {
+        supabase.from('factures').update({
+          client_nom: updatedFac.client_nom,
+          date: updatedFac.date,
+          items: updatedFac.items,
+          total_ht: updatedFac.total_ht,
+          tva_taux: updatedFac.tva_taux,
+          total_tva: updatedFac.total_tva,
+          total_ttc: updatedFac.total_ttc,
+          status: updatedFac.status
+        }).eq('id', existingFacture.id).eq('user_id', user.id)
+          .then(({ error }) => { if (error) console.error('Supabase update convertToFacture error:', error); });
+      }
+
+      return updatedFac;
     }
 
     const nextFac = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
@@ -1905,17 +2002,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       numero: nextFac,
       devis_id: devis.id,
       client_nom: devis.client_nom || 'Client sans nom',
-      date: new Date().toISOString().split('T')[0],
-      items: (devis.items || []).map((it, idx) => ({
-        designation: resolveItemName(it, idx),
-        quantite: it.quantity || 1,
-        prix_unitaire_ht: Number(devis?.totals?.items_costs?.[idx]?.net_ht) || 0,
-        total_ht: Number(devis?.totals?.items_costs?.[idx]?.total_ht) || 0
-      })),
-      total_ht: Number(devis?.totals?.total_ht) || 0,
-      tva_taux: Number(devis?.marges?.tva) || 0,
-      total_tva: Number(devis?.totals?.total_tva) || 0,
-      total_ttc: Number(devis?.totals?.total_ttc) || 0,
+      date: todayDate,
+      items: mappedItems,
+      total_ht: totalHt,
+      tva_taux: tvaTaux,
+      total_tva: totalTva,
+      total_ttc: totalTtc,
       montant_paye: 0,
       status: 'impayee',
       created_at: new Date().toISOString()
@@ -1928,6 +2020,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const parsed: FactureRecord[] = currentSaved ? JSON.parse(currentSaved) : [];
       const updatedList = [fac, ...parsed.filter(x => x.id !== fac.id)];
       localStorage.setItem('alupro_factures', JSON.stringify(updatedList));
+      localStorage.setItem('atelierpro_factures', JSON.stringify(updatedList));
     } catch (e) {
       console.error('Error saving facture to localStorage:', e);
     }

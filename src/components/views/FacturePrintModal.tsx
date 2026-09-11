@@ -23,8 +23,30 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
     ? devisList.find(d => d.id === facture.devis_id)
     : undefined;
 
+  // Dynamically resolve items to render (prefer linked devis if it has more up-to-date items)
+  const itemsToRender = (linkedDevis?.items && linkedDevis.items.length >= (facture.items?.length || 0))
+    ? linkedDevis.items.map((it, idx) => ({
+        designation: (it.is_manual ? (it.manual_nom || it.manual_designation) : undefined) || facture.items?.[idx]?.designation || (it.largeur && it.hauteur ? `Menuiserie ${it.largeur}×${it.hauteur} cm` : `Menuiserie ${idx + 1}`),
+        quantite: it.quantity || 1,
+        prix_unitaire_ht: Number(linkedDevis.totals?.items_costs?.[idx]?.net_ht) || facture.items?.[idx]?.prix_unitaire_ht || 0,
+        total_ht: Number(linkedDevis.totals?.items_costs?.[idx]?.total_ht) || facture.items?.[idx]?.total_ht || 0
+      }))
+    : (facture.items || []);
+
+  const totalHTToRender = (linkedDevis?.totals?.total_ht && linkedDevis.items.length >= (facture.items?.length || 0))
+    ? Number(linkedDevis.totals.total_ht)
+    : Number(facture.total_ht || 0);
+
+  const totalTTCToRender = (linkedDevis?.totals?.total_ttc && linkedDevis.items.length >= (facture.items?.length || 0))
+    ? Number(linkedDevis.totals.total_ttc)
+    : Number(facture.total_ttc || 0);
+
+  const totalTVAToRender = (linkedDevis?.totals?.total_tva && linkedDevis.items.length >= (facture.items?.length || 0))
+    ? Number(linkedDevis.totals.total_tva)
+    : Number(facture.total_tva || 0);
+
   const timbreFiscal = 1.000; // Timbre fiscal standard en Tunisie (1.000 DT)
-  const netAPayer = (facture.total_ttc || 0) + timbreFiscal;
+  const netAPayer = totalTTCToRender + timbreFiscal;
   const montantPaye = facture.montant_paye || 0;
   const resteDu = Math.max(0, netAPayer - montantPaye);
 
@@ -183,7 +205,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
           {/* Table of Items */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 flex justify-between items-center">
-              <span>Désignation des Articles & Prestations ({facture.items.length})</span>
+              <span>Désignation des Articles & Prestations ({itemsToRender.length})</span>
               <span className="text-[10px] text-gray-400 font-normal">Montants en Dinars Tunisiens (DT)</span>
             </h4>
 
@@ -198,7 +220,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {facture.items.map((it, idx) => {
+                {itemsToRender.map((it, idx) => {
                   const linkedItem = linkedDevis?.items?.[idx];
                   let itemTitle = it.designation;
 
@@ -264,13 +286,13 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
                 <tbody className="divide-y divide-gray-200 font-mono text-xs">
                   <tr>
                     <td className="px-3 py-2 text-center font-bold text-gray-800">{facture.tva_taux || 19}%</td>
-                    <td className="px-3 py-2 text-right text-gray-700">{(facture.total_ht || 0).toFixed(3)}</td>
-                    <td className="px-3 py-2 text-right font-bold text-cyan-900">{(facture.total_tva || 0).toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right text-gray-700">{totalHTToRender.toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right font-bold text-cyan-900">{totalTVAToRender.toFixed(3)}</td>
                   </tr>
                   <tr className="bg-slate-50 font-bold">
                     <td className="px-3 py-2 text-center text-cyan-900">TOTAL</td>
-                    <td className="px-3 py-2 text-right text-gray-900">{(facture.total_ht || 0).toFixed(3)}</td>
-                    <td className="px-3 py-2 text-right text-cyan-950">{(facture.total_tva || 0).toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right text-gray-900">{totalHTToRender.toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right text-cyan-950">{totalTVAToRender.toFixed(3)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -280,15 +302,15 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
             <div className="space-y-1.5 text-xs font-mono">
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="font-sans text-gray-600">Total HT :</span>
-                <span className="font-bold text-gray-900">{(facture.total_ht || 0).toFixed(3)} DT</span>
+                <span className="font-bold text-gray-900">{totalHTToRender.toFixed(3)} DT</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="font-sans text-gray-600">TVA ({facture.tva_taux || 19}%) :</span>
-                <span className="font-bold text-gray-900">{(facture.total_tva || 0).toFixed(3)} DT</span>
+                <span className="font-bold text-gray-900">{totalTVAToRender.toFixed(3)} DT</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="font-sans text-gray-600">Total TTC :</span>
-                <span className="font-bold text-gray-900">{(facture.total_ttc || 0).toFixed(3)} DT</span>
+                <span className="font-bold text-gray-900">{totalTTCToRender.toFixed(3)} DT</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="font-sans text-gray-600">Timbre fiscal :</span>
