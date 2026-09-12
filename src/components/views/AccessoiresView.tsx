@@ -333,113 +333,115 @@ export const AccessoiresView: React.FC = () => {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
-        <table className="w-full text-left text-xs sm:text-sm">
-          <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
-            <tr>
-              <th className="px-5 py-3.5">Désignation</th>
-              <th className="px-5 py-3.5">Catégorie</th>
-              <th className="px-5 py-3.5">Rôle / Description</th>
-              <th className="px-4 py-3.5 text-center">Stock</th>
-              <th className="px-5 py-3.5 text-center">Unité</th>
-              <th className="px-5 py-3.5 text-right font-mono">Prix Unitaire (HT)</th>
-              <th className="px-5 py-3.5 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 font-sans">
-            {filtered.map(acc => {
-              const inStock = acc.stock_qty !== undefined && acc.stock_qty > 0;
-              const stockDefined = acc.stock_qty !== undefined;
-              return (
-              <tr key={acc.id} className="hover:bg-blue-50/20 transition">
-                <td className="px-5 py-3.5 font-bold text-gray-900">
-                  {acc.nom}
-                </td>
-                <td className="px-5 py-3.5">
-                  {getCategoryBadge(acc.categorie)}
-                </td>
-                <td className="px-5 py-3.5 text-gray-600 text-xs">
-                  {acc.description || '—'}
-                </td>
-
-                {/* Stock Badge */}
-                <td className="px-4 py-3.5 text-center">
-                  {!stockDefined ? (
-                    <span
-                      title="Stock non renseigné"
-                      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200"
-                    >
-                      <Package className="w-3 h-3" /> —
-                    </span>
-                  ) : inStock ? (
-                    <span
-                      title={`En stock : ${acc.stock_qty} unités`}
-                      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    >
-                      <Package className="w-3 h-3" /> {acc.stock_qty}
-                    </span>
-                  ) : (
-                    <span
-                      title="Rupture de stock — À commander"
-                      className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200 animate-pulse"
-                    >
-                      <AlertTriangle className="w-3 h-3" /> Cmd
-                    </span>
-                  )}
-                </td>
-
-                <td className="px-5 py-3.5 text-center text-gray-500 font-medium">
-                  {acc.unite}
-                </td>
-                <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900">
-                  {editingId === acc.id ? (
-                    <div className="flex items-center justify-end gap-1">
-                      <input 
-                        type="number"
-                        value={editPrice}
-                        onChange={e => setEditPrice(e.target.value)}
-                        className="w-24 border border-blue-400 rounded-md px-2 py-1 text-right text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
-                        step="0.001"
-                        autoFocus
-                      />
-                      <span className="text-gray-400 text-xs">DT</span>
-                    </div>
-                  ) : (
-                    <span>{acc.prix_unitaire_ht.toFixed(3)} DT</span>
-                  )}
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  {editingId === acc.id ? (
-                    <div className="flex items-center justify-end gap-1">
-                      <button 
-                        onClick={() => saveEdit(acc.id)}
-                        className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md transition cursor-pointer"
-                        title="Enregistrer"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => setEditingId(null)}
-                        className="p-1.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-md transition cursor-pointer"
-                        title="Annuler"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => startEdit(acc)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition cursor-pointer"
-                      title="Modifier prix et stock"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </td>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
+            <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
+              <tr>
+                <th className="px-5 py-3.5">Désignation</th>
+                <th className="px-5 py-3.5">Catégorie</th>
+                <th className="px-5 py-3.5">Rôle / Description</th>
+                <th className="px-4 py-3.5 text-center">Stock</th>
+                <th className="px-5 py-3.5 text-center">Unité</th>
+                <th className="px-5 py-3.5 text-right font-mono">Prix Unitaire (HT)</th>
+                <th className="px-5 py-3.5 text-right">Action</th>
               </tr>
-              );
-            })}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-sans">
+              {filtered.map(acc => {
+                const inStock = acc.stock_qty !== undefined && acc.stock_qty > 0;
+                const stockDefined = acc.stock_qty !== undefined;
+                return (
+                <tr key={acc.id} className="hover:bg-blue-50/20 transition">
+                  <td className="px-5 py-3.5 font-bold text-gray-900">
+                    {acc.nom}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {getCategoryBadge(acc.categorie)}
+                  </td>
+                  <td className="px-5 py-3.5 text-gray-600 text-xs">
+                    {acc.description || '—'}
+                  </td>
+
+                  {/* Stock Badge */}
+                  <td className="px-4 py-3.5 text-center">
+                    {!stockDefined ? (
+                      <span
+                        title="Stock non renseigné"
+                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200"
+                      >
+                        <Package className="w-3 h-3" /> —
+                      </span>
+                    ) : inStock ? (
+                      <span
+                        title={`En stock : ${acc.stock_qty} unités`}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      >
+                        <Package className="w-3 h-3" /> {acc.stock_qty}
+                      </span>
+                    ) : (
+                      <span
+                        title="Rupture de stock — À commander"
+                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200 animate-pulse"
+                      >
+                        <AlertTriangle className="w-3 h-3" /> Cmd
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-5 py-3.5 text-center text-gray-500 font-medium">
+                    {acc.unite}
+                  </td>
+                  <td className="px-5 py-3.5 text-right font-mono font-bold text-gray-900">
+                    {editingId === acc.id ? (
+                      <div className="flex items-center justify-end gap-1">
+                        <input 
+                          type="number"
+                          value={editPrice}
+                          onChange={e => setEditPrice(e.target.value)}
+                          className="w-24 border border-blue-400 rounded-md px-2 py-1 text-right text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                          step="0.001"
+                          autoFocus
+                        />
+                        <span className="text-gray-400 text-xs">DT</span>
+                      </div>
+                    ) : (
+                      <span>{acc.prix_unitaire_ht.toFixed(3)} DT</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    {editingId === acc.id ? (
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          onClick={() => saveEdit(acc.id)}
+                          className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md transition cursor-pointer"
+                          title="Enregistrer"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => setEditingId(null)}
+                          className="p-1.5 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-md transition cursor-pointer"
+                          title="Annuler"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => startEdit(acc)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition cursor-pointer"
+                        title="Modifier prix et stock"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit Stock Modal */}

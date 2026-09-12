@@ -31,7 +31,7 @@
 /* Print Stylesheet for Devis, Invoices & Workshop Documents (A4 Standard) */
 @page {
   size: A4 portrait;
-  margin: 8mm 10mm;
+  margin: 6mm 8mm;
 }
 
 @media print {
@@ -47,6 +47,7 @@
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    font-size: 11pt !important;
   }
 
   /* 2. COMPLETELY HIDE the background SPA website */
@@ -110,12 +111,21 @@
   #printable-bl-content {
     display: block !important;
     width: 100% !important;
+    min-width: 720px !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     padding: 0 !important;
     margin: 0 !important;
     overflow: visible !important;
+  }
+
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  table {
+    width: 100% !important;
   }
 
   /* Fixed Logo Dimensions in Print */

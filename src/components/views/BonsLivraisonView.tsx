@@ -947,75 +947,77 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
                   <span className="text-[10px] text-gray-400 font-normal">Cotes en centimètres</span>
                 </h4>
 
-                <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
-                  <thead className="bg-purple-950 text-white font-bold">
-                    <tr>
-                      <th className="px-3 py-2.5 w-10 text-center">#</th>
-                      <th className="px-4 py-2.5">Désignation des Menuiseries / Articles</th>
-                      <th className="px-4 py-2.5 text-center">Dimensions (Largeur × Hauteur)</th>
-                      <th className="px-4 py-2.5 text-right">Quantité Chargée</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {printBL.items.map((it, idx) => {
-                      const printDevisLinked = getDevisForBL(printBL);
-                      const origDevisItem = printBL.devis_items?.[idx] || printDevisLinked?.items?.[idx];
-                      let itemTitle = it.designation;
-                      if (origDevisItem) {
-                        if (origDevisItem.is_manual) {
-                          itemTitle = origDevisItem.manual_nom || origDevisItem.manual_designation || itemTitle;
-                        } else if (origDevisItem.family_id && origDevisItem.product_type_id) {
-                          const types = getProductTypesForFamily(origDevisItem.family_id);
-                          const typeDef = types.find(t => t.id === origDevisItem.product_type_id);
-                          if (typeDef?.name) itemTitle = typeDef.name;
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full min-w-[560px] text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
+                    <thead className="bg-purple-950 text-white font-bold">
+                      <tr>
+                        <th className="px-3 py-2.5 w-10 text-center">#</th>
+                        <th className="px-4 py-2.5">Désignation des Menuiseries / Articles</th>
+                        <th className="px-4 py-2.5 text-center">Dimensions (Largeur × Hauteur)</th>
+                        <th className="px-4 py-2.5 text-right">Quantité Chargée</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {printBL.items.map((it, idx) => {
+                        const printDevisLinked = getDevisForBL(printBL);
+                        const origDevisItem = printBL.devis_items?.[idx] || printDevisLinked?.items?.[idx];
+                        let itemTitle = it.designation;
+                        if (origDevisItem) {
+                          if (origDevisItem.is_manual) {
+                            itemTitle = origDevisItem.manual_nom || origDevisItem.manual_designation || itemTitle;
+                          } else if (origDevisItem.family_id && origDevisItem.product_type_id) {
+                            const types = getProductTypesForFamily(origDevisItem.family_id);
+                            const typeDef = types.find(t => t.id === origDevisItem.product_type_id);
+                            if (typeDef?.name) itemTitle = typeDef.name;
+                          }
                         }
-                      }
-                      if ((!itemTitle || /^Produit \d+/i.test(itemTitle)) && origDevisItem?.family_id) {
-                        const fam = FAMILIES.find(f => f.id === origDevisItem.family_id);
-                        if (fam?.name) itemTitle = fam.name;
-                      }
+                        if ((!itemTitle || /^Produit \d+/i.test(itemTitle)) && origDevisItem?.family_id) {
+                          const fam = FAMILIES.find(f => f.id === origDevisItem.family_id);
+                          if (fam?.name) itemTitle = fam.name;
+                        }
 
-                      return (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-3 py-3 text-center font-bold text-gray-500">{idx + 1}</td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-0.5">
-                              <p className="font-bold text-gray-900 text-xs sm:text-sm">{itemTitle}</p>
-                              {origDevisItem && (
-                                <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-gray-600">
-                                  {origDevisItem.couleur && (
-                                    <span>
-                                      Finition : <span className="font-semibold text-gray-800 capitalize">{origDevisItem.couleur.replace('_', ' ')}</span>
-                                    </span>
-                                  )}
-                                  {origDevisItem.vitrage_type && (
-                                    <span>• Vitrage : <span className="font-medium text-gray-800">{origDevisItem.vitrage_type}</span></span>
-                                  )}
-                                  {origDevisItem.store_enabled && (
-                                    <span className="text-blue-800 font-medium">
-                                      • Store {origDevisItem.store_lame_type || ''}
-                                    </span>
-                                  )}
-                                  {origDevisItem.mousti_enabled && (
-                                    <span className="text-emerald-800 font-medium">
-                                      • Moustiquaire
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center font-mono text-gray-700 font-medium">
-                            {it.largeur && it.hauteur ? `${it.largeur} cm × ${it.hauteur} cm` : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-right font-mono font-extrabold text-purple-950 text-sm">
-                            {it.quantite} pcs
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="px-3 py-3 text-center font-bold text-gray-500">{idx + 1}</td>
+                            <td className="px-4 py-3">
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-gray-900 text-xs sm:text-sm">{itemTitle}</p>
+                                {origDevisItem && (
+                                  <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-gray-600">
+                                    {origDevisItem.couleur && (
+                                      <span>
+                                        Finition : <span className="font-semibold text-gray-800 capitalize">{origDevisItem.couleur.replace('_', ' ')}</span>
+                                      </span>
+                                    )}
+                                    {origDevisItem.vitrage_type && (
+                                      <span>• Vitrage : <span className="font-medium text-gray-800">{origDevisItem.vitrage_type}</span></span>
+                                    )}
+                                    {origDevisItem.store_enabled && (
+                                      <span className="text-blue-800 font-medium">
+                                        • Store {origDevisItem.store_lame_type || ''}
+                                      </span>
+                                    )}
+                                    {origDevisItem.mousti_enabled && (
+                                      <span className="text-emerald-800 font-medium">
+                                        • Moustiquaire
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center font-mono text-gray-700 font-medium">
+                              {it.largeur && it.hauteur ? `${it.largeur} cm × ${it.hauteur} cm` : '—'}
+                            </td>
+                            <td className="px-4 py-3 text-right font-mono font-extrabold text-purple-950 text-sm">
+                              {it.quantite} pcs
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Summary / Total items */}

@@ -209,93 +209,97 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
               <span className="text-[10px] text-gray-400 font-normal">Montants en Dinars Tunisiens (DT)</span>
             </h4>
 
-            <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
-              <thead className="bg-cyan-900 text-white font-bold">
-                <tr>
-                  <th className="px-4 py-2.5">DÉSIGNATION</th>
-                  <th className="px-3 py-2.5 text-center w-20">QTÉ</th>
-                  <th className="px-3 py-2.5 text-center w-20">TVA %</th>
-                  <th className="px-4 py-2.5 text-right w-28">P.U. HT</th>
-                  <th className="px-4 py-2.5 text-right w-32">TOTAL HT</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {itemsToRender.map((it, idx) => {
-                  const linkedItem = linkedDevis?.items?.[idx];
-                  let itemTitle = it.designation;
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[560px] text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
+                <thead className="bg-cyan-900 text-white font-bold">
+                  <tr>
+                    <th className="px-4 py-2.5">DÉSIGNATION</th>
+                    <th className="px-3 py-2.5 text-center w-20">QTÉ</th>
+                    <th className="px-3 py-2.5 text-center w-20">TVA %</th>
+                    <th className="px-4 py-2.5 text-right w-28">P.U. HT</th>
+                    <th className="px-4 py-2.5 text-right w-32">TOTAL HT</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {itemsToRender.map((it, idx) => {
+                    const linkedItem = linkedDevis?.items?.[idx];
+                    let itemTitle = it.designation;
 
-                  if (linkedItem) {
-                    if (linkedItem.is_manual) {
-                      itemTitle = linkedItem.manual_nom || linkedItem.manual_designation || itemTitle;
-                    } else if (linkedItem.family_id && linkedItem.product_type_id) {
-                      const types = getProductTypesForFamily(linkedItem.family_id);
-                      const typeDef = types.find(t => t.id === linkedItem.product_type_id);
-                      if (typeDef?.name) itemTitle = typeDef.name;
+                    if (linkedItem) {
+                      if (linkedItem.is_manual) {
+                        itemTitle = linkedItem.manual_nom || linkedItem.manual_designation || itemTitle;
+                      } else if (linkedItem.family_id && linkedItem.product_type_id) {
+                        const types = getProductTypesForFamily(linkedItem.family_id);
+                        const typeDef = types.find(t => t.id === linkedItem.product_type_id);
+                        if (typeDef?.name) itemTitle = typeDef.name;
+                      }
                     }
-                  }
 
-                  return (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <p className="font-bold text-gray-900 text-xs sm:text-sm">{itemTitle}</p>
-                        {linkedItem && (
-                          <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-gray-500 mt-0.5">
-                            {linkedItem.largeur && linkedItem.hauteur && (
-                              <span>Dim : <strong className="text-gray-700">{linkedItem.largeur}×{linkedItem.hauteur} cm</strong></span>
-                            )}
-                            {linkedItem.couleur && (
-                              <span>• Couleur : <strong className="text-gray-700 capitalize">{linkedItem.couleur.replace('_', ' ')}</strong></span>
-                            )}
-                            {linkedItem.vitrage_type && (
-                              <span>• Vitrage : <strong className="text-gray-700">{linkedItem.vitrage_type}</strong></span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-center font-mono font-medium text-gray-700">
-                        {it.quantite.toFixed(3)}
-                      </td>
-                      <td className="px-3 py-3 text-center font-mono font-medium text-gray-700">
-                        {facture.tva_taux || 19}%
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-gray-800">
-                        {it.prix_unitaire_ht.toFixed(3)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-gray-900">
-                        {it.total_ht.toFixed(3)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <p className="font-bold text-gray-900 text-xs sm:text-sm">{itemTitle}</p>
+                          {linkedItem && (
+                            <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-gray-500 mt-0.5">
+                              {linkedItem.largeur && linkedItem.hauteur && (
+                                <span>Dim : <strong className="text-gray-700">{linkedItem.largeur}×{linkedItem.hauteur} cm</strong></span>
+                              )}
+                              {linkedItem.couleur && (
+                                <span>• Couleur : <strong className="text-gray-700 capitalize">{linkedItem.couleur.replace('_', ' ')}</strong></span>
+                              )}
+                              {linkedItem.vitrage_type && (
+                                <span>• Vitrage : <strong className="text-gray-700">{linkedItem.vitrage_type}</strong></span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center font-mono font-medium text-gray-700">
+                          {it.quantite.toFixed(3)}
+                        </td>
+                        <td className="px-3 py-3 text-center font-mono font-medium text-gray-700">
+                          {facture.tva_taux || 19}%
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-gray-800">
+                          {it.prix_unitaire_ht.toFixed(3)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-gray-900">
+                          {it.total_ht.toFixed(3)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* TVA Summary & Totals Box */}
           <div className="break-inside-avoid print:break-inside-avoid grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 items-start">
             {/* Left: Tableau Récapitulatif TVA */}
             <div>
-              <table className="w-full text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
-                <thead className="bg-slate-100 text-gray-700 font-bold border-b border-gray-200">
-                  <tr>
-                    <th className="px-3 py-2 text-center">TAUX</th>
-                    <th className="px-3 py-2 text-right">BASE HT</th>
-                    <th className="px-3 py-2 text-right">MONTANT TVA</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 font-mono text-xs">
-                  <tr>
-                    <td className="px-3 py-2 text-center font-bold text-gray-800">{facture.tva_taux || 19}%</td>
-                    <td className="px-3 py-2 text-right text-gray-700">{totalHTToRender.toFixed(3)}</td>
-                    <td className="px-3 py-2 text-right font-bold text-cyan-900">{totalTVAToRender.toFixed(3)}</td>
-                  </tr>
-                  <tr className="bg-slate-50 font-bold">
-                    <td className="px-3 py-2 text-center text-cyan-900">TOTAL</td>
-                    <td className="px-3 py-2 text-right text-gray-900">{totalHTToRender.toFixed(3)}</td>
-                    <td className="px-3 py-2 text-right text-cyan-950">{totalTVAToRender.toFixed(3)}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[280px] text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
+                  <thead className="bg-slate-100 text-gray-700 font-bold border-b border-gray-200">
+                    <tr>
+                      <th className="px-3 py-2 text-center">TAUX</th>
+                      <th className="px-3 py-2 text-right">BASE HT</th>
+                      <th className="px-3 py-2 text-right">MONTANT TVA</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 font-mono text-xs">
+                    <tr>
+                      <td className="px-3 py-2 text-center font-bold text-gray-800">{facture.tva_taux || 19}%</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{totalHTToRender.toFixed(3)}</td>
+                      <td className="px-3 py-2 text-right font-bold text-cyan-900">{totalTVAToRender.toFixed(3)}</td>
+                    </tr>
+                    <tr className="bg-slate-50 font-bold">
+                      <td className="px-3 py-2 text-center text-cyan-900">TOTAL</td>
+                      <td className="px-3 py-2 text-right text-gray-900">{totalHTToRender.toFixed(3)}</td>
+                      <td className="px-3 py-2 text-right text-cyan-950">{totalTVAToRender.toFixed(3)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Right: Totals Box */}
