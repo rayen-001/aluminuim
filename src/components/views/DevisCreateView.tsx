@@ -1759,6 +1759,56 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                 </div>
               </div>
 
+              {/* Moustiquaires */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-32">Moustiquaires :</span>
+                <select
+                  value={margeMoustiType}
+                  onChange={e => setMargeMoustiType(e.target.value as any)}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
+                >
+                  <option value="percent">% Marge</option>
+                  <option value="dt">Montant fixe (DT)</option>
+                </select>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={margeMoustiValue || ''}
+                    onChange={e => setMargeMoustiValue(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-20 bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">{margeMoustiType === 'percent' ? '%' : 'DT'}</span>
+                </div>
+              </div>
+
+              {/* Garde-Corps */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-gray-700 w-32">Garde-Corps :</span>
+                <select
+                  value={margeGcType}
+                  onChange={e => setMargeGcType(e.target.value as any)}
+                  className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs"
+                >
+                  <option value="percent">% Marge</option>
+                  <option value="dt">Montant fixe (DT)</option>
+                </select>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={margeGcValue || ''}
+                    onChange={e => setMargeGcValue(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-20 bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold"
+                  />
+                  <span className="absolute right-2 top-1.5 text-gray-400 text-xs">{margeGcType === 'percent' ? '%' : 'DT'}</span>
+                </div>
+              </div>
+
               {/* TVA */}
               <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
                 <span className="text-xs font-semibold text-gray-700 w-32">Taux TVA :</span>
