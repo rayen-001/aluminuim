@@ -11,7 +11,7 @@ import {
   CHASSI_FIX_REFS_ALUECO
 } from '../../data/productCatalog';
 import { renderAlumDrawing, DrawingParams } from '../../utils/productDrawing';
-import { DevisItemState, calculateDevisTotals, STORE_MOTORS, PROFILES_WITHOUT_PARCLOSE } from '../../utils/devisCalculator';
+import { DevisItemState, calculateDevisTotals, STORE_MOTORS, PROFILES_WITHOUT_PARCLOSE, getStoreElementPrice } from '../../utils/devisCalculator';
 import { FicheAtelierModal } from './FicheAtelierModal';
 import { 
   Plus, 
@@ -235,7 +235,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     margeStoreValue,
     tva: tvaRate,
     frais_pose: fraisPose,
-    frais_transport: fraisTransport
+    frais_transport: fraisTransport,
+    m2_prices: settings.m2_prices
   };
 
   // Live Totals calculation
@@ -402,12 +403,14 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
     const isPorte = typeDef.category === 'porte' || typeDef.name.toLowerCase().startsWith('porte');
 
+    const isStoreDraw = drawType === 'store';
+
     const params: DrawingParams = {
       drawType,
       largeur: parseFloat(String(item.largeur)) || 120,
       hauteur: parseFloat(String(item.hauteur)) || 140,
       nbVantaux,
-      couleur: item.couleur || 'blanc',
+      couleur: isStoreDraw ? (item.store_couleur || item.couleur || 'blanc') : (item.couleur || 'blanc'),
       estPorte: isPorte,
       partieFixeType: item.partie_fixe_type || 'Sans',
       pfDim1: parseFloat(String(item.pf_dim_1)) || 0,
@@ -422,7 +425,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       // Store Rideau
       store_enabled: item.store_enabled || false,
       store_coffre: item.store_coffre || '',
-      store_couleur: item.store_couleur || '',
+      store_couleur: item.store_couleur || item.couleur || '',
       store_lame_type: item.store_lame_type || '',
 
       // Moustiquaire
@@ -968,11 +971,14 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                   >
                                     <option value="">— Choisir un remplissage —</option>
-                                    {REMPLISSAGES.map(r => (
-                                      <option key={r.id} value={r.id}>
-                                        {r.label} ({r.pricePerM2.toFixed(3)} DT/m²)
-                                      </option>
-                                    ))}
+                                    {REMPLISSAGES.map(r => {
+                                      const p = settings.m2_prices?.vitrages?.[r.id] ?? r.pricePerM2;
+                                      return (
+                                        <option key={r.id} value={r.id}>
+                                          {r.label} ({p.toFixed(3)} DT/m²)
+                                        </option>
+                                      );
+                                    })}
                                   </select>
                                 </div>
 
@@ -1000,11 +1006,14 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                   >
                                     <option value="">— Sans motif (Standard) —</option>
-                                    {MOTIFS.map(m => (
-                                      <option key={m.id} value={m.id}>
-                                        {m.label} (+{m.pricePerM2.toFixed(3)} DT/m²)
-                                      </option>
-                                    ))}
+                                    {MOTIFS.map(m => {
+                                      const p = settings.m2_prices?.motifs?.[m.id] ?? m.pricePerM2;
+                                      return (
+                                        <option key={m.id} value={m.id}>
+                                          {m.label} (+{p.toFixed(3)} DT/m²)
+                                        </option>
+                                      );
+                                    })}
                                   </select>
                                 </div>
                               </div>
@@ -1448,10 +1457,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     onChange={e => updateItem(index, { store_lame_type: e.target.value })}
                                     className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                   >
-                                    <option value="lame inj 55">Lame injectée 55mm (Standard — 65.000 DT/m²)</option>
-                                    <option value="lame inj 45">Lame injectée 45mm (75.000 DT/m²)</option>
-                                    <option value="lame inj 42">Lame injectée 42mm (70.000 DT/m²)</option>
-                                    <option value="lame extrud">Lame extrudée renforcée (110.000 DT/m²)</option>
+                                    <option value="lame inj 55">Lame injectée 55mm (Standard — {getStoreElementPrice(settings.m2_prices?.stores?.lame_inj_55, item.store_couleur, 105).toFixed(3)} DT/m²)</option>
+                                    <option value="lame inj 45">Lame injectée 45mm ({getStoreElementPrice(settings.m2_prices?.stores?.lame_inj_45, item.store_couleur, 95).toFixed(3)} DT/m²)</option>
+                                    <option value="lame inj 42">Lame injectée 42mm ({getStoreElementPrice(settings.m2_prices?.stores?.lame_inj_42, item.store_couleur, 90).toFixed(3)} DT/m²)</option>
+                                    <option value="lame extrud">Lame extrudée renforcée ({getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, item.store_couleur, 145).toFixed(3)} DT/m²)</option>
                                   </select>
                                 </div>
 
@@ -1482,10 +1491,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                                   >
                                     <option value="">— Sans coffre (Tunnel / Encastré — 0 DT) —</option>
-                                    <option value="Coffre alu 15">Coffre alu 15 cm (45.000 DT/ml)</option>
-                                    <option value="Coffre alu 20">Coffre alu 20 cm (55.000 DT/ml)</option>
-                                    <option value="Coffre alu 25">Coffre alu 25 cm (65.000 DT/ml)</option>
-                                    <option value="Coffre PVC">Coffre PVC Monobloc (50.000 DT/ml)</option>
+                                    <option value="Coffre alu 15">Coffre alu 15 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_15, item.store_couleur, 45).toFixed(3)} DT/ml)</option>
+                                    <option value="Coffre alu 20">Coffre alu 20 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_20, item.store_couleur, 55).toFixed(3)} DT/ml)</option>
+                                    <option value="Coffre alu 25">Coffre alu 25 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_25, item.store_couleur, 65).toFixed(3)} DT/ml)</option>
+                                    <option value="Coffre PVC">Coffre PVC Monobloc ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_pvc, item.store_couleur, 50).toFixed(3)} DT/ml)</option>
                                   </select>
                                 </div>
                               </div>
@@ -1523,14 +1532,12 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     <select
                                       value={item.store_moteur_id || 'auto'}
                                       onChange={e => updateItem(index, { store_moteur_id: e.target.value })}
-                                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-800"
+                                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-blue-900"
                                     >
-                                      <option value="auto">
-                                        🤖 Recommandé Auto ({autoMotorKg} kg) {STORE_MOTORS.find(m => m.id === 'moteur_' + autoMotorKg) ? `— ${STORE_MOTORS.find(m => m.id === 'moteur_' + autoMotorKg)!.prix_unitaire_ht.toFixed(3)} DT HT` : ''}
-                                      </option>
-                                      {STORE_MOTORS.filter(m => m.id !== 'auto').map(m => (
+                                      <option value="auto">🤖 Recommandé Auto ({surfaceM2 <= 2.2 ? '40 kg' : surfaceM2 <= 4.2 ? '60 kg' : surfaceM2 <= 7.0 ? '100 kg' : '160 kg'})</option>
+                                      {STORE_MOTORS.map(m => (
                                         <option key={m.id} value={m.id}>
-                                          {m.nom} — {m.capacite_kg > 0 ? `${m.capacite_kg} kg — ` : ''}{m.prix_unitaire_ht.toFixed(3)} DT HT
+                                          {m.nom} {m.prix_unitaire_ht > 0 ? `(${m.prix_unitaire_ht.toFixed(3)} DT)` : ''}
                                         </option>
                                       ))}
                                     </select>
@@ -1603,10 +1610,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                   onChange={e => updateItem(index, { mousti_type: e.target.value as any })}
                                   className="w-full bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-900"
                                 >
-                                  <option value="enroulable">🌀 Moustiquaire Enroulable Verticale (Standard fenêtre — 65.000 DT/m²)</option>
-                                  <option value="plissee">📐 Moustiquaire Plissée Coulissante (Baies vitrées & Portes — 110.000 DT/m²)</option>
-                                  <option value="fixe">🔲 Moustiquaire Cadre Fixe Clipsé (Économique — 40.000 DT/m²)</option>
-                                  <option value="battante">🚪 Moustiquaire Porte Battante avec charnières (90.000 DT/m²)</option>
+                                  <option value="enroulable">🌀 Moustiquaire Enroulable Verticale (Standard fenêtre — {(settings.m2_prices?.moustiquaires?.enroulable ?? 65).toFixed(3)} DT/m²)</option>
+                                  <option value="plissee">📐 Moustiquaire Plissée Coulissante (Baies vitrées & Portes — {(settings.m2_prices?.moustiquaires?.plissee ?? 110).toFixed(3)} DT/m²)</option>
+                                  <option value="fixe">🔲 Moustiquaire Cadre Fixe Clipsé (Économique — {(settings.m2_prices?.moustiquaires?.fixe ?? 40).toFixed(3)} DT/m²)</option>
+                                  <option value="battante">🚪 Moustiquaire Porte Battante avec charnières ({(settings.m2_prices?.moustiquaires?.battante ?? 90).toFixed(3)} DT/m²)</option>
                                 </select>
                               </div>
                             </div>

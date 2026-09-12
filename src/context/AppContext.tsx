@@ -209,6 +209,85 @@ export interface DefaultProfilesConfig {
   fix_socle?: string;     // e.g. '40154' or '40121'
 }
 
+export interface StoreColorPrices {
+  blanc?: number;
+  gris?: number;
+  noir?: number;
+  effet_bois?: number;
+  bronze?: number;
+}
+
+export type StorePriceValue = number | StoreColorPrices;
+
+export interface M2PricesConfig {
+  stores?: {
+    lame_inj_55?: StorePriceValue;
+    lame_inj_45?: StorePriceValue;
+    lame_inj_42?: StorePriceValue;
+    lame_extrud?: StorePriceValue;
+    coffre_ml?: StorePriceValue;
+    coffre_alu_15?: StorePriceValue;
+    coffre_alu_20?: StorePriceValue;
+    coffre_alu_25?: StorePriceValue;
+    coffre_pvc?: StorePriceValue;
+    coulisse_ml?: StorePriceValue;
+    axe_ml?: number;
+  };
+  moustiquaires?: {
+    enroulable?: number;
+    plissee?: number;
+    fixe?: number;
+    battante?: number;
+  };
+  vitrages?: Record<string, number>; // id remplissage -> pricePerM2
+  motifs?: Record<string, number>;   // id motif -> pricePerM2
+}
+
+export const DEFAULT_M2_PRICES: M2PricesConfig = {
+  stores: {
+    lame_inj_55: { blanc: 105, gris: 115, noir: 118, effet_bois: 135, bronze: 115 },
+    lame_inj_45: { blanc: 95, gris: 105, noir: 108, effet_bois: 125, bronze: 105 },
+    lame_inj_42: { blanc: 90, gris: 99, noir: 102, effet_bois: 118, bronze: 99 },
+    lame_extrud: { blanc: 145, gris: 160, noir: 165, effet_bois: 190, bronze: 160 },
+    coffre_ml: { blanc: 45, gris: 50, noir: 52, effet_bois: 62, bronze: 50 },
+    coffre_alu_15: { blanc: 45, gris: 50, noir: 52, effet_bois: 62, bronze: 50 },
+    coffre_alu_20: { blanc: 55, gris: 61, noir: 63, effet_bois: 75, bronze: 61 },
+    coffre_alu_25: { blanc: 65, gris: 72, noir: 75, effet_bois: 88, bronze: 72 },
+    coffre_pvc: { blanc: 50, gris: 55, noir: 56, effet_bois: 68, bronze: 55 },
+    coulisse_ml: { blanc: 18, gris: 20, noir: 21, effet_bois: 25, bronze: 20 },
+    axe_ml: 15
+  },
+  moustiquaires: {
+    enroulable: 65,
+    plissee: 110,
+    fixe: 40,
+    battante: 90
+  },
+  vitrages: {
+    '406873': 55, // Clair de 6 mm
+    '406874': 75, // Clair de 8 mm
+    '406882': 60, // Peaux d'orange
+    '406884': 85, // Planche 11026
+    '406883': 45, // Planche PVC
+    '406885': 40, // Plaque MDF
+    '406886': 95, // Plaque plexi policarbonate
+    '406877': 70, // Solarit bronze de 6 mm
+    '406876': 65, // Solarit clair de 6 mm
+    '406878': 78, // Solarit dark bronze de 6 mm
+    '406875': 90, // Stop sol clair super silver AGC
+    '406881': 72, // Tenta sol bleu 6 mm
+    '406880': 72, // Tenta sol bronze 6 mm
+    '406879': 68  // Tenta sol clair 6 mm classique
+  },
+  motifs: {
+    '406890': 45, // Double vitrage avec Gaz
+    '406888': 25, // Facon sablage bonde
+    '406887': 35, // Facon sablage total
+    '406891': 55, // Feuilleté
+    '406889': 65  // Sécurité
+  }
+};
+
 export interface AtelierSettings {
   nom_atelier: string;
   activite: string;
@@ -226,6 +305,8 @@ export interface AtelierSettings {
   marge_store_default: number;
   // Profilés & Références par défaut de l'atelier
   default_profiles?: DefaultProfilesConfig;
+  // Prix spécifiques au m² (Stores, Moustiquaires, Vitrages)
+  m2_prices?: M2PricesConfig;
 }
 interface AppContextType {
   user: any;
@@ -259,6 +340,15 @@ interface AppContextType {
     direction?: 'increase' | 'decrease'
   ) => void;
   resetAccessoriesToDefault: () => void;
+
+  updateM2Price: (category: 'stores' | 'moustiquaires' | 'vitrages' | 'motifs', key: string, price: number | StoreColorPrices) => void;
+  bulkUpdateM2Prices: (
+    category: 'all' | 'stores' | 'moustiquaires' | 'vitrages' | 'motifs',
+    value: number,
+    mode?: 'percent' | 'amount',
+    direction?: 'increase' | 'decrease'
+  ) => void;
+  resetM2PricesToDefault: () => void;
 
   clients: Client[];
   addClient: (c: Omit<Client, 'id'>) => Client;
@@ -343,10 +433,10 @@ const DEFAULT_SETTINGS: AtelierSettings = {
   logo_url: '',
   tva_default: 19,
   devise: 'DT',
-  marge_alu_default: 0,
-  marge_gc_default: 0,
-  marge_mousti_default: 0,
-  marge_store_default: 0,
+  marge_alu_default: 30,
+  marge_gc_default: 30,
+  marge_mousti_default: 30,
+  marge_store_default: 30,
   default_profiles: {
     s40_dormant: '40100',
     s40_ouvrant: '40401',
@@ -356,7 +446,8 @@ const DEFAULT_SETTINGS: AtelierSettings = {
     s67_central: '67105',
     fix_cadre: '40100',
     fix_socle: '40154'
-  }
+  },
+  m2_prices: DEFAULT_M2_PRICES
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -443,7 +534,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Settings
   const [settings, setSettings] = useState<AtelierSettings>(() => {
     const saved = localStorage.getItem('alupro_settings') || localStorage.getItem('atelierpro_settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    if (!saved) return DEFAULT_SETTINGS;
+    try {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        m2_prices: parsed.m2_prices ? {
+          stores: { ...DEFAULT_M2_PRICES.stores, ...(parsed.m2_prices.stores || {}) },
+          moustiquaires: { ...DEFAULT_M2_PRICES.moustiquaires, ...(parsed.m2_prices.moustiquaires || {}) },
+          vitrages: { ...DEFAULT_M2_PRICES.vitrages, ...(parsed.m2_prices.vitrages || {}) },
+          motifs: { ...DEFAULT_M2_PRICES.motifs, ...(parsed.m2_prices.motifs || {}) }
+        } : DEFAULT_M2_PRICES
+      };
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
   });
 
   // 1. Listen to Supabase Auth Changes
@@ -495,7 +601,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             marge_gc_default: profile.marge_gc_default !== undefined && profile.marge_gc_default !== null ? Number(profile.marge_gc_default) : prev.marge_gc_default,
             marge_mousti_default: profile.marge_mousti_default !== undefined && profile.marge_mousti_default !== null ? Number(profile.marge_mousti_default) : prev.marge_mousti_default,
             marge_store_default: profile.marge_store_default !== undefined && profile.marge_store_default !== null ? Number(profile.marge_store_default) : prev.marge_store_default,
-            default_profiles: profile.default_profiles || prev.default_profiles
+            default_profiles: profile.default_profiles || prev.default_profiles,
+            m2_prices: profile.m2_prices ? {
+              stores: { ...DEFAULT_M2_PRICES.stores, ...(profile.m2_prices.stores || {}) },
+              moustiquaires: { ...DEFAULT_M2_PRICES.moustiquaires, ...(profile.m2_prices.moustiquaires || {}) },
+              vitrages: { ...DEFAULT_M2_PRICES.vitrages, ...(profile.m2_prices.vitrages || {}) },
+              motifs: { ...DEFAULT_M2_PRICES.motifs, ...(profile.m2_prices.motifs || {}) }
+            } : (prev.m2_prices || DEFAULT_M2_PRICES)
           }));
         } else {
           // If profile does not exist yet, create default user profile
@@ -2655,12 +2767,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (updated.default_profiles) {
         payload.default_profiles = updated.default_profiles;
       }
+      if (updated.m2_prices) {
+        payload.m2_prices = updated.m2_prices;
+      }
       supabase.from('profiles').upsert(payload).then(({ error }) => {
         if (error) {
           // If error is caused by missing column in Supabase profiles table, fallback gracefully
-          if (error.message?.includes('default_profiles') || error.code === 'PGRST204') {
+          if (error.message?.includes('default_profiles') || error.message?.includes('m2_prices') || error.code === 'PGRST204') {
             const fallbackPayload = { ...payload };
             delete fallbackPayload.default_profiles;
+            delete fallbackPayload.m2_prices;
             supabase.from('profiles').upsert(fallbackPayload);
           } else {
             console.error('Supabase updateSettings error:', error);
@@ -2668,6 +2784,76 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       });
     }
+  };
+
+  const updateM2Price = (
+    category: 'stores' | 'moustiquaires' | 'vitrages' | 'motifs',
+    key: string,
+    val: number | StoreColorPrices
+  ) => {
+    const updatedM2: M2PricesConfig = {
+      stores: { ...DEFAULT_M2_PRICES.stores, ...(settings.m2_prices?.stores || {}) },
+      moustiquaires: { ...DEFAULT_M2_PRICES.moustiquaires, ...(settings.m2_prices?.moustiquaires || {}) },
+      vitrages: { ...DEFAULT_M2_PRICES.vitrages, ...(settings.m2_prices?.vitrages || {}) },
+      motifs: { ...DEFAULT_M2_PRICES.motifs, ...(settings.m2_prices?.motifs || {}) },
+    };
+    if (!updatedM2[category]) {
+      updatedM2[category] = {} as any;
+    }
+    (updatedM2[category] as any)[key] = val;
+    updateSettings({ m2_prices: updatedM2 });
+  };
+
+  const bulkUpdateM2Prices = (
+    category: 'all' | 'stores' | 'moustiquaires' | 'vitrages' | 'motifs',
+    value: number,
+    mode: 'percent' | 'amount' = 'percent',
+    direction: 'increase' | 'decrease' = 'increase'
+  ) => {
+    const updatedM2: M2PricesConfig = {
+      stores: { ...DEFAULT_M2_PRICES.stores, ...(settings.m2_prices?.stores || {}) },
+      moustiquaires: { ...DEFAULT_M2_PRICES.moustiquaires, ...(settings.m2_prices?.moustiquaires || {}) },
+      vitrages: { ...DEFAULT_M2_PRICES.vitrages, ...(settings.m2_prices?.vitrages || {}) },
+      motifs: { ...DEFAULT_M2_PRICES.motifs, ...(settings.m2_prices?.motifs || {}) },
+    };
+
+    const applyCalc = (oldVal: number): number => {
+      let n = oldVal;
+      if (mode === 'percent') {
+        const factor = direction === 'increase' ? (1 + value / 100) : (1 - value / 100);
+        n = oldVal * factor;
+      } else {
+        n = direction === 'increase' ? oldVal + value : oldVal - value;
+      }
+      return Math.max(0, parseFloat(n.toFixed(3)));
+    };
+
+    const categoriesToUpdate: ('stores' | 'moustiquaires' | 'vitrages' | 'motifs')[] =
+      category === 'all' ? ['stores', 'moustiquaires', 'vitrages', 'motifs'] : [category];
+
+    categoriesToUpdate.forEach(cat => {
+      const catObj = updatedM2[cat] as Record<string, any> | undefined;
+      if (catObj) {
+        Object.keys(catObj).forEach(k => {
+          const itemVal = catObj[k];
+          if (typeof itemVal === 'object' && itemVal !== null) {
+            const updatedColors: Record<string, number> = {};
+            Object.keys(itemVal).forEach(ck => {
+              updatedColors[ck] = applyCalc(Number(itemVal[ck]) || 0);
+            });
+            catObj[k] = updatedColors;
+          } else {
+            catObj[k] = applyCalc(Number(itemVal) || 0);
+          }
+        });
+      }
+    });
+
+    updateSettings({ m2_prices: updatedM2 });
+  };
+
+  const resetM2PricesToDefault = () => {
+    updateSettings({ m2_prices: DEFAULT_M2_PRICES });
   };
 
   return (
@@ -2691,6 +2877,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateAccessoryStock,
         bulkUpdateAccessories,
         resetAccessoriesToDefault,
+        updateM2Price,
+        bulkUpdateM2Prices,
+        resetM2PricesToDefault,
         clients,
         addClient,
         updateClient,

@@ -82,16 +82,19 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
 
   // Helper to persist changes with live full financial recalculation
   const persistDevisUpdate = (updatedDevis: DevisRecord) => {
-    const margesConfig = updatedDevis.marges || {
-      margeType: 'percent' as const,
-      margeValue: 30,
-      margeGcType: 'percent' as const,
-      margeGcValue: 30,
-      margeMoustiType: 'percent' as const,
-      margeMoustiValue: 30,
-      margeStoreType: 'percent' as const,
-      margeStoreValue: 30,
-      tva: settings.tva_default || 19
+    const margesConfig = {
+      ...(updatedDevis.marges || {
+        margeType: 'percent' as const,
+        margeValue: 30,
+        margeGcType: 'percent' as const,
+        margeGcValue: 30,
+        margeMoustiType: 'percent' as const,
+        margeMoustiValue: 30,
+        margeStoreType: 'percent' as const,
+        margeStoreValue: 30,
+        tva: settings.tva_default || 19
+      }),
+      m2_prices: (updatedDevis.marges as any)?.m2_prices || settings.m2_prices
     };
 
     // Calculate full synchronized financial totals (HT, TVA, TTC, item costs)

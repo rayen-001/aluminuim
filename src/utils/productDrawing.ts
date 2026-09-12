@@ -10,7 +10,7 @@ export interface DrawingParams {
   largeur: number;
   hauteur: number;
   nbVantaux?: number;
-  couleur?: 'blanc' | 'gris' | 'noir' | 'couleur_mat' | 'couleur_givre';
+  couleur?: 'blanc' | 'gris' | 'noir' | 'couleur_mat' | 'couleur_givre' | 'effet_bois' | 'bronze' | string;
   estPorte?: boolean;
   partieFixeType?: string; // 'Sans' | 'Droite' | 'Gauche' | 'Droite et Gauche' | 'Haut' | 'Bas' | 'Haut et Bas'
   pfDim1?: number;
@@ -54,7 +54,10 @@ const STROKE_COLORS: Record<string, string> = {
   gris: '#334155',
   noir: '#09090b',
   couleur_mat: '#78350f',
-  couleur_givre: '#0f766e'
+  couleur_givre: '#0f766e',
+  effet_bois: '#78350f',
+  'effet bois': '#78350f',
+  bronze: '#5c3e1e'
 };
 
 const DIM_COLOR = '#475569';
@@ -77,7 +80,8 @@ function getAluColorId(color?: string): string {
   const c = (color || 'blanc').toLowerCase();
   if (c.includes('gris')) return 'alu_gris';
   if (c.includes('noir')) return 'alu_noir';
-  if (c.includes('mat') || c.includes('bois')) return 'alu_couleur_mat';
+  if (c.includes('mat') || c.includes('bois') || c.includes('chêne') || c.includes('chene')) return 'alu_couleur_mat';
+  if (c.includes('bronze')) return 'alu_bronze';
   if (c.includes('givre') || c.includes('givré')) return 'alu_couleur_givre';
   return 'alu_blanc';
 }
@@ -144,8 +148,9 @@ export function renderAlumDrawing(params: DrawingParams): string {
     else if (drawType === 'francaise') nbVantaux = 2;
   }
 
-  const aluId = getAluColorId(couleur);
-  const strokeColor = STROKE_COLORS[couleur] || '#64748b';
+  const effectiveColor = (drawType === 'store' && store_couleur) ? store_couleur : (couleur || 'blanc');
+  const aluId = getAluColorId(effectiveColor);
+  const strokeColor = STROKE_COLORS[effectiveColor.toLowerCase()] || STROKE_COLORS[couleur] || '#64748b';
   const glassId = getGlassFillId(remplissage_id, motif_id);
 
   // Store rideau check
@@ -528,6 +533,12 @@ function wrapSVG(content: string, w: number, h: number, responsive: boolean): st
         <stop offset="0%" stop-color="#0d9488"/>
         <stop offset="50%" stop-color="#115e59"/>
         <stop offset="100%" stop-color="#134e4a"/>
+      </linearGradient>
+
+      <linearGradient id="alu_bronze" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#b48250"/>
+        <stop offset="50%" stop-color="#8c5e32"/>
+        <stop offset="100%" stop-color="#5c3e1e"/>
       </linearGradient>
 
       <!-- Glass Tints -->

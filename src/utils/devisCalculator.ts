@@ -133,6 +133,76 @@ export const BAR_LENGTH_CM = 650;
 export const GARDE_CORPS_BAR_LENGTH_CM = 600; // Standard 6.00m bar for Garde-corps
 export const PROFILES_WITHOUT_PARCLOSE = ['40404', '40405', '40406', 'AE_40404'];
 
+export interface StoreColorPrices {
+  blanc?: number;
+  gris?: number;
+  noir?: number;
+  effet_bois?: number;
+  bronze?: number;
+}
+
+export type StorePriceValue = number | StoreColorPrices;
+
+export function normalizeStoreColorKey(color?: string): 'blanc' | 'gris' | 'noir' | 'effet_bois' | 'bronze' {
+  const c = (color || '').toLowerCase().trim();
+  if (c.includes('bois') || c.includes('chene') || c.includes('chêne')) return 'effet_bois';
+  if (c.includes('gris') || c.includes('anthracite')) return 'gris';
+  if (c.includes('noir') || c.includes('9005')) return 'noir';
+  if (c.includes('bronze')) return 'bronze';
+  return 'blanc';
+}
+
+export function getStoreElementPrice(val: StorePriceValue | undefined, color: string | undefined, defaultBlanc: number): number {
+  const colorKey = normalizeStoreColorKey(color);
+  if (typeof val === 'object' && val !== null) {
+    if (val[colorKey] !== undefined && val[colorKey] !== null) {
+      return Number(val[colorKey]);
+    }
+    if (val.blanc !== undefined && val.blanc !== null) {
+      const b = Number(val.blanc);
+      if (colorKey === 'effet_bois') return Math.round(b * 1.285 * 1000) / 1000;
+      if (colorKey === 'noir') return Math.round(b * 1.124 * 1000) / 1000;
+      if (colorKey === 'gris' || colorKey === 'bronze') return Math.round(b * 1.095 * 1000) / 1000;
+      return b;
+    }
+  }
+  if (typeof val === 'number') {
+    if (colorKey === 'effet_bois') return Math.round(val * 1.285 * 1000) / 1000;
+    if (colorKey === 'noir') return Math.round(val * 1.124 * 1000) / 1000;
+    if (colorKey === 'gris' || colorKey === 'bronze') return Math.round(val * 1.095 * 1000) / 1000;
+    return val;
+  }
+  const b = defaultBlanc;
+  if (colorKey === 'effet_bois') return Math.round(b * 1.285 * 1000) / 1000;
+  if (colorKey === 'noir') return Math.round(b * 1.124 * 1000) / 1000;
+  if (colorKey === 'gris' || colorKey === 'bronze') return Math.round(b * 1.095 * 1000) / 1000;
+  return b;
+}
+
+export interface M2PricesConfig {
+  stores?: {
+    lame_inj_55?: StorePriceValue;
+    lame_inj_45?: StorePriceValue;
+    lame_inj_42?: StorePriceValue;
+    lame_extrud?: StorePriceValue;
+    coffre_ml?: StorePriceValue;
+    coffre_alu_15?: StorePriceValue;
+    coffre_alu_20?: StorePriceValue;
+    coffre_alu_25?: StorePriceValue;
+    coffre_pvc?: StorePriceValue;
+    coulisse_ml?: StorePriceValue;
+    axe_ml?: number;
+  };
+  moustiquaires?: {
+    enroulable?: number;
+    plissee?: number;
+    fixe?: number;
+    battante?: number;
+  };
+  vitrages?: Record<string, number>;
+  motifs?: Record<string, number>;
+}
+
 export function calculateItemCost(
   item: DevisItemState,
   articlesMap: Map<string, ArticleItem>,
@@ -148,6 +218,7 @@ export function calculateItemCost(
     tva: number;
     frais_pose?: number;
     frais_transport?: number;
+    m2_prices?: M2PricesConfig;
   }
 ): CalculatedItemCost {
   const qty = Number(item.quantity) || 1;
@@ -330,9 +401,13 @@ export function calculateItemCost(
     }
 
     // Vitrage / Remplissage
+    const m2Vitrages = marges.m2_prices?.vitrages;
+    const m2Motifs = marges.m2_prices?.motifs;
+
     if (item.remplissage_id) {
       const remp = REMPLISSAGES.find(r => r.id === item.remplissage_id);
-      const baseGlassPrice = remp ? remp.pricePerM2 : 55;
+      const configuredGlassPrice = m2Vitrages?.[item.remplissage_id];
+      const baseGlassPrice = configuredGlassPrice !== undefined ? configuredGlassPrice : (remp ? remp.pricePerM2 : 55);
       vitrage_cost += surfaceM2 * baseGlassPrice;
       if (item.vitrage_type === 'double') {
         vitrage_cost += surfaceM2 * (baseGlassPrice * 0.85); // 2nd glass pane
@@ -340,7 +415,9 @@ export function calculateItemCost(
     }
     if (item.motif_id) {
       const mot = MOTIFS.find(m => m.id === item.motif_id);
-      if (mot) vitrage_cost += surfaceM2 * mot.pricePerM2;
+      const configuredMotifPrice = m2Motifs?.[item.motif_id];
+      const motifPrice = configuredMotifPrice !== undefined ? configuredMotifPrice : (mot ? mot.pricePerM2 : 0);
+      vitrage_cost += surfaceM2 * motifPrice;
     }
 
     // Quincaillerie & Accessories Suppléments
@@ -369,12 +446,20 @@ export function calculateItemCost(
 
   // Store Rideau (Volet Roulant) - Calculated if enabled or standalone store
   if (isStandaloneStore || item.store_enabled) {
-    const isExtrude = item.store_lame_type === 'lame extrud';
+    const m2Stores = marges.m2_prices?.stores;
+    const storeColor = item.store_couleur || 'Blanc';
     let pricePerM2 = 95;
-    if (isExtrude) pricePerM2 = 145;
-    else if (item.store_lame_type === 'lame inj 55') pricePerM2 = 105;
-    else if (item.store_lame_type === 'lame inj 45') pricePerM2 = 95;
-    else if (item.store_lame_type === 'lame inj 42') pricePerM2 = 90;
+    if (item.store_lame_type === 'lame extrud') {
+      pricePerM2 = getStoreElementPrice(m2Stores?.lame_extrud, storeColor, 145);
+    } else if (item.store_lame_type === 'lame inj 55') {
+      pricePerM2 = getStoreElementPrice(m2Stores?.lame_inj_55, storeColor, 105);
+    } else if (item.store_lame_type === 'lame inj 45') {
+      pricePerM2 = getStoreElementPrice(m2Stores?.lame_inj_45, storeColor, 95);
+    } else if (item.store_lame_type === 'lame inj 42') {
+      pricePerM2 = getStoreElementPrice(m2Stores?.lame_inj_42, storeColor, 90);
+    } else {
+      pricePerM2 = getStoreElementPrice(m2Stores?.lame_inj_55, storeColor, 105);
+    }
 
     // Règle d'or marché : Minimum facturable 1.3 m² pour couvrir axe, roulements et embouts
     const storeSurf = Math.max(1.3, surfaceM2);
@@ -382,7 +467,19 @@ export function calculateItemCost(
 
     let coffreCost = 0;
     if (item.store_coffre && item.store_coffre !== '— Sans coffre —') {
-      coffreCost += (w / 100) * 35;
+      let coffrePrixMl = 0;
+      if (item.store_coffre.includes('15')) {
+        coffrePrixMl = getStoreElementPrice(m2Stores?.coffre_alu_15, storeColor, 45);
+      } else if (item.store_coffre.includes('20')) {
+        coffrePrixMl = getStoreElementPrice(m2Stores?.coffre_alu_20, storeColor, 55);
+      } else if (item.store_coffre.includes('25')) {
+        coffrePrixMl = getStoreElementPrice(m2Stores?.coffre_alu_25, storeColor, 65);
+      } else if (item.store_coffre.toLowerCase().includes('pvc')) {
+        coffrePrixMl = getStoreElementPrice(m2Stores?.coffre_pvc, storeColor, 50);
+      } else {
+        coffrePrixMl = getStoreElementPrice(m2Stores?.coffre_ml || m2Stores?.coffre_alu_15, storeColor, 45);
+      }
+      coffreCost += (w / 100) * coffrePrixMl;
     }
     if (item.store_axe70) coffreCost += 25;
     if (item.store_bloc_secu) coffreCost += (item.store_axe70 ? 42.012 : 31.212);
@@ -419,11 +516,20 @@ export function calculateItemCost(
       }
     }
 
-    store_cost = storeBase + coffreCost + manoeuvreCost;
+    // Coulisses / Glissières latérales aluminium (2 barres verticales gauche et droite)
+    const coulissePrixMl = getStoreElementPrice(m2Stores?.coulisse_ml, storeColor, 18);
+    const coulissesCost = (2 * (h / 100)) * coulissePrixMl;
+
+    // Axe tubulaire octogonal d'enroulement (1 barre horizontale)
+    const axePrixMl = m2Stores?.axe_ml ?? 15;
+    const axeCost = (w / 100) * axePrixMl;
+
+    store_cost = storeBase + coffreCost + coulissesCost + axeCost + manoeuvreCost;
   }
 
   // Moustiquaire - Calculated if enabled or standalone moustiquaire
   if (isStandaloneMousti || item.mousti_enabled) {
+    const m2Mousti = marges.m2_prices?.moustiquaires;
     const mH = parseFloat(String(item.mousti_hauteur || h)) || h;
     const mW = parseFloat(String(item.mousti_largeur || w)) || w;
     const mSurf = (mH * mW) / 10000;
@@ -431,16 +537,20 @@ export function calculateItemCost(
 
     if (mType === 'plissee') {
       // Moustiquaire plissée latérale (min 1.2 m²)
-      mousti_cost = Math.max(90, Math.max(1.2, mSurf) * 110);
+      const rate = m2Mousti?.plissee ?? 110;
+      mousti_cost = Math.max(rate * 0.8, Math.max(1.2, mSurf) * rate);
     } else if (mType === 'fixe') {
       // Moustiquaire cadre fixe clipsé (min 0.6 m²)
-      mousti_cost = Math.max(25, Math.max(0.6, mSurf) * 40);
+      const rate = m2Mousti?.fixe ?? 40;
+      mousti_cost = Math.max(rate * 0.6, Math.max(0.6, mSurf) * rate);
     } else if (mType === 'battante') {
       // Moustiquaire porte battante avec cadre et charnières (min 1.0 m²)
-      mousti_cost = Math.max(75, Math.max(1.0, mSurf) * 90);
+      const rate = m2Mousti?.battante ?? 90;
+      mousti_cost = Math.max(rate * 0.8, Math.max(1.0, mSurf) * rate);
     } else {
       // Moustiquaire enroulable verticale standard (min 1.0 m²)
-      mousti_cost = Math.max(45, Math.max(1.0, mSurf) * 65);
+      const rate = m2Mousti?.enroulable ?? 65;
+      mousti_cost = Math.max(rate * 0.7, Math.max(1.0, mSurf) * rate);
     }
   }
 
@@ -525,6 +635,7 @@ export function calculateDevisTotals(
     tva: number;
     frais_pose?: number;
     frais_transport?: number;
+    m2_prices?: M2PricesConfig;
   }
 ): DevisTotals {
   let total_brut_ht = 0;
