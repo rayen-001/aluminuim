@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Settings, Save, Check, Percent, Layers } from 'lucide-react';
+import { Settings, Save, Check, Percent, Layers, Wrench } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useApp();
@@ -17,6 +17,8 @@ export const SettingsView: React.FC = () => {
   const [margeGc, setMargeGc] = useState(String(settings.marge_gc_default ?? 0));
   const [margeMousti, setMargeMousti] = useState(String(settings.marge_mousti_default ?? 0));
   const [margeStore, setMargeStore] = useState(String(settings.marge_store_default ?? 0));
+  const [fraisPoseDefault, setFraisPoseDefault] = useState(String(settings.frais_pose_default ?? 0));
+  const [fraisTransportDefault, setFraisTransportDefault] = useState(String(settings.frais_transport_default ?? 0));
 
   // Profilés par défaut de l'atelier
   const [s40Dormant, setS40Dormant] = useState(settings.default_profiles?.s40_dormant || '40100');
@@ -56,6 +58,8 @@ export const SettingsView: React.FC = () => {
       marge_gc_default: parseFloat(margeGc) || 0,
       marge_mousti_default: parseFloat(margeMousti) || 0,
       marge_store_default: parseFloat(margeStore) || 0,
+      frais_pose_default: parseFloat(fraisPoseDefault) || 0,
+      frais_transport_default: parseFloat(fraisTransportDefault) || 0,
       default_profiles: {
         s40_dormant: s40Dormant,
         s40_ouvrant: s40Ouvrant,
@@ -262,7 +266,7 @@ export const SettingsView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  🪟 Store Rideau (%)
+                  🏪 Store Rideau (%)
                 </label>
                 <div className="relative">
                   <input
@@ -276,6 +280,54 @@ export const SettingsView: React.FC = () => {
                     className="w-full border border-gray-300 rounded-xl px-3.5 py-2 pr-8 text-sm font-mono font-bold focus:ring-2 focus:ring-amber-400"
                   />
                   <span className="absolute right-3 top-2 text-gray-400 text-xs font-bold">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Prestations de Chantier par Défaut */}
+          <div className="border-t border-gray-100 pt-5">
+            <div className="flex items-center gap-2 mb-1">
+              <Wrench className="w-4 h-4 text-indigo-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Prestations de Chantier par Défaut</p>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Montants fixes pré-remplis automatiquement lors de la création d'un devis (modifiables par devis).
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  🔧 Pose & Montage par défaut (DT)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={fraisPoseDefault}
+                    onChange={e => setFraisPoseDefault(e.target.value)}
+                    placeholder="0"
+                    className="w-full border border-gray-300 rounded-xl px-3.5 py-2 pr-10 text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <span className="absolute right-3 top-2 text-gray-400 text-xs font-bold">DT</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  🚚 Transport / Livraison par défaut (DT)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={fraisTransportDefault}
+                    onChange={e => setFraisTransportDefault(e.target.value)}
+                    placeholder="0"
+                    className="w-full border border-gray-300 rounded-xl px-3.5 py-2 pr-10 text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <span className="absolute right-3 top-2 text-gray-400 text-xs font-bold">DT</span>
                 </div>
               </div>
             </div>

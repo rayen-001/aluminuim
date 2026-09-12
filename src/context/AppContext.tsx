@@ -303,6 +303,9 @@ export interface AtelierSettings {
   marge_gc_default: number;
   marge_mousti_default: number;
   marge_store_default: number;
+  // Frais de chantier par défaut (en DT)
+  frais_pose_default?: number;
+  frais_transport_default?: number;
   // Profilés & Références par défaut de l'atelier
   default_profiles?: DefaultProfilesConfig;
   // Prix spécifiques au m² (Stores, Moustiquaires, Vitrages)
@@ -437,6 +440,8 @@ const DEFAULT_SETTINGS: AtelierSettings = {
   marge_gc_default: 30,
   marge_mousti_default: 30,
   marge_store_default: 30,
+  frais_pose_default: 0,
+  frais_transport_default: 0,
   default_profiles: {
     s40_dormant: '40100',
     s40_ouvrant: '40401',
@@ -601,6 +606,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             marge_gc_default: profile.marge_gc_default !== undefined && profile.marge_gc_default !== null ? Number(profile.marge_gc_default) : prev.marge_gc_default,
             marge_mousti_default: profile.marge_mousti_default !== undefined && profile.marge_mousti_default !== null ? Number(profile.marge_mousti_default) : prev.marge_mousti_default,
             marge_store_default: profile.marge_store_default !== undefined && profile.marge_store_default !== null ? Number(profile.marge_store_default) : prev.marge_store_default,
+            frais_pose_default: profile.frais_pose_default !== undefined && profile.frais_pose_default !== null ? Number(profile.frais_pose_default) : (prev.frais_pose_default ?? 0),
+            frais_transport_default: profile.frais_transport_default !== undefined && profile.frais_transport_default !== null ? Number(profile.frais_transport_default) : (prev.frais_transport_default ?? 0),
             default_profiles: profile.default_profiles || prev.default_profiles,
             m2_prices: profile.m2_prices ? {
               stores: { ...DEFAULT_M2_PRICES.stores, ...(profile.m2_prices.stores || {}) },
@@ -2762,7 +2769,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         marge_alu_default: updated.marge_alu_default,
         marge_gc_default: updated.marge_gc_default,
         marge_mousti_default: updated.marge_mousti_default,
-        marge_store_default: updated.marge_store_default
+        marge_store_default: updated.marge_store_default,
+        frais_pose_default: updated.frais_pose_default,
+        frais_transport_default: updated.frais_transport_default
       };
       if (updated.default_profiles) {
         payload.default_profiles = updated.default_profiles;

@@ -167,8 +167,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
   const [margeStoreType, setMargeStoreType] = useState<'percent' | 'dt'>(existingDevis?.marges.margeStoreType || 'percent');
   const [margeStoreValue, setMargeStoreValue] = useState<number>(existingDevis?.marges.margeStoreValue ?? settings.marge_store_default ?? 0);
 
-  const [fraisPose, setFraisPose] = useState<number>(existingDevis?.frais_pose ?? existingDevis?.marges?.frais_pose ?? 0);
-  const [fraisTransport, setFraisTransport] = useState<number>(existingDevis?.frais_transport ?? existingDevis?.marges?.frais_transport ?? 0);
+  const [fraisPose, setFraisPose] = useState<number>(existingDevis?.frais_pose ?? existingDevis?.marges?.frais_pose ?? settings.frais_pose_default ?? 0);
+  const [fraisTransport, setFraisTransport] = useState<number>(existingDevis?.frais_transport ?? existingDevis?.marges?.frais_transport ?? settings.frais_transport_default ?? 0);
 
   const [tvaRate, setTvaRate] = useState<number>(existingDevis?.marges.tva ?? settings.tva_default);
 
@@ -1711,7 +1711,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
               
               {/* Fenêtres / Portes */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold text-gray-700 w-32">Fenêtres / Portes :</span>
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <span>🪟</span> Fenêtres / Portes :
+                </span>
                 <select
                   value={margeType}
                   onChange={e => setMargeType(e.target.value as any)}
@@ -1736,7 +1738,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
               {/* Store Rideau */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold text-gray-700 w-32">Store Rideau :</span>
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <span>🏪</span> Store Rideau :
+                </span>
                 <select
                   value={margeStoreType}
                   onChange={e => setMargeStoreType(e.target.value as any)}
@@ -1761,7 +1765,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
               {/* Moustiquaires */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold text-gray-700 w-32">Moustiquaires :</span>
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <span>🦟</span> Moustiquaires :
+                </span>
                 <select
                   value={margeMoustiType}
                   onChange={e => setMargeMoustiType(e.target.value as any)}
@@ -1786,7 +1792,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
               {/* Garde-Corps */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold text-gray-700 w-32">Garde-Corps :</span>
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <span>🛡️</span> Garde-Corps :
+                </span>
                 <select
                   value={margeGcType}
                   onChange={e => setMargeGcType(e.target.value as any)}
@@ -1811,7 +1819,9 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
               {/* TVA */}
               <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
-                <span className="text-xs font-semibold text-gray-700 w-32">Taux TVA :</span>
+                <span className="text-xs font-semibold text-gray-700 w-36 flex items-center gap-1.5">
+                  <span>🏷️</span> Taux TVA :
+                </span>
                 <select
                   value={tvaRate}
                   onChange={e => setTvaRate(parseFloat(e.target.value) || 0)}
