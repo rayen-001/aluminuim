@@ -924,32 +924,33 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {displayedDebitage.map((deb, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-slate-200 pb-4 gap-3">
-                    <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-mono font-black text-white bg-slate-900 px-3 py-1 rounded-lg text-xs sm:text-sm shadow-xs">
+                <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
+                  <div className="flex items-start justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono font-black text-white bg-slate-900 px-2.5 py-0.5 rounded-lg text-xs shadow-2xs shrink-0">
                           {deb.profilRef}
                         </span>
-                        <span className="font-extrabold text-slate-950 text-base sm:text-lg">{deb.profilDesignation}</span>
+                        <span className="font-bold text-slate-950 text-sm sm:text-base leading-snug">{deb.profilDesignation}</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600 mt-1.5">
-                        Métrage net total : <strong className="text-slate-950 font-mono font-bold text-sm sm:text-base">{deb.totalLinearMeters.toFixed(2)} m</strong>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Métrage net : <strong className="text-slate-900 font-mono font-bold">{deb.totalLinearMeters.toFixed(2)} m</strong>
                       </p>
                     </div>
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1">
-                      <span className={`font-mono font-black text-xs sm:text-sm px-4 py-2 rounded-xl shadow-xs ${deb.isProfileBar ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white'}`}>
-                        {deb.totalBarsCount} barre{deb.totalBarsCount > 1 ? 's' : ''} ({deb.barLengthMeters.toFixed(2)}m)
+                    <div className="text-right shrink-0">
+                      <span className={`inline-flex items-center gap-1.5 whitespace-nowrap font-mono font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs ${deb.isProfileBar ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                        <span>{deb.totalBarsCount} barre{deb.totalBarsCount > 1 ? 's' : ''}</span>
+                        <span className="opacity-90 font-medium">({deb.barLengthMeters.toFixed(2)}m)</span>
                       </span>
-                      <p className="text-xs text-slate-600 font-mono font-bold">Chute moyenne : <span className="text-amber-800 font-black">{deb.scrapPercentageAverage.toFixed(1)}%</span></p>
+                      <p className="text-[10px] text-slate-500 mt-1 font-mono font-semibold whitespace-nowrap">Chute moy : {deb.scrapPercentageAverage.toFixed(1)}%</p>
                     </div>
                   </div>
 
                   {/* Bars visual cuts */}
-                  <div className="space-y-4">
-                    <p className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">Plan de coupe optimisé des barres :</p>
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-slate-800">Plan de coupe optimisé :</p>
                     {deb.allocatedBars.map((bar, bIdx) => {
                       const segmentColors = [
                         'bg-blue-600',
@@ -961,29 +962,29 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                       ];
 
                       return (
-                        <div key={bIdx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs">
-                          <div className="flex justify-between items-center text-xs sm:text-sm text-slate-800 font-bold flex-wrap gap-2">
-                            <div className="flex items-center gap-2.5 flex-wrap">
-                              <span className="font-black flex items-center gap-2 text-slate-950 text-sm sm:text-base">
-                                <span className="w-3 h-3 rounded-full bg-blue-600 shadow-2xs"></span>
+                        <div key={bIdx} className="bg-slate-50 border border-slate-200/90 rounded-xl p-3 sm:p-3.5 text-xs space-y-2.5">
+                          <div className="flex justify-between items-center text-xs text-slate-800 font-semibold flex-wrap gap-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold flex items-center gap-1.5 text-slate-900">
+                                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
                                 Barre #{bar.barIndex} ({bar.barLengthCm} cm)
                               </span>
                               {bar.isShared && (
                                 <span 
-                                  className="inline-flex items-center gap-1.5 bg-purple-100 text-purple-900 border border-purple-300 px-3 py-1 rounded-lg text-xs font-black shadow-2xs"
+                                  className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-md text-[10px] font-bold"
                                   title={`Barre partagée pour : ${bar.allSharedOuvrageNames.join(' + ')}`}
                                 >
                                   🔗 Partagée ({bar.allSharedOuvrageNames.length} ouvrages)
                                 </span>
                               )}
                             </div>
-                            <span className="font-mono text-slate-800 text-xs sm:text-sm bg-white border border-slate-300 px-3 py-1 rounded-lg shadow-2xs font-semibold">
-                              Reste chute finale : <strong className="text-amber-800 font-black text-sm sm:text-base">{bar.scrapCm.toFixed(1)} cm</strong>
+                            <span className="font-mono text-slate-700 text-xs bg-white border border-slate-200 px-2.5 py-0.5 rounded-md shadow-2xs">
+                              Reste chute finale : <strong className="text-amber-800 font-bold">{bar.scrapCm.toFixed(1)} cm</strong>
                             </span>
                           </div>
 
-                          {/* Visual Bar Container - Taller & Highly Legible */}
-                          <div className="w-full bg-slate-200/90 h-11 sm:h-13 rounded-xl overflow-hidden flex border-2 border-slate-300 shadow-inner">
+                          {/* Visual Bar Container */}
+                          <div className="w-full bg-slate-200/90 h-8 sm:h-9 rounded-lg overflow-hidden flex border border-slate-300 shadow-inner">
                             {/* 1. Active Cuts (Solid colored blocks) */}
                             {bar.activeCuts.map((c, cIdx) => {
                               const pct = (c.lengthCm / bar.barLengthCm) * 100;
@@ -995,7 +996,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                                   key={cIdx}
                                   style={{ width: `${pct}%` }}
                                   title={`${c.label} : ${c.lengthCm.toFixed(1)} cm (${pct.toFixed(1)}%)`}
-                                  className={`${colorClass} border-r-2 border-white/70 flex items-center justify-center text-xs sm:text-sm md:text-base text-white font-mono font-black truncate px-1.5 shadow-2xs hover:brightness-110 transition-all`}
+                                  className={`${colorClass} border-r border-white/60 flex items-center justify-center text-[11px] sm:text-xs text-white font-mono font-black truncate px-1 shadow-2xs hover:brightness-110 transition-all`}
                                 >
                                   {exactFormatted}
                                 </div>
@@ -1007,9 +1008,9 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                               <div
                                 style={{ width: `${(bar.otherReservedLengthCm / bar.barLengthCm) * 100}%` }}
                                 title={`Réservé pour : ${bar.otherOuvrageNames.join(' • ')} (${bar.otherReservedLengthCm.toFixed(1)} cm) — NE PAS JETER`}
-                                className="bg-amber-200/95 border-r-2 border-dashed border-amber-500 text-amber-950 text-xs sm:text-sm flex items-center justify-center font-black px-2 truncate shadow-inner select-none font-mono"
+                                className="bg-amber-100/90 border-r border-dashed border-amber-400 text-amber-950 text-[10px] sm:text-[11px] flex items-center justify-center font-bold px-1.5 truncate shadow-inner select-none font-mono"
                               >
-                                <span className="truncate flex items-center gap-1.5">
+                                <span className="truncate flex items-center gap-1">
                                   🔒 Réservé : {bar.otherReservedLengthCm.toFixed(1)}cm
                                 </span>
                               </div>
@@ -1020,43 +1021,41 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                               <div
                                 style={{ width: `${(bar.scrapCm / bar.barLengthCm) * 100}%` }}
                                 title={`Chute finale non réutilisable : ${bar.scrapCm.toFixed(1)} cm`}
-                                className="bg-amber-100 text-amber-950 text-xs sm:text-sm flex items-center justify-center font-mono truncate font-black border-dashed border-l-2 border-amber-400 px-1.5"
+                                className="bg-amber-50 text-amber-900 text-[10px] sm:text-[11px] flex items-center justify-center font-mono truncate font-bold border-dashed border-l border-amber-300 px-1"
                               >
-                                {bar.scrapCm >= 30 ? `Chute ${bar.scrapCm.toFixed(1)}cm` : `${bar.scrapCm.toFixed(1)}cm`}
+                                {bar.scrapCm >= 30 ? `Chute ${bar.scrapCm.toFixed(1)}cm` : `${bar.scrapCm.toFixed(1)}`}
                               </div>
                             )}
                           </div>
 
                           {/* Badges and Pieces Detail below bar */}
-                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
                             {bar.activeCuts.map((c, cIdx) => {
                               const colorClass = segmentColors[cIdx % segmentColors.length];
                               return (
                                 <span 
                                   key={cIdx}
-                                  className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-900 px-3 py-1.5 rounded-xl font-sans text-xs sm:text-sm font-bold shadow-2xs"
+                                  className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg font-sans text-xs font-semibold shadow-2xs"
                                   title={c.label}
                                 >
-                                  <span className={`w-3 h-3 rounded-full ${colorClass} shrink-0 ring-2 ring-slate-100`}></span>
-                                  <span className="text-slate-800">{c.label} :</span>
-                                  <span className="font-mono font-black text-slate-950 text-sm sm:text-base">{c.lengthCm.toFixed(1)} cm</span>
+                                  <span className={`w-2 h-2 rounded-full ${colorClass}`}></span>
+                                  <span className="text-slate-700">{c.label} :</span>
+                                  <span className="font-mono font-black text-slate-950">{c.lengthCm.toFixed(1)} cm</span>
                                 </span>
                               );
                             })}
                             {bar.scrapCm > 0 && (
-                              <span className="inline-flex items-center gap-1.5 bg-amber-100 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-black shadow-2xs">
+                              <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 text-amber-950 px-2.5 py-1 rounded-lg font-mono text-xs font-bold shadow-2xs">
                                 Chute finale: {bar.scrapCm.toFixed(1)} cm
                               </span>
                             )}
                           </div>
 
-                          {/* Workshop Cutting Instruction Callout for Shared Bar */}
+                          {/* Workshop Cutting Instruction Callout for Shared Bar - Clear and Readable */}
                           {bar.isShared && (
-                            <div className="bg-gradient-to-r from-amber-50 to-orange-50/60 border-2 border-amber-300/80 rounded-2xl p-3.5 sm:p-4.5 flex items-start gap-3 text-xs sm:text-sm text-amber-950 mt-2 shadow-2xs">
-                              <span className="font-black text-amber-900 shrink-0 flex items-center gap-1 text-sm sm:text-base">
-                                💡 Consigne Atelier :
-                              </span>
-                              <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">
+                            <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-2.5 sm:p-3 flex items-start gap-2 text-xs sm:text-sm text-amber-950 mt-1 shadow-2xs">
+                              <span className="font-bold text-amber-900 shrink-0 text-xs sm:text-sm">💡 Consigne Atelier :</span>
+                              <p className="text-xs sm:text-[13px] leading-relaxed font-medium">
                                 {selectedOuvrageIdx !== 'all' 
                                   ? `Après découpe des ${bar.activeCuts.length} pièce(s) de cet ouvrage, étiqueter et conserver le reste de ${bar.otherReservedLengthCm.toFixed(1)} cm pour : ${bar.otherOuvrageNames.join(' • ')}.`
                                   : `Barre partagée multi-ouvrages (${bar.allSharedOuvrageNames.join(' + ')}) : découper selon la séquence pour utiliser l'intégralité des ${bar.usedLengthCm.toFixed(1)} cm utiles.`}
