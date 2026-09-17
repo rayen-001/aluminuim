@@ -18,9 +18,11 @@ export interface DevisItemState {
   vitrage_type: 'simple' | 'double';
   motif_id: string;
   ouverture_type?: string;
+  type_ouverture?: string;
   supplements: string[];
   fast_lock_points?: string;
   cremone_id?: string;
+  cremone_type?: string;
 
   // Composition refs
   comp_ouvrant_ref?: string;
@@ -400,6 +402,51 @@ export function calculateItemCost(
       }
     }
 
+    // Partie Fixe (Meneau de séparation)
+    if (item.partie_fixe_type && item.partie_fixe_type !== 'Sans') {
+      const meneauRef = item.comp_meneau_ref || '40121';
+      const pMeneau = getArticlePrice(meneauRef);
+      let nbMeneaux = 1;
+      let isVertical = true;
+      if (['Droite', 'Gauche'].includes(item.partie_fixe_type)) {
+        nbMeneaux = 1;
+        isVertical = true;
+      } else if (item.partie_fixe_type === 'Droite et Gauche') {
+        nbMeneaux = 2;
+        isVertical = true;
+      } else if (['Haut', 'Bas'].includes(item.partie_fixe_type)) {
+        nbMeneaux = 1;
+        isVertical = false;
+      } else if (item.partie_fixe_type === 'Haut et Bas') {
+        nbMeneaux = 2;
+        isVertical = false;
+      }
+      const meneauLen = isVertical ? h : w;
+      article_cost += ((meneauLen * nbMeneaux) / BAR_LENGTH_CM) * pMeneau;
+    }
+
+    // Couvre-joint (Profilé de finition périphérique)
+    if (!item.sans_couvre_joint) {
+      const cjRef = item.comp_couvre_joint_ref || '40103';
+      const pCj = getArticlePrice(cjRef);
+      const cjType = item.couvre_joint_type || 'Droite';
+      let cjLinearCm = 0;
+      if (['Droite', 'Gauche'].includes(cjType)) {
+        cjLinearCm = h;
+      } else if (cjType === 'Droite et Gauche') {
+        cjLinearCm = 2 * h;
+      } else if (['Haut', 'Bas'].includes(cjType)) {
+        cjLinearCm = w;
+      } else if (cjType === 'Haut et Bas') {
+        cjLinearCm = 2 * w;
+      } else if (cjType === 'Tous') {
+        cjLinearCm = 2 * (h + w);
+      }
+      if (cjLinearCm > 0) {
+        article_cost += (cjLinearCm / BAR_LENGTH_CM) * pCj;
+      }
+    }
+
     // Vitrage / Remplissage
     const m2Vitrages = marges.m2_prices?.vitrages;
     const m2Motifs = marges.m2_prices?.motifs;
@@ -420,6 +467,16 @@ export function calculateItemCost(
       vitrage_cost += surfaceM2 * motifPrice;
     }
 
+    // Type d'ouverture (Oscillo-battant, etc.)
+    if (item.ouverture_type === 'Osilobattante' || item.ouverture_type === 'Oscillo-battante' || item.ouverture_type === 'oscillo_battant') {
+      accessoires_cost += 105.000; // Kit Oscillo-battant complet
+    }
+
+    // Modèle de crémone
+    if (item.cremone_id === 'cle' || item.cremone_id === 'A clé') {
+      accessoires_cost += 32.000; // Crémone à clé
+    }
+
     // Quincaillerie & Accessories Suppléments
     if (item.supplements && item.supplements.length > 0) {
       item.supplements.forEach(sup => {
@@ -427,7 +484,7 @@ export function calculateItemCost(
         if (sLower.includes('fast lock')) {
           const pts = parseInt(item.fast_lock_points || '1') || 1;
           accessoires_cost += pts * 22;
-        } else if (sLower.includes('crémone')) {
+        } else if (sLower.includes('crémone') && item.cremone_id !== 'cle') {
           accessoires_cost += 32;
         } else if (sLower.includes('serrure') || sLower.includes('clé') || sLower.includes('cylindre')) {
           accessoires_cost += 48.600; // Serrure à clé multipoints

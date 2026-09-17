@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ArticleItem } from '../../data/initialArticles';
+import { AccessoryItemDef } from '../../data/initialAccessories';
 import { REMPLISSAGES, MOTIFS } from '../../data/productCatalog';
 import { getStoreElementPrice, StoreColorPrices } from '../../utils/devisCalculator';
+import { getProfileImageUrl, hasProfileImage } from '../../data/profileImages';
 import { 
   Search, 
   Plus, 
@@ -23,7 +25,10 @@ import {
   ShieldCheck,
   Eye,
   Info,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Wrench,
+  Box,
+  CheckCircle2
 } from 'lucide-react';
 
 export const ArticlesView: React.FC = () => {
@@ -37,12 +42,18 @@ export const ArticlesView: React.FC = () => {
     updateArticleStock,
     updateM2Price,
     bulkUpdateM2Prices,
-    resetM2PricesToDefault
+    resetM2PricesToDefault,
+    accessories,
+    updateAccessoryPrice,
+    updateAccessoryStock,
+    bulkUpdateAccessories,
+    resetAccessoriesToDefault
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'Toutes' | 'TPR' | 'Aluco' | 'Alu Eco' | 'Garde Corps' | 'm2_surfaces'>('Toutes');
+  const [activeTab, setActiveTab] = useState<'Toutes' | 'TPR' | 'Aluco' | 'Alu Eco' | 'Garde Corps' | 'm2_surfaces' | 'accessoires'>('Toutes');
   const [searchQuery, setSearchQuery] = useState('');
   const [tvaInput, setTvaInput] = useState(String(settings.tva_default));
+  const [zoomProfil, setZoomProfil] = useState<string | null>(null);
 
   // Advanced Bulk update states for aluminium profile bars
   const [bulkFamily, setBulkFamily] = useState<string>('Toutes');
@@ -57,6 +68,13 @@ export const ArticlesView: React.FC = () => {
   const [bulkM2Direction, setBulkM2Direction] = useState<'increase' | 'decrease'>('increase');
   const [bulkM2Mode, setBulkM2Mode] = useState<'percent' | 'amount'>('percent');
   const [bulkM2Value, setBulkM2Value] = useState<string>('');
+
+  // Bulk update states for Accessoires & Quincaillerie
+  const [selectedAccCategory, setSelectedAccCategory] = useState<string>('all');
+  const [bulkAccCategory, setBulkAccCategory] = useState<string>('all');
+  const [bulkAccDirection, setBulkAccDirection] = useState<'increase' | 'decrease'>('increase');
+  const [bulkAccMode, setBulkAccMode] = useState<'percent' | 'amount'>('percent');
+  const [bulkAccValue, setBulkAccValue] = useState<string>('');
 
   // Modals for aluminium profile bars
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -85,6 +103,13 @@ export const ArticlesView: React.FC = () => {
     bronze: 0
   });
 
+  // Modals for Accessoires & Quincaillerie
+  const [previewAccModalOpen, setPreviewAccModalOpen] = useState(false);
+  const [resetAccModalOpen, setResetAccModalOpen] = useState(false);
+  const [editingAccessory, setEditingAccessory] = useState<AccessoryItemDef | null>(null);
+  const [editAccPrice, setEditAccPrice] = useState<string>('');
+  const [editAccStock, setEditAccStock] = useState<string>('');
+
   // Family tabs with counts
   const familyTabs = [
     { id: 'Toutes', label: 'Toutes les barres', count: articles.length },
@@ -93,9 +118,19 @@ export const ArticlesView: React.FC = () => {
     { id: 'Alu Eco', label: 'Alu Eco', count: articles.filter(a => a.family === 'Alu Eco').length },
     { id: 'Garde Corps', label: 'Garde Corps', count: articles.filter(a => a.family === 'Garde Corps').length },
     { id: 'm2_surfaces', label: '🪟 Stores, Moustiquaires & Vitrages (m²)', count: 33 },
+    { id: 'accessoires', label: '🔩 Accessoires & Quincaillerie', count: accessories.length },
   ] as const;
 
-  // Filter articles
+  const accCategories = [
+    { id: 'all', label: 'Tous les accessoires' },
+    { id: 'assemblage', label: '🔩 Assemblage & Visserie' },
+    { id: 'roulement', label: '⚙️ Roulement & Guidage' },
+    { id: 'verrouillage', label: '🔑 Verrouillage & Crémones' },
+    { id: 'joints', label: '🛡️ Joints & Étanchéité' },
+    { id: 'moteurs_volets', label: '⚡ Moteurs & Volets' }
+  ];
+
+  // Filter articles (profile bars)
   const filteredArticles = articles.filter(a => {
     if (activeTab !== 'Toutes' && a.family !== activeTab) {
       return false;
@@ -103,6 +138,20 @@ export const ArticlesView: React.FC = () => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return a.reference.toLowerCase().includes(q) || a.description.toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  // Filter accessories
+  const filteredAccessories = accessories.filter(a => {
+    if (selectedAccCategory !== 'all' && a.categorie !== selectedAccCategory) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (
+        a.id.toLowerCase().includes(q) ||
+        a.nom.toLowerCase().includes(q) ||
+        (a.description && a.description.toLowerCase().includes(q))
+      );
     }
     return true;
   });
@@ -248,13 +297,14 @@ export const ArticlesView: React.FC = () => {
       updateM2Price(editingM2Item.category, editingM2Item.key, editingStoreColors);
       setBulkSuccessMsg(`Prix multi-couleurs de "${editingM2Item.label}" mis à jour avec succès !`);
     } else {
-      const newHt = parseFloat(editM2Input);
-      if (isNaN(newHt) || newHt < 0) return;
-      updateM2Price(editingM2Item.category, editingM2Item.key, newHt);
-      setBulkSuccessMsg(`Prix de "${editingM2Item.label}" mis à jour (${newHt.toFixed(3)} DT HT) !`);
+      const val = parseFloat(editM2Input);
+      if (!isNaN(val) && val >= 0) {
+        updateM2Price(editingM2Item.category, editingM2Item.key, val);
+        setBulkSuccessMsg(`Prix de "${editingM2Item.label}" mis à jour à ${val.toFixed(3)} DT HT.`);
+      }
     }
-    setTimeout(() => setBulkSuccessMsg(''), 4000);
     setEditingM2Item(null);
+    setTimeout(() => setBulkSuccessMsg(''), 4000);
   };
 
   const handleApplyBulkM2 = (e: React.FormEvent) => {
@@ -262,7 +312,9 @@ export const ArticlesView: React.FC = () => {
     const val = parseFloat(bulkM2Value);
     if (isNaN(val) || val <= 0) return;
     bulkUpdateM2Prices(bulkM2Category, val, bulkM2Mode, bulkM2Direction);
-    setBulkSuccessMsg(`${bulkM2Direction === 'increase' ? 'Augmentation' : 'Diminution'} de ${val}${bulkM2Mode === 'percent' ? '%' : ' DT'} appliquée avec succès sur les surfaces !`);
+    setBulkSuccessMsg(
+      `${bulkM2Direction === 'increase' ? 'Augmentation' : 'Diminution'} de ${val}${bulkM2Mode === 'percent' ? '%' : ' DT'} appliquée aux surfaces ${bulkM2Category === 'all' ? 'totales' : bulkM2Category} !`
+    );
     setTimeout(() => setBulkSuccessMsg(''), 4000);
     setBulkM2Value('');
   };
@@ -270,16 +322,104 @@ export const ArticlesView: React.FC = () => {
   const confirmResetM2 = () => {
     resetM2PricesToDefault();
     setResetM2ModalOpen(false);
-    setBulkSuccessMsg('Prix des vitrages, stores et moustiquaires réinitialisés aux valeurs standards.');
+    setBulkSuccessMsg('Tous les prix des surfaces M² (Stores, Moustiquaires, Vitrages, Finitions) ont été réinitialisés aux valeurs catalogue.');
     setTimeout(() => setBulkSuccessMsg(''), 4000);
   };
 
-  // Stores data definition with 5 standard aluminium colors
+  // Accessoires Handlers
+  const handleOpenAccSimulation = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseFloat(bulkAccValue);
+    if (isNaN(val) || val <= 0) return;
+    setPreviewAccModalOpen(true);
+  };
+
+  const affectedAccessories = accessories.filter(a => bulkAccCategory === 'all' || a.categorie === bulkAccCategory);
+
+  const previewAccSamples = affectedAccessories.slice(0, 5).map(acc => {
+    const origHt = acc.prix_unitaire_ht || 0;
+    const numVal = parseFloat(bulkAccValue) || 0;
+    let newHt = origHt;
+    if (bulkAccMode === 'amount') {
+      newHt = bulkAccDirection === 'decrease' ? Math.max(0, origHt - numVal) : origHt + numVal;
+    } else {
+      const factor = bulkAccDirection === 'decrease' ? (1 - numVal / 100) : (1 + numVal / 100);
+      newHt = Math.max(0, origHt * factor);
+    }
+    newHt = Math.round(newHt * 1000) / 1000;
+    const origTtc = Math.round(origHt * (1 + settings.tva_default / 100) * 1000) / 1000;
+    const newTtc = Math.round(newHt * (1 + settings.tva_default / 100) * 1000) / 1000;
+    return {
+      id: acc.id,
+      nom: acc.nom,
+      categorie: acc.categorie,
+      origHt,
+      origTtc,
+      newHt,
+      newTtc,
+      diff: Math.round((newHt - origHt) * 1000) / 1000
+    };
+  });
+
+  const confirmApplyBulkAcc = () => {
+    const numVal = parseFloat(bulkAccValue);
+    if (isNaN(numVal) || numVal <= 0) return;
+    bulkUpdateAccessories(bulkAccCategory, numVal, bulkAccMode, bulkAccDirection);
+    setPreviewAccModalOpen(false);
+    setBulkSuccessMsg(`${bulkAccDirection === 'increase' ? 'Augmentation' : 'Diminution'} de ${numVal}${bulkAccMode === 'percent' ? '%' : ' DT'} appliquée avec succès sur ${affectedAccessories.length} accessoires !`);
+    setTimeout(() => setBulkSuccessMsg(''), 4000);
+    setBulkAccValue('');
+  };
+
+  const confirmResetAccCatalog = () => {
+    resetAccessoriesToDefault();
+    setResetAccModalOpen(false);
+    setBulkSuccessMsg('Catalogue accessoires et quincaillerie réinitialisé aux valeurs d\'usine.');
+    setTimeout(() => setBulkSuccessMsg(''), 4000);
+  };
+
+  const startEditAcc = (acc: AccessoryItemDef) => {
+    setEditingAccessory(acc);
+    setEditAccPrice(String(acc.prix_unitaire_ht));
+    setEditAccStock(acc.stock_qty !== undefined ? String(acc.stock_qty) : '');
+  };
+
+  const saveAccEdit = () => {
+    if (!editingAccessory) return;
+    const val = parseFloat(editAccPrice);
+    if (!isNaN(val) && val >= 0) {
+      updateAccessoryPrice(editingAccessory.id, val);
+    }
+    const stockVal = editAccStock.trim() === '' ? undefined : parseInt(editAccStock, 10);
+    updateAccessoryStock(editingAccessory.id, stockVal !== undefined ? stockVal : 0);
+    setBulkSuccessMsg(`Accessoire "${editingAccessory.nom}" mis à jour avec succès !`);
+    setTimeout(() => setBulkSuccessMsg(''), 4000);
+    setEditingAccessory(null);
+  };
+
+  const getAccCategoryBadge = (cat: AccessoryItemDef['categorie']) => {
+    switch (cat) {
+      case 'assemblage':
+        return <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-blue-200">Assemblage</span>;
+      case 'roulement':
+        return <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-emerald-200">Roulement</span>;
+      case 'verrouillage':
+        return <span className="bg-purple-50 text-purple-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-purple-200">Verrouillage</span>;
+      case 'joints':
+        return <span className="bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200">Étanchéité</span>;
+      case 'moteurs_volets':
+        return <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-indigo-200">Moteurs Volets</span>;
+      default:
+        return <span className="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-md">Accessoire</span>;
+    }
+  };
+
+  // M² Data Definitions
   const storeItems = [
     {
       key: 'lame_inj_55',
-      label: 'Lame injectée 55mm (Standard)',
-      description: 'Lame aluminium injectée mousse polyuréthane haute densité 55mm — Standard fenêtres & portes',
+      label: 'Lame injectée 55 mm (DT/m²)',
+      description: 'Lames aluminium injectées de polyuréthane 55mm (Standard)',
       unit: 'm²',
       hasColors: true,
       defaultPrices: { blanc: 105, gris: 115, noir: 118, effet_bois: 135, bronze: 115 },
@@ -293,8 +433,8 @@ export const ArticlesView: React.FC = () => {
     },
     {
       key: 'lame_inj_45',
-      label: 'Lame injectée 45mm',
-      description: 'Lame aluminium injectée 45mm profil compact',
+      label: 'Lame injectée 45 mm (DT/m²)',
+      description: 'Lames aluminium injectées de polyuréthane 45mm (Fenêtres compactes)',
       unit: 'm²',
       hasColors: true,
       defaultPrices: { blanc: 95, gris: 105, noir: 108, effet_bois: 125, bronze: 105 },
@@ -308,8 +448,8 @@ export const ArticlesView: React.FC = () => {
     },
     {
       key: 'lame_inj_42',
-      label: 'Lame injectée 42mm',
-      description: 'Lame aluminium injectée 42mm économique pour petites fenêtres',
+      label: 'Lame injectée 42 mm (DT/m²)',
+      description: 'Lames aluminium injectées 42mm petit enroulement',
       unit: 'm²',
       hasColors: true,
       defaultPrices: { blanc: 90, gris: 99, noir: 102, effet_bois: 118, bronze: 99 },
@@ -323,23 +463,23 @@ export const ArticlesView: React.FC = () => {
     },
     {
       key: 'lame_extrud',
-      label: 'Lame extrudée renforcée',
-      description: 'Lame aluminium extrudé massif haute sécurité anti-effraction',
+      label: 'Lame extrudée sécurité (DT/m²)',
+      description: 'Lames aluminium extrudé renforcé anti-effraction',
       unit: 'm²',
       hasColors: true,
-      defaultPrices: { blanc: 145, gris: 160, noir: 165, effet_bois: 190, bronze: 160 },
+      defaultPrices: { blanc: 130, gris: 142, noir: 146, effet_bois: 165, bronze: 142 },
       prices: {
-        blanc: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'blanc', 145),
-        gris: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'gris', 160),
-        noir: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'noir', 165),
-        effet_bois: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'effet_bois', 190),
-        bronze: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'bronze', 160)
+        blanc: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'blanc', 130),
+        gris: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'gris', 142),
+        noir: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'noir', 146),
+        effet_bois: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'effet_bois', 165),
+        bronze: getStoreElementPrice(settings.m2_prices?.stores?.lame_extrud, 'bronze', 142)
       }
     },
     {
       key: 'coffre_alu_15',
       label: 'Coffre aluminium 15 cm (DT/ml)',
-      description: 'Caisson coffre aluminium pan coupé 15 cm pour fenêtres standards (par ml)',
+      description: 'Caisson coffre aluminium pan coupé 15 cm pour fenêtres (par ml)',
       unit: 'ml',
       hasColors: true,
       defaultPrices: { blanc: 45, gris: 50, noir: 52, effet_bois: 62, bronze: 50 },
@@ -383,8 +523,8 @@ export const ArticlesView: React.FC = () => {
     },
     {
       key: 'coffre_pvc',
-      label: 'Coffre PVC Monobloc (DT/ml)',
-      description: 'Caisson coffre PVC monobloc isolé thermo-acoustique pour pose sur dormant (par ml)',
+      label: 'Coffre PVC (DT/ml)',
+      description: 'Caisson coffre PVC isolé thermo-acoustique pour pose sur dormant (par ml)',
       unit: 'ml',
       hasColors: true,
       defaultPrices: { blanc: 50, gris: 55, noir: 56, effet_bois: 68, bronze: 55 },
@@ -428,7 +568,6 @@ export const ArticlesView: React.FC = () => {
     }
   ];
 
-  // Moustiquaires data definition
   const moustiItems = [
     {
       key: 'enroulable',
@@ -448,63 +587,94 @@ export const ArticlesView: React.FC = () => {
     },
     {
       key: 'fixe',
-      label: 'Moustiquaire Cadre Fixe Clipsé',
-      description: 'Cadre aluminium fixe économique avec attaches rapides pour fenêtres de service',
+      label: 'Moustiquaire Cadre Fixe Aimanté',
+      description: 'Cadre aluminium fixe démontable avec toile en fibre de verre enduite PVC',
       unit: 'm²',
-      defaultHt: 40,
-      ht: settings.m2_prices?.moustiquaires?.fixe ?? 40
+      defaultHt: 45,
+      ht: settings.m2_prices?.moustiquaires?.fixe ?? 45
     },
     {
       key: 'battante',
       label: 'Moustiquaire Porte Battante',
-      description: 'Porte moustiquaire robuste avec charnières à rappel automatique et poignée',
+      description: 'Porte moustiquaire avec charnières à ressort de rappel et profilé renforcé avec traverse',
       unit: 'm²',
-      defaultHt: 90,
-      ht: settings.m2_prices?.moustiquaires?.battante ?? 90
+      defaultHt: 85,
+      ht: settings.m2_prices?.moustiquaires?.battante ?? 85
     }
   ];
 
+  const vitrageItems = REMPLISSAGES.map(r => ({
+    key: r.id,
+    label: r.label,
+    description: r.label.toLowerCase().includes('double') ? 'Double vitrage avec intercalaire thermique & gaz argon' : r.label.toLowerCase().includes('plaque') || r.label.toLowerCase().includes('planche') ? 'Panneau ou plaque de remplissage' : 'Vitrage clair / teinté / sécurit',
+    unit: 'm²',
+    defaultHt: r.pricePerM2,
+    ht: settings.m2_prices?.vitrages?.[r.id] ?? r.pricePerM2
+  }));
+
+  const motifItems = MOTIFS.map(m => ({
+    key: m.id,
+    label: m.label,
+    description: m.id === '406890' ? 'Double vitrage avec remplissage gaz isolant argon' : 'Finitions décoratives et sécurités',
+    unit: 'm²',
+    defaultHt: m.pricePerM2,
+    ht: settings.m2_prices?.motifs?.[m.id] ?? m.pricePerM2
+  }));
+
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Title & Actions */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Layers className="w-6 h-6 text-blue-600" />
-            <span>Catalogue & Tarification Atelier</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500">
-            Personnalisez librement les prix d'usine des profilés aluminium, stores, moustiquaires et vitrages pour votre atelier.
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2">
+            <Package className="w-6 h-6 text-blue-600" />
+            <span>Catalogue Articles, Accessoires & Tarifs</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 font-medium">
+            Gérez les prix HT/TTC, les stocks et les règles de calcul des barres, accessoires et surfaces (m²)
           </p>
         </div>
 
+        {/* Global Catalog Actions */}
         <div className="flex items-center gap-2">
-          {activeTab === 'm2_surfaces' ? (
+          {activeTab === 'accessoires' ? (
+            <button
+              onClick={() => setResetAccModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-rose-600 bg-white border border-gray-200 rounded-xl hover:bg-rose-50 transition cursor-pointer shadow-xs"
+              title="Réinitialiser tous les accessoires aux valeurs d'usine"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Réinitialiser Accessoires</span>
+            </button>
+          ) : activeTab === 'm2_surfaces' ? (
             <button
               onClick={() => setResetM2ModalOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-900 border border-gray-200 rounded-xl transition shadow-xs cursor-pointer"
-              title="Restaurer les prix par défaut des vitrages, stores et moustiquaires"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-rose-600 bg-white border border-gray-200 rounded-xl hover:bg-rose-50 transition cursor-pointer shadow-xs"
+              title="Réinitialiser tous les prix m² aux valeurs catalogue d'origine"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
-              <span>Restaurer prix standards (m²)</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Réinitialiser M² Usine</span>
             </button>
           ) : (
             <button
               onClick={() => setResetModalOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 hover:text-gray-900 border border-gray-200 rounded-xl transition shadow-xs cursor-pointer"
-              title="Réinitialiser tous les profilés aux prix officiels par défaut"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 hover:text-rose-600 bg-white border border-gray-200 rounded-xl hover:bg-rose-50 transition cursor-pointer shadow-xs"
+              title="Réinitialiser tous les profilés aux valeurs catalogue d'origine"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
-              <span>Restaurer prix d'usine (Profilés)</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Réinitialiser Profilés</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Top Banner: Taux TVA */}
-      <div className="bg-blue-50 border border-blue-200/90 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-        <form onSubmit={handleApplyTVA} className="flex flex-wrap items-center gap-3">
-          <label className="text-sm font-semibold text-gray-800">Taux TVA global :</label>
+      {/* Global TVA Bar */}
+      <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <form onSubmit={handleApplyTVA} className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-blue-900 font-bold text-xs sm:text-sm">
+            <Percent className="w-4 h-4 text-blue-600" />
+            <span>Taux de TVA Global :</span>
+          </div>
           <div className="relative">
             <input
               type="number"
@@ -512,9 +682,10 @@ export const ArticlesView: React.FC = () => {
               onChange={e => setTvaInput(e.target.value)}
               step="0.1"
               min="0"
-              className="w-20 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+              max="100"
+              className="w-20 bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold text-gray-900 focus:ring-2 focus:ring-blue-500"
             />
-            <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
+            <span className="absolute right-2 top-1.5 text-gray-400 text-xs font-bold">%</span>
           </div>
           <button
             type="submit"
@@ -536,7 +707,7 @@ export const ArticlesView: React.FC = () => {
       </div>
 
       {/* Bulk Price Modification Card for Aluminium Bars */}
-      {activeTab !== 'm2_surfaces' && (
+      {activeTab !== 'm2_surfaces' && activeTab !== 'accessoires' && (
         <div className="bg-gradient-to-r from-amber-50/90 via-orange-50/60 to-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-3">
             <div className="flex items-center gap-2">
@@ -551,7 +722,7 @@ export const ArticlesView: React.FC = () => {
           </div>
 
           <form onSubmit={handleOpenSimulation} className="flex flex-wrap items-center gap-3">
-            {/* Direction: Augmentation / Diminution */}
+            {/* Direction */}
             <div className="flex items-center bg-white rounded-lg p-0.5 border border-amber-300/80 shadow-xs">
               <button
                 type="button"
@@ -579,7 +750,7 @@ export const ArticlesView: React.FC = () => {
               </button>
             </div>
 
-            {/* Mode: % or DT */}
+            {/* Mode */}
             <div className="flex items-center bg-white rounded-lg p-0.5 border border-amber-300/80 shadow-xs">
               <button
                 type="button"
@@ -659,7 +830,7 @@ export const ArticlesView: React.FC = () => {
               type="submit"
               className="bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-5 py-2 rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Simuler & Appliquer</span>
+              <span>Simuler le calcul</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -672,11 +843,11 @@ export const ArticlesView: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/60 pb-3">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-blue-600/10 text-blue-700 rounded-lg">
-                <Sparkles className="w-4 h-4" />
+                <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-blue-950">Mise à jour en masse des prix au m²</h3>
-                <p className="text-xs text-blue-800/80">Appliquez une augmentation ou réduction générale sur les stores, moustiquaires ou vitrages</p>
+                <h3 className="text-sm font-bold text-blue-950">Mise à jour en masse des prix au m² (Stores, Vitrages & Motifs)</h3>
+                <p className="text-xs text-blue-800/80">Ajustez les prix au mètre carré directement avec répercussion sur tous les devis</p>
               </div>
             </div>
           </div>
@@ -759,7 +930,7 @@ export const ArticlesView: React.FC = () => {
                   type="number"
                   value={bulkM2Value}
                   onChange={e => setBulkM2Value(e.target.value)}
-                  placeholder={bulkM2Mode === 'percent' ? "Ex: 10" : "Ex: 5.000"}
+                  placeholder={bulkM2Mode === 'percent' ? "Ex: 5" : "Ex: 10"}
                   step="any"
                   min="0"
                   required
@@ -776,7 +947,125 @@ export const ArticlesView: React.FC = () => {
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-5 py-2 rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Appliquer sur m²</span>
+              <span>Appliquer aux prix M²</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Bulk Price Modification Card for Accessoires & Quincaillerie */}
+      {activeTab === 'accessoires' && (
+        <div className="bg-gradient-to-r from-purple-50/90 via-indigo-50/60 to-purple-50/90 border border-purple-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-200/60 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-purple-600/10 text-purple-700 rounded-lg">
+                <Wrench className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-purple-950">Mise à jour en masse des accessoires & quincaillerie</h3>
+                <p className="text-xs text-purple-800/80">Ajustez les prix des serrures, crémones, kits oscillo-battants, joints et moteurs</p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleOpenAccSimulation} className="flex flex-wrap items-center gap-3">
+            {/* Direction */}
+            <div className="flex items-center bg-white rounded-lg p-0.5 border border-purple-300/80 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setBulkAccDirection('increase')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold transition cursor-pointer ${
+                  bulkAccDirection === 'increase'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Augmenter (+)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBulkAccDirection('decrease')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold transition cursor-pointer ${
+                  bulkAccDirection === 'decrease'
+                    ? 'bg-rose-500 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span>Diminuer (-)</span>
+              </button>
+            </div>
+
+            {/* Mode */}
+            <div className="flex items-center bg-white rounded-lg p-0.5 border border-purple-300/80 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setBulkAccMode('percent')}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition cursor-pointer ${
+                  bulkAccMode === 'percent'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                % Pourcentage
+              </button>
+              <button
+                type="button"
+                onClick={() => setBulkAccMode('amount')}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition cursor-pointer ${
+                  bulkAccMode === 'amount'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                DT Montant fixe
+              </button>
+            </div>
+
+            {/* Category Select */}
+            <select
+              value={bulkAccCategory}
+              onChange={e => setBulkAccCategory(e.target.value)}
+              className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-purple-500 cursor-pointer"
+            >
+              <option value="all">— Toutes les catégories ({accessories.length}) —</option>
+              <option value="assemblage">🔩 Assemblage & Visserie</option>
+              <option value="roulement">⚙️ Roulement & Guidage</option>
+              <option value="verrouillage">🔑 Verrouillage & Crémones</option>
+              <option value="joints">🛡️ Joints & Étanchéité</option>
+              <option value="moteurs_volets">⚡ Moteurs & Volets</option>
+            </select>
+
+            {/* Value Input */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-gray-700">
+                {bulkAccDirection === 'increase' ? '+' : '-'}
+              </span>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={bulkAccValue}
+                  onChange={e => setBulkAccValue(e.target.value)}
+                  placeholder={bulkAccMode === 'percent' ? "Ex: 5" : "Ex: 2.500"}
+                  step="any"
+                  min="0"
+                  required
+                  className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-mono font-bold focus:ring-2 focus:ring-purple-500"
+                />
+                <span className="absolute right-2.5 top-2 text-gray-400 text-xs font-bold">
+                  {bulkAccMode === 'percent' ? '%' : 'DT'}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold px-5 py-2 rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Simuler le calcul</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -809,7 +1098,7 @@ export const ArticlesView: React.FC = () => {
           ))}
         </div>
 
-        {/* Search Bar (When on bars tabs) */}
+        {/* Search Bar */}
         {activeTab !== 'm2_surfaces' && (
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
@@ -817,7 +1106,7 @@ export const ArticlesView: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Rechercher référence ou description..."
+              placeholder={activeTab === 'accessoires' ? "Rechercher accessoire, crémone, serrure, moteur..." : "Rechercher référence ou description..."}
               className="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -827,7 +1116,7 @@ export const ArticlesView: React.FC = () => {
       {/* ========================================================================= */}
       {/* VIEW A: Aluminium Profile Bars Table                                      */}
       {/* ========================================================================= */}
-      {activeTab !== 'm2_surfaces' && (
+      {activeTab !== 'm2_surfaces' && activeTab !== 'accessoires' && (
         <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
           <div className="px-5 py-3.5 border-b border-gray-200 bg-gray-50/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -869,7 +1158,25 @@ export const ArticlesView: React.FC = () => {
                     const stockDefined = art.stock_qty !== undefined;
                     return (
                       <tr key={art.id} className="hover:bg-blue-50/40 transition">
-                        <td className="px-4 py-3 font-bold text-gray-900">{art.reference}</td>
+                        <td className="px-4 py-3 font-bold text-gray-900">
+                          <div className="flex items-center gap-2">
+                            {hasProfileImage(art.reference) && (
+                              <button
+                                type="button"
+                                onClick={() => setZoomProfil(art.reference)}
+                                title="Voir coupe technique"
+                                className="w-7 h-7 rounded-lg border border-gray-200 bg-white p-0.5 hover:border-blue-500 hover:shadow-xs transition shrink-0 cursor-pointer flex items-center justify-center overflow-hidden"
+                              >
+                                <img
+                                  src={getProfileImageUrl(art.reference)!}
+                                  alt={art.reference}
+                                  className="w-full h-full object-contain"
+                                />
+                              </button>
+                            )}
+                            <span className="font-mono">{art.reference}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 font-sans font-medium text-gray-700">{art.description}</td>
 
                         {/* Stock Badge */}
@@ -898,35 +1205,18 @@ export const ArticlesView: React.FC = () => {
                           )}
                         </td>
                         
-                        {/* Blanc */}
-                        <td className="px-3 py-3 text-right">
-                          <div className="font-bold text-gray-900">{(art.prix.blanc?.ht || 0).toFixed(3)}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold">{(art.prix.blanc?.ttc || 0).toFixed(3)}</div>
-                        </td>
-
-                        {/* Gris */}
-                        <td className="px-3 py-3 text-right">
-                          <div className="font-bold text-gray-900">{(art.prix.gris?.ht || 0).toFixed(3)}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold">{(art.prix.gris?.ttc || 0).toFixed(3)}</div>
-                        </td>
-
-                        {/* Noir */}
-                        <td className="px-3 py-3 text-right">
-                          <div className="font-bold text-gray-900">{(art.prix.noir?.ht || 0).toFixed(3)}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold">{(art.prix.noir?.ttc || 0).toFixed(3)}</div>
-                        </td>
-
-                        {/* Mat */}
-                        <td className="px-3 py-3 text-right">
-                          <div className="font-bold text-gray-900">{(art.prix.couleur_mat?.ht || 0).toFixed(3)}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold">{(art.prix.couleur_mat?.ttc || 0).toFixed(3)}</div>
-                        </td>
-
-                        {/* Givré */}
-                        <td className="px-3 py-3 text-right">
-                          <div className="font-bold text-gray-900">{(art.prix.couleur_givre?.ht || 0).toFixed(3)}</div>
-                          <div className="text-[10px] text-blue-600 font-semibold">{(art.prix.couleur_givre?.ttc || 0).toFixed(3)}</div>
-                        </td>
+                        {/* Prices per color */}
+                        {(['blanc', 'gris', 'noir', 'couleur_mat', 'couleur_givre'] as const).map(c => {
+                          const p = art.prix[c];
+                          if (!p) return <td key={c} className="px-3 py-3 text-right text-gray-300">-</td>;
+                          const ttc = Math.round(p.ht * (1 + settings.tva_default / 100) * 1000) / 1000;
+                          return (
+                            <td key={c} className="px-3 py-3 text-right">
+                              <div className="font-semibold text-gray-900">{p.ht.toFixed(3)}</div>
+                              <div className="text-[10px] text-blue-600 font-medium">{ttc.toFixed(3)} TTC</div>
+                            </td>
+                          );
+                        })}
 
                         {/* Action */}
                         <td className="px-3 py-3 text-center font-sans">
@@ -978,66 +1268,34 @@ export const ArticlesView: React.FC = () => {
                     <th className="px-4 py-3">Type de Lame / Élément</th>
                     <th className="px-4 py-3 min-w-[200px]">Description & Usage</th>
                     <th className="px-3 py-3 text-center">Unité</th>
-                    <th className="px-3 py-3 text-right">Blanc</th>
-                    <th className="px-3 py-3 text-right">Gris</th>
-                    <th className="px-3 py-3 text-right">Noir 9005</th>
-                    <th className="px-3 py-3 text-right">Effet Bois</th>
-                    <th className="px-3 py-3 text-right">Bronze</th>
+                    <th className="px-3 py-3 text-right">Blanc (DT)</th>
+                    <th className="px-3 py-3 text-right">Gris (DT)</th>
+                    <th className="px-3 py-3 text-right">Noir (DT)</th>
+                    <th className="px-3 py-3 text-right">Effet Bois (DT)</th>
+                    <th className="px-3 py-3 text-right">Bronze (DT)</th>
                     <th className="px-3 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-sans">
+                <tbody className="divide-y divide-gray-100 font-mono">
                   {storeItems.map(item => {
-                    const tva = settings.tva_default;
-                    const calcTtc = (ht: number) => Math.round(ht * (1 + tva / 100) * 1000) / 1000;
                     return (
                       <tr key={item.key} className="hover:bg-blue-50/40 transition">
-                        <td className="px-4 py-3 font-bold text-gray-900">
-                          {item.label}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 text-xs">{item.description}</td>
-                        <td className="px-3 py-3 text-center">
-                          <span className="text-xs font-mono font-bold px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md">
-                            {item.unit}
-                          </span>
-                        </td>
-                        {item.hasColors ? (
-                          <>
-                            {/* Blanc */}
-                            <td className="px-3 py-3 text-right font-mono">
-                              <div className="font-bold text-gray-900">{(item.prices.blanc || 0).toFixed(3)}</div>
-                              <div className="text-[10px] text-blue-600 font-semibold">{calcTtc(item.prices.blanc || 0).toFixed(3)}</div>
+                        <td className="px-4 py-3 font-bold text-gray-900 font-sans">{item.label}</td>
+                        <td className="px-4 py-3 font-sans text-xs text-gray-600">{item.description}</td>
+                        <td className="px-3 py-3 text-center font-bold text-gray-500 font-sans">{item.unit}</td>
+                        
+                        {(['blanc', 'gris', 'noir', 'effet_bois', 'bronze'] as const).map(c => {
+                          const htVal = item.prices[c];
+                          const ttc = Math.round(htVal * (1 + settings.tva_default / 100) * 1000) / 1000;
+                          return (
+                            <td key={c} className="px-3 py-3 text-right">
+                              <div className="font-semibold text-gray-900">{htVal.toFixed(3)}</div>
+                              <div className="text-[10px] text-blue-600 font-medium">{ttc.toFixed(3)} TTC</div>
                             </td>
-                            {/* Gris */}
-                            <td className="px-3 py-3 text-right font-mono">
-                              <div className="font-bold text-gray-900">{(item.prices.gris || 0).toFixed(3)}</div>
-                              <div className="text-[10px] text-blue-600 font-semibold">{calcTtc(item.prices.gris || 0).toFixed(3)}</div>
-                            </td>
-                            {/* Noir */}
-                            <td className="px-3 py-3 text-right font-mono">
-                              <div className="font-bold text-gray-900">{(item.prices.noir || 0).toFixed(3)}</div>
-                              <div className="text-[10px] text-blue-600 font-semibold">{calcTtc(item.prices.noir || 0).toFixed(3)}</div>
-                            </td>
-                            {/* Effet Bois */}
-                            <td className="px-3 py-3 text-right font-mono">
-                              <div className="font-bold text-gray-900">{(item.prices.effet_bois || 0).toFixed(3)}</div>
-                              <div className="text-[10px] text-blue-600 font-semibold">{calcTtc(item.prices.effet_bois || 0).toFixed(3)}</div>
-                            </td>
-                            {/* Bronze */}
-                            <td className="px-3 py-3 text-right font-mono">
-                              <div className="font-bold text-gray-900">{(item.prices.bronze || 0).toFixed(3)}</div>
-                              <div className="text-[10px] text-blue-600 font-semibold">{calcTtc(item.prices.bronze || 0).toFixed(3)}</div>
-                            </td>
-                          </>
-                        ) : (
-                          <td colSpan={5} className="px-3 py-3 text-center bg-gray-50/50">
-                            <div className="font-mono font-bold text-gray-900 text-xs">
-                              {(item.prices.blanc || 0).toFixed(3)} DT HT ({calcTtc(item.prices.blanc || 0).toFixed(3)} TTC)
-                            </div>
-                            <div className="text-[10px] text-gray-500 font-sans font-medium">Prix uniforme (Tube acier galvanisé)</div>
-                          </td>
-                        )}
-                        <td className="px-3 py-3 text-center">
+                          );
+                        })}
+
+                        <td className="px-3 py-3 text-center font-sans">
                           <button
                             onClick={() => startEditM2(
                               'stores',
@@ -1049,10 +1307,9 @@ export const ArticlesView: React.FC = () => {
                               item.hasColors,
                               item.prices
                             )}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition cursor-pointer border border-blue-200"
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
                           >
-                            <Edit3 className="w-3 h-3" />
-                            <span>Modifier</span>
+                            Modifier
                           </button>
                         </td>
                       </tr>
@@ -1074,11 +1331,11 @@ export const ArticlesView: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-900">
                     🦟 Moustiquaires (au m²)
                   </h3>
-                  <p className="text-xs text-gray-500">Tarifs au mètre carré selon le mécanisme et modèle de moustiquaire</p>
+                  <p className="text-xs text-gray-500">Tarifs standards par mètre carré pour les moustiquaires intégrées et autonomes</p>
                 </div>
               </div>
               <span className="text-xs text-emerald-700 font-semibold bg-emerald-100/70 px-2.5 py-1 rounded-lg">
-                4 modèles
+                {moustiItems.length} types disponibles
               </span>
             </div>
 
@@ -1086,47 +1343,30 @@ export const ArticlesView: React.FC = () => {
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
-                    <th className="px-4 py-3">Type de Moustiquaire</th>
-                    <th className="px-4 py-3 min-w-[240px]">Description & Usage</th>
+                    <th className="px-4 py-3">Modèle de Moustiquaire</th>
+                    <th className="px-4 py-3 min-w-[250px]">Description & Caractéristiques</th>
                     <th className="px-3 py-3 text-center">Unité</th>
-                    <th className="px-4 py-3 text-right">Prix HT (DT)</th>
-                    <th className="px-4 py-3 text-right text-emerald-700">Prix TTC (DT)</th>
+                    <th className="px-3 py-3 text-right">Prix HT Usine</th>
+                    <th className="px-3 py-3 text-right text-blue-700">Prix TTC Calculé</th>
                     <th className="px-3 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-sans">
+                <tbody className="divide-y divide-gray-100 font-mono">
                   {moustiItems.map(item => {
                     const ttc = Math.round(item.ht * (1 + settings.tva_default / 100) * 1000) / 1000;
-                    const isCustom = item.ht !== item.defaultHt;
                     return (
                       <tr key={item.key} className="hover:bg-emerald-50/40 transition">
-                        <td className="px-4 py-3 font-bold text-gray-900 flex items-center gap-2">
-                          <span>{item.label}</span>
-                          {isCustom && (
-                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300">
-                              Personnalisé
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 text-xs">{item.description}</td>
-                        <td className="px-3 py-3 text-center">
-                          <span className="text-xs font-mono font-bold px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md">
-                            {item.unit}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-gray-900 text-sm">
-                          {item.ht.toFixed(3)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-emerald-700 text-sm">
-                          {ttc.toFixed(3)}
-                        </td>
-                        <td className="px-3 py-3 text-center">
+                        <td className="px-4 py-3 font-bold text-gray-900 font-sans">{item.label}</td>
+                        <td className="px-4 py-3 font-sans text-xs text-gray-600">{item.description}</td>
+                        <td className="px-3 py-3 text-center font-bold text-gray-500 font-sans">{item.unit}</td>
+                        <td className="px-3 py-3 text-right font-semibold text-gray-900">{item.ht.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-right font-bold text-blue-700">{ttc.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-center font-sans">
                           <button
                             onClick={() => startEditM2('moustiquaires', item.key, item.label, item.ht, item.unit, item.description)}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold transition cursor-pointer border border-emerald-200"
+                            className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 hover:underline cursor-pointer"
                           >
-                            <Edit3 className="w-3 h-3" />
-                            <span>Modifier</span>
+                            Modifier
                           </button>
                         </td>
                       </tr>
@@ -1137,22 +1377,22 @@ export const ArticlesView: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 3: Vitrages & Panneaux */}
+          {/* Card 3: Vitrages & Remplissages */}
           <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-200 bg-gradient-to-r from-purple-50/80 to-slate-50 flex items-center justify-between">
+            <div className="px-5 py-3.5 border-b border-gray-200 bg-gradient-to-r from-cyan-50/80 to-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-purple-600/10 text-purple-700 rounded-lg">
-                  <SlidersHorizontal className="w-4 h-4" />
+                <div className="p-1.5 bg-cyan-600/10 text-cyan-700 rounded-lg">
+                  <Layers className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">
-                    🪟 Vitrages, Panneaux & Remplissages (au m²)
+                    🪟 Vitrages & Panneaux de Remplissage (au m²)
                   </h3>
-                  <p className="text-xs text-gray-500">Tarifs au mètre carré pour le simple vitrage, teinté, stop-sol, panneaux PVC et MDF</p>
+                  <p className="text-xs text-gray-500">Tarifs au mètre carré appliqués lors du chiffrage des châssis et ouvrants</p>
                 </div>
               </div>
-              <span className="text-xs text-purple-700 font-semibold bg-purple-100/70 px-2.5 py-1 rounded-lg">
-                {REMPLISSAGES.length} remplissages
+              <span className="text-xs text-cyan-700 font-semibold bg-cyan-100/70 px-2.5 py-1 rounded-lg">
+                {vitrageItems.length} types de vitrage
               </span>
             </div>
 
@@ -1160,48 +1400,30 @@ export const ArticlesView: React.FC = () => {
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
-                    <th className="px-4 py-3">Référence</th>
-                    <th className="px-4 py-3 min-w-[240px]">Désignation / Verre</th>
+                    <th className="px-4 py-3">Type de Vitrage / Remplissage</th>
+                    <th className="px-4 py-3 min-w-[250px]">Description & Isolation</th>
                     <th className="px-3 py-3 text-center">Unité</th>
-                    <th className="px-4 py-3 text-right">Prix HT (DT)</th>
-                    <th className="px-4 py-3 text-right text-purple-700">Prix TTC (DT)</th>
+                    <th className="px-3 py-3 text-right">Prix HT (m²)</th>
+                    <th className="px-3 py-3 text-right text-blue-700">Prix TTC (m²)</th>
                     <th className="px-3 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-sans">
-                  {REMPLISSAGES.map(remp => {
-                    const currentHt = settings.m2_prices?.vitrages?.[remp.id] ?? remp.pricePerM2;
-                    const ttc = Math.round(currentHt * (1 + settings.tva_default / 100) * 1000) / 1000;
-                    const isCustom = currentHt !== remp.pricePerM2;
+                <tbody className="divide-y divide-gray-100 font-mono">
+                  {vitrageItems.map(item => {
+                    const ttc = Math.round(item.ht * (1 + settings.tva_default / 100) * 1000) / 1000;
                     return (
-                      <tr key={remp.id} className="hover:bg-purple-50/40 transition">
-                        <td className="px-4 py-3 font-mono font-bold text-gray-500 text-xs">{remp.id}</td>
-                        <td className="px-4 py-3 font-bold text-gray-900 flex items-center gap-2">
-                          <span>{remp.label}</span>
-                          {isCustom && (
-                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300">
-                              Personnalisé
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className="text-xs font-mono font-bold px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md">
-                            m²
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-gray-900 text-sm">
-                          {currentHt.toFixed(3)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-purple-700 text-sm">
-                          {ttc.toFixed(3)}
-                        </td>
-                        <td className="px-3 py-3 text-center">
+                      <tr key={item.key} className="hover:bg-cyan-50/40 transition">
+                        <td className="px-4 py-3 font-bold text-gray-900 font-sans">{item.label}</td>
+                        <td className="px-4 py-3 font-sans text-xs text-gray-600">{item.description}</td>
+                        <td className="px-3 py-3 text-center font-bold text-gray-500 font-sans">{item.unit}</td>
+                        <td className="px-3 py-3 text-right font-semibold text-gray-900">{item.ht.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-right font-bold text-blue-700">{ttc.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-center font-sans">
                           <button
-                            onClick={() => startEditM2('vitrages', remp.id, remp.label, currentHt, 'm²')}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold transition cursor-pointer border border-purple-200"
+                            onClick={() => startEditM2('vitrages', item.key, item.label, item.ht, item.unit, item.description)}
+                            className="text-xs font-semibold text-cyan-600 hover:text-cyan-800 hover:underline cursor-pointer"
                           >
-                            <Edit3 className="w-3 h-3" />
-                            <span>Modifier</span>
+                            Modifier
                           </button>
                         </td>
                       </tr>
@@ -1212,7 +1434,7 @@ export const ArticlesView: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 4: Finitions & Double Vitrage */}
+          {/* Card 4: Motifs & Croisillons Décoratifs */}
           <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-200 bg-gradient-to-r from-amber-50/80 to-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1221,13 +1443,13 @@ export const ArticlesView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">
-                    ✨ Finitions, Motifs & Traitement Verre (au m²)
+                    ✨ Motifs, Croisillons & Finitions Décoratives (au m²)
                   </h3>
-                  <p className="text-xs text-gray-500">Suppléments au mètre carré pour le double vitrage gaz argon, sablage, verre feuilleté et sécurité</p>
+                  <p className="text-xs text-gray-500">Suppléments décoratifs au m² ajoutés aux devis</p>
                 </div>
               </div>
               <span className="text-xs text-amber-700 font-semibold bg-amber-100/70 px-2.5 py-1 rounded-lg">
-                {MOTIFS.length} finitions
+                {motifItems.length} finitions
               </span>
             </div>
 
@@ -1235,53 +1457,169 @@ export const ArticlesView: React.FC = () => {
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
-                    <th className="px-4 py-3">Référence</th>
-                    <th className="px-4 py-3 min-w-[240px]">Désignation / Finition</th>
+                    <th className="px-4 py-3">Type de Finition / Motif</th>
+                    <th className="px-4 py-3 min-w-[250px]">Description</th>
                     <th className="px-3 py-3 text-center">Unité</th>
-                    <th className="px-4 py-3 text-right">Supplément HT (DT)</th>
-                    <th className="px-4 py-3 text-right text-amber-700">Supplément TTC (DT)</th>
+                    <th className="px-3 py-3 text-right">Supplément HT (m²)</th>
+                    <th className="px-3 py-3 text-right text-blue-700">Supplément TTC (m²)</th>
                     <th className="px-3 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-sans">
-                  {MOTIFS.map(motif => {
-                    const currentHt = settings.m2_prices?.motifs?.[motif.id] ?? motif.pricePerM2;
-                    const ttc = Math.round(currentHt * (1 + settings.tva_default / 100) * 1000) / 1000;
-                    const isCustom = currentHt !== motif.pricePerM2;
+                <tbody className="divide-y divide-gray-100 font-mono">
+                  {motifItems.map(item => {
+                    const ttc = Math.round(item.ht * (1 + settings.tva_default / 100) * 1000) / 1000;
                     return (
-                      <tr key={motif.id} className="hover:bg-amber-50/40 transition">
-                        <td className="px-4 py-3 font-mono font-bold text-gray-500 text-xs">{motif.id}</td>
-                        <td className="px-4 py-3 font-bold text-gray-900 flex items-center gap-2">
-                          <span>{motif.label}</span>
-                          {isCustom && (
-                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300">
-                              Personnalisé
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className="text-xs font-mono font-bold px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md">
-                            m²
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-gray-900 text-sm">
-                          {currentHt.toFixed(3)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-amber-700 text-sm">
-                          {ttc.toFixed(3)}
-                        </td>
-                        <td className="px-3 py-3 text-center">
+                      <tr key={item.key} className="hover:bg-amber-50/40 transition">
+                        <td className="px-4 py-3 font-bold text-gray-900 font-sans">{item.label}</td>
+                        <td className="px-4 py-3 font-sans text-xs text-gray-600">{item.description}</td>
+                        <td className="px-3 py-3 text-center font-bold text-gray-500 font-sans">{item.unit}</td>
+                        <td className="px-3 py-3 text-right font-semibold text-gray-900">{item.ht.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-right font-bold text-blue-700">{ttc.toFixed(3)} DT</td>
+                        <td className="px-3 py-3 text-center font-sans">
                           <button
-                            onClick={() => startEditM2('motifs', motif.id, motif.label, currentHt, 'm²')}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition cursor-pointer border border-amber-200"
+                            onClick={() => startEditM2('motifs', item.key, item.label, item.ht, item.unit, item.description)}
+                            className="text-xs font-semibold text-amber-600 hover:text-amber-800 hover:underline cursor-pointer"
                           >
-                            <Edit3 className="w-3 h-3" />
-                            <span>Modifier</span>
+                            Modifier
                           </button>
                         </td>
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW C: Accessoires & Quincaillerie Table                                  */}
+      {/* ========================================================================= */}
+      {activeTab === 'accessoires' && (
+        <div className="space-y-4">
+          {/* Subcategory Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {accCategories.map(cat => {
+              const count = cat.id === 'all' 
+                ? accessories.length 
+                : accessories.filter(a => a.categorie === cat.id).length;
+              const isSelected = selectedAccCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedAccCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    isSelected 
+                      ? 'bg-purple-600 text-white shadow-xs' 
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-purple-50 hover:text-purple-700'
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-200 bg-gradient-to-r from-purple-50/80 to-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-purple-600/10 text-purple-700 rounded-lg">
+                  <Wrench className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">
+                    🔩 Quincaillerie, Serrures, Crémones & Kits Atelier
+                  </h3>
+                  <p className="text-xs text-gray-500">Tarifs unitaires et stocks des accessoires utilisés dans les débits et calculs de prix</p>
+                </div>
+              </div>
+              <span className="text-xs text-purple-700 font-semibold bg-purple-100/70 px-2.5 py-1 rounded-lg">
+                {filteredAccessories.length} accessoire(s)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
+                  <tr>
+                    <th className="px-4 py-3">Code / Réf</th>
+                    <th className="px-4 py-3 min-w-[220px]">Désignation de l'accessoire</th>
+                    <th className="px-3 py-3 text-center">Catégorie</th>
+                    <th className="px-3 py-3 text-center">Unité</th>
+                    <th className="px-3 py-3 text-center">Stock</th>
+                    <th className="px-3 py-3 text-right">Prix Unitaire HT</th>
+                    <th className="px-3 py-3 text-right text-blue-700">Prix TTC Calculé</th>
+                    <th className="px-3 py-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 font-mono">
+                  {filteredAccessories.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-gray-400 font-sans text-sm">
+                        Aucun accessoire trouvé pour cette catégorie ou recherche
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAccessories.map(acc => {
+                      const ttc = Math.round((acc.prix_unitaire_ht || 0) * (1 + settings.tva_default / 100) * 1000) / 1000;
+                      const inStock = acc.stock_qty !== undefined && acc.stock_qty > 0;
+                      const stockDefined = acc.stock_qty !== undefined;
+
+                      return (
+                        <tr key={acc.id} className="hover:bg-purple-50/40 transition">
+                          <td className="px-4 py-3 font-bold text-gray-900 font-mono">{acc.id}</td>
+                          <td className="px-4 py-3 font-sans">
+                            <div className="font-bold text-gray-900">{acc.nom}</div>
+                            {acc.description && (
+                              <div className="text-xs text-gray-500 font-normal">{acc.description}</div>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 text-center font-sans">
+                            {getAccCategoryBadge(acc.categorie)}
+                          </td>
+                          <td className="px-3 py-3 text-center font-bold text-gray-500 font-sans">
+                            {acc.unite}
+                          </td>
+                          <td className="px-3 py-3 text-center font-sans">
+                            {!stockDefined ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200">
+                                <Package className="w-3 h-3" /> —
+                              </span>
+                            ) : inStock ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <Package className="w-3 h-3" /> {acc.stock_qty}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200 animate-pulse">
+                                <AlertTriangle className="w-3 h-3" /> Cmd
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 text-right font-semibold text-gray-900">
+                            {(acc.prix_unitaire_ht || 0).toFixed(3)} DT
+                          </td>
+                          <td className="px-3 py-3 text-right font-bold text-blue-700">
+                            {ttc.toFixed(3)} DT
+                          </td>
+                          <td className="px-3 py-3 text-center font-sans">
+                            <button
+                              onClick={() => startEditAcc(acc)}
+                              className="text-xs font-semibold text-purple-600 hover:text-purple-800 hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Modifier</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1418,7 +1756,7 @@ export const ArticlesView: React.FC = () => {
             </div>
 
             <p className="text-xs text-gray-600 leading-relaxed">
-              Voulez-vous restaurer les prix officiels par défaut pour tous les <strong>{articles.length} profilés aluminium</strong> ? Toutes vos modifications manuelles sur les prix et le stock seront réinitialisées aux valeurs constructeur.
+              Cette action écrasera toutes vos modifications manuelles de prix et de stocks sur les <span className="font-bold">{articles.length} profilés aluminium</span> et rétablira les valeurs du catalogue par défaut.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
@@ -1432,9 +1770,10 @@ export const ArticlesView: React.FC = () => {
               <button
                 type="button"
                 onClick={confirmResetCatalog}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
               >
-                Oui, restaurer
+                <RotateCcw className="w-4 h-4" />
+                <span>Confirmer la réinitialisation</span>
               </button>
             </div>
           </div>
@@ -1442,7 +1781,7 @@ export const ArticlesView: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: Reset M² Surfaces to Default Modal                               */}
+      {/* MODAL 3: Reset M² Surfaces to Factory Modal                               */}
       {/* ========================================================================= */}
       {resetM2ModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
@@ -1452,13 +1791,13 @@ export const ArticlesView: React.FC = () => {
                 <RotateCcw className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900">Restaurer les prix standards au m² ?</h3>
-                <p className="text-xs text-gray-500">Vitrages, Volets Roulants et Moustiquaires</p>
+                <h3 className="text-base font-bold text-gray-900">Réinitialiser les tarifs M² ?</h3>
+                <p className="text-xs text-gray-500">Stores, Moustiquaires, Vitrages & Finitions</p>
               </div>
             </div>
 
             <p className="text-xs text-gray-600 leading-relaxed">
-              Voulez-vous restaurer les tarifs de référence standards pour tous les <strong>volets roulants, moustiquaires, vitrages et finitions au m²</strong> ?
+              Êtes-vous sûr de vouloir restaurer les tarifs au mètre carré d'usine pour les lames de stores, coffres, axes, moustiquaires et vitrages ?
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
@@ -1472,9 +1811,10 @@ export const ArticlesView: React.FC = () => {
               <button
                 type="button"
                 onClick={confirmResetM2}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
               >
-                Oui, restaurer
+                <RotateCcw className="w-4 h-4" />
+                <span>Restaurer les prix M²</span>
               </button>
             </div>
           </div>
@@ -1482,15 +1822,18 @@ export const ArticlesView: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 4: Edit Single Aluminium Bar                                        */}
+      {/* MODAL 4: Edit Single Aluminium Article                                    */}
       {/* ========================================================================= */}
       {editingArticle && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Modifier les prix : {editingArticle.reference}</h3>
-                <p className="text-xs text-gray-500">{editingArticle.description}</p>
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5">
+                  <Edit3 className="w-4 h-4 text-blue-600" />
+                  <span>Modifier la référence : {editingArticle.reference}</span>
+                </h3>
+                <p className="text-xs text-gray-500 font-medium">{editingArticle.description}</p>
               </div>
               <button 
                 onClick={() => setEditingArticle(null)}
@@ -1501,28 +1844,29 @@ export const ArticlesView: React.FC = () => {
             </div>
 
             <div className="space-y-3">
+              <div className="text-xs font-semibold text-gray-700">Tarifs HT par couleur (la barre) :</div>
               {[
-                { key: 'blanc', label: 'Blanc (Laqué)' },
-                { key: 'gris', label: 'Gris (Laqué)' },
-                { key: 'noir', label: 'Noir 9005' },
+                { key: 'blanc', label: 'Blanc' },
+                { key: 'gris', label: 'Gris' },
+                { key: 'noir', label: 'Noir' },
                 { key: 'couleur_mat', label: 'Couleur Mat' },
                 { key: 'couleur_givre', label: 'Couleur Givré' }
               ].map(c => {
-                const ht = editPrices[c.key] || 0;
-                const ttc = Math.round(ht * (1 + settings.tva_default / 100) * 1000) / 1000;
+                const htVal = editPrices[c.key] || 0;
+                const ttc = Math.round(htVal * (1 + settings.tva_default / 100) * 1000) / 1000;
                 return (
-                  <div key={c.key} className="grid grid-cols-2 items-center gap-3">
-                    <label className="text-xs font-medium text-gray-700">{c.label} (HT) :</label>
+                  <div key={c.key} className="grid grid-cols-2 items-center gap-3 bg-gray-50/70 p-2 rounded-xl border border-gray-100">
+                    <label className="text-xs font-medium text-gray-700">{c.label} :</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        value={editPrices[c.key] || ''}
-                        onChange={e => setEditPrices({ ...editPrices, [c.key]: parseFloat(e.target.value) || 0 })}
+                        value={editPrices[c.key] !== undefined ? editPrices[c.key] : ''}
+                        onChange={e => setEditPrices(prev => ({ ...prev, [c.key]: parseFloat(e.target.value) || 0 }))}
                         step="0.001"
                         min="0"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 bg-white"
                       />
-                      <span className="text-[11px] text-blue-600 font-mono shrink-0">
+                      <span className="text-[11px] text-blue-600 font-mono font-semibold shrink-0">
                         {ttc.toFixed(3)} TTC
                       </span>
                     </div>
@@ -1530,23 +1874,25 @@ export const ArticlesView: React.FC = () => {
                 );
               })}
 
-              {/* Stock Qty */}
-              <div className="border-t border-gray-100 pt-3">
-                <div className="grid grid-cols-2 items-center gap-3">
-                  <label className="text-xs font-semibold text-gray-800 flex items-center gap-1.5">
-                    <Package className="w-3.5 h-3.5 text-gray-500" />
-                    Stock (barres) :
+              {/* Stock Quantity */}
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-3 space-y-2 mt-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-blue-600" />
+                    <span>Quantité en stock (barres disponibles) :</span>
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={editStockQty}
-                      onChange={e => setEditStockQty(e.target.value)}
-                      placeholder="Non défini"
-                      min="0"
-                      step="1"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-emerald-500"
-                    />
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={editStockQty}
+                    onChange={e => setEditStockQty(e.target.value)}
+                    placeholder="Laisser vide si non suivi"
+                    min="0"
+                    step="1"
+                    className="w-36 bg-white border border-blue-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center gap-1.5 text-xs">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                       editStockQty === '' ? 'bg-gray-100 text-gray-400'
                       : parseInt(editStockQty) > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -1692,6 +2038,305 @@ export const ArticlesView: React.FC = () => {
               >
                 <Check className="w-4 h-4" />
                 <span>Enregistrer le prix</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 6: Simulation & Preview Confirmation for Accessoires                */}
+      {/* ========================================================================= */}
+      {previewAccModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${bulkAccDirection === 'increase' ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-700'}`}>
+                  {bulkAccDirection === 'increase' ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    Confirmation de la simulation des accessoires & quincaillerie
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Vérifiez les nouveaux prix avant d'appliquer la mise à jour
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setPreviewAccModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Summary Box */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div>
+                  <span className="text-gray-500 block">Opération :</span>
+                  <span className={`font-bold ${bulkAccDirection === 'increase' ? 'text-purple-600' : 'text-rose-600'}`}>
+                    {bulkAccDirection === 'increase' ? 'Augmentation (+)' : 'Diminution (-)'} {bulkAccValue}{bulkAccMode === 'percent' ? '%' : ' DT'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Catégorie :</span>
+                  <span className="font-bold text-gray-800">
+                    {accCategories.find(c => c.id === bulkAccCategory)?.label || bulkAccCategory}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block">Articles affectés :</span>
+                  <span className="font-bold text-purple-600">{affectedAccessories.length} accessoires</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Sample Previews */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-gray-700">Aperçu direct sur quelques exemples :</h4>
+              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-gray-100 text-gray-600 font-sans font-semibold sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2">Code & Nom</th>
+                      <th className="px-2 py-2">Catégorie</th>
+                      <th className="px-3 py-2 text-right">Ancien HT</th>
+                      <th className="px-3 py-2 text-right text-purple-600">Nouveau HT</th>
+                      <th className="px-3 py-2 text-right text-blue-600">Nouveau TTC</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 font-sans">
+                    {previewAccSamples.map(sample => (
+                      <tr key={sample.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-bold text-gray-900">
+                          {sample.nom}
+                          <span className="block text-[10px] font-mono text-gray-500">{sample.id}</span>
+                        </td>
+                        <td className="px-2 py-2 text-gray-700">
+                          {getAccCategoryBadge(sample.categorie)}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono text-gray-500">{sample.origHt.toFixed(3)} DT</td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-purple-700">{sample.newHt.toFixed(3)} DT</td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-blue-700">{sample.newTtc.toFixed(3)} DT</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setPreviewAccModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmApplyBulkAcc}
+                className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                <span>Confirmer et enregistrer</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 7: Reset Accessoires to Factory Modal                               */}
+      {/* ========================================================================= */}
+      {resetAccModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center gap-3 text-purple-600">
+              <div className="p-2.5 bg-purple-100 rounded-xl">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Restaurer les accessoires d'usine ?</h3>
+                <p className="text-xs text-gray-500">Kits, serrures, crémones, joints et moteurs</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Cette action restaurera les prix d'origine et réinitialisera les stocks pour l'ensemble des <span className="font-bold">{accessories.length} articles de quincaillerie</span>.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setResetAccModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmResetAccCatalog}
+                className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Confirmer la réinitialisation</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 8: Edit Single Accessoire Price & Stock                              */}
+      {/* ========================================================================= */}
+      {editingAccessory && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5">
+                  <Edit3 className="w-4 h-4 text-purple-600" />
+                  <span>Modifier l'accessoire</span>
+                </h3>
+                <p className="text-xs text-gray-500 font-mono font-medium">{editingAccessory.id} — {editingAccessory.nom}</p>
+              </div>
+              <button 
+                onClick={() => setEditingAccessory(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {editingAccessory.description && (
+              <p className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                {editingAccessory.description}
+              </p>
+            )}
+
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Prix Unitaire HT (DT par {editingAccessory.unite}) :
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={editAccPrice}
+                    onChange={e => setEditAccPrice(e.target.value)}
+                    step="0.001"
+                    min="0"
+                    autoFocus
+                    className="w-full border border-gray-300 rounded-xl pl-3 pr-16 py-2.5 text-sm font-mono font-bold focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="absolute right-3 top-2.5 text-gray-500 text-xs font-bold">
+                    DT / {editingAccessory.unite}
+                  </span>
+                </div>
+              </div>
+
+              {/* Live TTC Preview */}
+              {(() => {
+                const val = parseFloat(editAccPrice) || 0;
+                const ttc = Math.round(val * (1 + settings.tva_default / 100) * 1000) / 1000;
+                return (
+                  <div className="bg-purple-50/80 border border-purple-200 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <span className="text-purple-900 font-medium">Prix TTC calculé (TVA {settings.tva_default}%) :</span>
+                    <span className="text-sm font-mono font-bold text-purple-700">{ttc.toFixed(3)} DT</span>
+                  </div>
+                );
+              })()}
+
+              {/* Stock input */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <label className="block text-xs font-bold text-gray-700">
+                  Quantité en stock ({editingAccessory.unite}s) :
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={editAccStock}
+                    onChange={e => setEditAccStock(e.target.value)}
+                    placeholder="Laisser vide si non suivi"
+                    min="0"
+                    step="1"
+                    className="w-36 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    editAccStock === '' ? 'bg-gray-100 text-gray-400'
+                    : parseInt(editAccStock) > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-orange-50 text-orange-600 border border-orange-200'
+                  }`}>
+                    {editAccStock === '' ? 'Non suivi' : parseInt(editAccStock) > 0 ? 'En stock' : 'À commander'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setEditingAccessory(null)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={saveAccEdit}
+                className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                <span>Enregistrer l'accessoire</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Cross-Section Zoom Modal */}
+      {zoomProfil && (
+        <div
+          onClick={() => setZoomProfil(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100 flex flex-col items-center"
+          >
+            <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <span className="font-mono font-bold text-gray-900 text-sm">{zoomProfil}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setZoomProfil(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="w-full h-72 p-4 bg-gray-50/60 rounded-xl flex items-center justify-center border border-gray-200/60">
+              <img
+                src={getProfileImageUrl(zoomProfil)!}
+                alt={`Coupe ${zoomProfil}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+            <div className="mt-4 w-full flex items-center justify-between">
+              <span className="text-[11px] text-gray-400">Coupe technique du profil</span>
+              <button
+                type="button"
+                onClick={() => setZoomProfil(null)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                Fermer
               </button>
             </div>
           </div>

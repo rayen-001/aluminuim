@@ -351,7 +351,7 @@ export const SettingsView: React.FC = () => {
                 </span>
                 {s40Ouvrant === '40404' && (
                   <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
-                    ⭐ Ouvrant Monobloc (Parclose intégrée)
+                    Parclose intégrée
                   </span>
                 )}
               </div>
@@ -379,7 +379,7 @@ export const SettingsView: React.FC = () => {
                     className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="40401">40401 — Ouvrant standard</option>
-                    <option value="40404">40404 — Ouvrant monobloc (Sans parclose)</option>
+                    <option value="40404">40404 — Ouvrant avec parclose intégrée</option>
                     <option value="40150">40150 — Ouvrant porte</option>
                     <option value="40403">40403 — Ouvrant arrondi</option>
                   </select>
@@ -387,7 +387,7 @@ export const SettingsView: React.FC = () => {
 
                 <div>
                   <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                    Parclose {s40Ouvrant === '40404' ? '(Désactivée car Monobloc)' : 'par défaut'}
+                    Parclose {s40Ouvrant === '40404' ? '(Parclose intégrée)' : 'par défaut'}
                   </label>
                   <select
                     disabled={s40Ouvrant === '40404'}

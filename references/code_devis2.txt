@@ -1,0 +1,2236 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="CoK4BKCKTTIhz2NACHOz92J0MImT29OmJd3u2Asw">
+    <title>Nouveau Devis Aluminium - AtelierPro</title>
+    <link rel="icon" href="/icon-192.png" type="image/png">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AtelierPro">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+
+    <link rel="preload" as="style" href="https://atelierpro.vortech-x.com/build/assets/app-BK-PA_9S.css" /><link rel="modulepreload" as="script" href="https://atelierpro.vortech-x.com/build/assets/app-CAiCLEjY.js" /><link rel="stylesheet" href="https://atelierpro.vortech-x.com/build/assets/app-BK-PA_9S.css" /><script type="module" src="https://atelierpro.vortech-x.com/build/assets/app-CAiCLEjY.js"></script>    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Styles d'impression */
+        @media print {
+            /* Masquer tout le chrome de l'application */
+            aside, header, .no-print {
+                display: none !important;
+            }
+
+            /* Reset du body */
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Container principal prend toute la page */
+            .flex.h-screen {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* Main content prend toute la largeur */
+            .flex-1.flex.flex-col {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* Contenu de la page */
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* S'assurer que le contenu du bulletin est visible */
+            .bulletin-content {
+                display: block !important;
+                visibility: visible !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 antialiased">
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+
+        <!-- Mobile menu button -->
+        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-900 text-white rounded-lg shadow-lg">
+            <svg x-show="!sidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <svg x-show="sidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <!-- Sidebar overlay for mobile -->
+        <div x-show="sidebarOpen"
+             x-cloak
+             @click="sidebarOpen = false"
+             class="lg:hidden fixed inset-0 bg-black/40 z-30"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="backdrop-filter: blur(2px);"></div>
+
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-blue-900 to-indigo-900 text-white flex-shrink-0 fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0" :class="{ '-translate-x-full lg:translate-x-0': !sidebarOpen, 'translate-x-0': sidebarOpen }" x-data="{ open: true }">
+            <div class="flex flex-col h-full">
+
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-20 border-b border-blue-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold">AtelierPro</h1>
+                            <p class="text-xs text-blue-200">Gestion Atelier</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+
+                    <!-- Dashboard -->
+                    <a href="https://atelierpro.vortech-x.com/dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="font-medium">Tableau de bord</span>
+                    </a>
+
+                    <!-- Module Aluminium -->
+                    <div x-data="{ open: true }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 rounded-lg transition duration-200 bg-white/20 shadow-lg">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                                </svg>
+                                <span class="font-medium">Aluminium</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="ml-4 mt-1 space-y-1">
+                            <a href="https://atelierpro.vortech-x.com/alum/devis" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 bg-white/20">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Devis</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/alum/bl" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <span>Bons de Livraison</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/alum/factures" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span>Factures</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/articles" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                                <span>Articles</span>
+                            </a>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Clients -->
+                    <a href="https://atelierpro.vortech-x.com/clients" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="font-medium">Clients</span>
+                    </a>
+
+                    <!-- Fournisseurs -->
+                    <a href="https://atelierpro.vortech-x.com/fournisseurs" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        <span class="font-medium">Fournisseurs</span>
+                    </a>
+
+                    <!-- Module RH -->
+                    <div x-data="{ open: false }" class="space-y-1">
+                        <button @click="open = !open" class="w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="font-medium">RH</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open" x-transition class="ml-4 space-y-1">
+                            <a href="https://atelierpro.vortech-x.com/rh/employees" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Employés</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/advances" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Avances sur Salaire</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/leaves" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Congés</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/payrolls" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Bulletins de Paie</span>
+                            </a>
+                        </div>
+                    </div>
+
+
+                    <!-- Caisse -->
+                    <a href="https://atelierpro.vortech-x.com/caisse" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="font-medium">Gestion Caisse</span>
+                    </a>
+
+
+                    <div class="pt-4 mt-4 border-t border-blue-800">
+                        <!-- Rapport Caisse -->
+
+
+
+
+
+
+
+                        <!-- Settings -->
+                        <a href="https://atelierpro.vortech-x.com/settings" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="font-medium">Paramètres</span>
+                        </a>
+
+                        
+                    </div>
+                </nav>
+
+                <!-- Liens légaux -->
+                <div class="px-4 pt-3 text-center text-xs text-blue-200 space-y-1">
+                    <div>
+                        <button type="button" onclick="document.getElementById('cguModal').classList.remove('hidden')" class="text-red-300 hover:text-red-100 underline">Conditions générales d'utilisation</button>
+                    </div>
+                    <div>
+                        <button type="button" onclick="document.getElementById('charteModal').classList.remove('hidden')" class="text-red-300 hover:text-red-100 underline">Charte des données &amp; cookies</button>
+                    </div>
+                </div>
+
+                <!-- User Info & Logout -->
+                <div class="px-4 py-4 border-t border-blue-800">
+                    <div class="flex items-center space-x-3 px-4 py-3 bg-white/10 rounded-lg">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-bold">Sy</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">Syma</p>
+                            <p class="text-xs text-blue-200">Administrateur</p>
+                        </div>
+                        <form method="POST" action="https://atelierpro.vortech-x.com/logout">
+                            <input type="hidden" name="_token" value="CoK4BKCKTTIhz2NACHOz92J0MImT29OmJd3u2Asw" autocomplete="off">                            <button type="submit" class="p-2 hover:bg-white/10 rounded-lg transition duration-200" title="Déconnexion">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative z-0">
+
+            <!-- Top Bar -->
+                                                            <header class="bg-gray-50 px-4 sm:px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="ml-12 lg:ml-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Nouveau Devis Aluminium</h2>
+                        <p class="text-xs sm:text-sm text-gray-500">Bienvenue sur AtelierPro</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="pwa-install-btn" onclick="installPWA()"
+                                class="hidden items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Installer l'app
+                        </button>
+                        <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">
+                            <span class="font-medium">jeudi 17 septembre 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+
+                <!-- Flash Messages -->
+                
+                
+                
+                <!-- Page Content -->
+                <div class="p-3 sm:p-6" x-data="devisForm()">
+    <div class="flex items-center space-x-3 mb-4 sm:mb-6">
+        <a href="https://atelierpro.vortech-x.com/alum/devis" class="p-2 hover:bg-gray-100 rounded-lg shrink-0">
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div>
+            <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
+                Nouveau Devis
+            </h1>
+            <p class="text-gray-500 text-xs sm:text-sm mt-0.5">
+                Remplissez les informations du devis
+            </p>
+        </div>
+    </div>
+
+    
+    <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis" x-ref="form" @submit.prevent="submitForm()">
+        <input type="hidden" name="_token" value="CoK4BKCKTTIhz2NACHOz92J0MImT29OmJd3u2Asw" autocomplete="off">
+        <!-- Info Général -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Informations générales</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                    <select name="client_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">— Sans client —</option>
+                                                    <option value="357"
+                                >
+                                Mohsen ben salem
+                            </option>
+                                                    <option value="356"
+                                >
+                                Souhail hertelli
+                            </option>
+                                            </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="date" value="2026-09-17"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea name="notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Remarques..."></textarea>
+            </div>
+        </div>
+
+        <!-- Produits -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800">Produits commandés</h2>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="addItem()"
+                            class="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition duration-200">
+                        <svg class="w-4 h-4 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Ajouter un produit
+                    </button>
+                    <button type="button" @click="addManualItem()"
+                            class="flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition duration-200">
+                        <svg class="w-4 h-4 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Ligne libre
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-4" id="items-container">
+                <template x-for="(item, index) in items" :key="item._uid">
+                    <div :id="'devis-item-' + item._uid">
+                        
+                        <template x-if="item.is_manual">
+                            <div class="border border-purple-300 rounded-lg p-3 sm:p-4 bg-purple-50 relative">
+                                <div class="absolute top-3 right-3 flex items-center gap-2">
+                                    <button type="button" @click="duplicateItem(index)"
+                                            class="text-orange-400 hover:text-orange-600 transition" title="Dupliquer">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" @click="removeItem(index)"
+                                            class="text-red-400 hover:text-red-600 transition"
+                                            x-show="items.length > 1">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="font-medium text-purple-700 mb-3 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    Ligne libre <span x-text="index + 1"></span>
+                                </div>
+                                <input type="hidden" :name="'items[' + index + '][is_manual]'" value="1">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Nom du produit <span class="text-red-500">*</span></label>
+                                        <input type="text" :name="'items[' + index + '][manual_nom]'" x-model="item.manual_nom"
+                                               placeholder="Ex: Porte blindée, Serrure, Quincaillerie..."
+                                               :class="item._showErrors && !item.manual_nom ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Désignation / Description</label>
+                                        <input type="text" :name="'items[' + index + '][manual_designation]'" x-model="item.manual_designation"
+                                               placeholder="Détails, dimensions, couleur..."
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Hauteur (cm)</label>
+                                        <input type="number" :name="'items[' + index + '][hauteur]'" x-model="item.hauteur"
+                                               min="0" step="0.01" placeholder="Optionnel"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Largeur (cm)</label>
+                                        <input type="number" :name="'items[' + index + '][largeur]'" x-model="item.largeur"
+                                               min="0" step="0.01" placeholder="Optionnel"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Quantité <span class="text-red-500">*</span></label>
+                                        <input type="number" :name="'items[' + index + '][quantity]'" x-model="item.quantity"
+                                               min="1" step="1"
+                                               :class="item._showErrors && (!item.quantity || item.quantity < 1) ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Prix unitaire (DT) <span class="text-red-500">*</span></label>
+                                        <input type="number" :name="'items[' + index + '][manual_unit_price]'" x-model="item.manual_unit_price"
+                                               min="0" step="0.001" placeholder="0.000"
+                                               :class="item._showErrors && (item.manual_unit_price === '' || item.manual_unit_price === null || item.manual_unit_price === undefined) ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                        <p class="text-xs text-purple-600 mt-1">⚠ Aucune marge appliquée — inclure votre marge dans ce prix.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        
+                        <template x-if="!item.is_manual">
+                    <div class="border border-gray-200 rounded-lg p-3 sm:p-4 bg-gray-50 relative">
+                        <div class="absolute top-3 right-3 flex items-center gap-2">
+                            <button type="button" @click="duplicateItem(index)"
+                                    class="text-orange-400 hover:text-orange-600 transition" title="Dupliquer ce produit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                            <button type="button" @click="removeItem(index)"
+                                    class="text-red-400 hover:text-red-600 transition"
+                                    x-show="items.length > 1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="font-medium text-gray-700 mb-3" x-text="'Produit ' + (index + 1)"></div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <!-- Famille -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Famille <span class="text-red-500">*</span></label>
+                                <select :name="'items[' + index + '][family_id]'"
+                                        x-model="item.family_id"
+                                        @change="loadTypes(index, item.family_id)"
+                                        :class="item._showErrors && !item.family_id ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    <option value="">— Choisir une famille —</option>
+                                    <optgroup label="TPR">
+                                                                        <option value="50">A la française TPR S40</option>
+                                                                        <option value="51">A la française TPR EX45</option>
+                                                                        <option value="60">Coulissante TPR S67</option>
+                                                                        <option value="61">Coulissante TPR EX60</option>
+                                                                        </optgroup>
+                                    <optgroup label="ALU ECO (PALMA, PRAL...)">
+                                                                        <option value="63">A la française Alu Eco S40</option>
+                                                                        <option value="64">A la française Alu Eco EX45</option>
+                                                                        <option value="65">Coulissante Alu Eco S67</option>
+                                                                        <option value="66">Coulissante Alu Eco EX60</option>
+                                                                        </optgroup>
+                                    <optgroup label="ALUCO">
+                                                                        <option value="52">A la française Aluco SQ40</option>
+                                                                        <option value="62">Coulissante Aluco Square 67</option>
+                                                                        </optgroup>
+                                    <optgroup label="Autres">
+                                                                        <option value="46">Garde Corps</option>
+                                                                        <option value="67">Store Rideaux</option>
+                                                                        <option value="68">Moustiquaire</option>
+                                                                        </optgroup>
+                                </select>
+                            </div>
+
+                            <!-- Type de produit -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Type de produit <span class="text-red-500">*</span></label>
+                                <select :name="'items[' + index + '][product_type_id]'"
+                                        x-model="item.product_type_id"
+                                        @change="loadOptions(index, item.product_type_id)"
+                                        :class="item._showErrors && !item.product_type_id ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                        :disabled="!item.types.length">
+                                    <option value="">— Choisir un type —</option>
+                                    <template x-for="grp in typeGroups(item)" :key="grp.label">
+                                        <optgroup :label="grp.label">
+                                            <template x-for="t in grp.types" :key="t.id">
+                                                <option :value="t.id" x-text="t.label" :selected="String(t.id) === String(item.product_type_id)"></option>
+                                            </template>
+                                        </optgroup>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                            <!-- Hauteur -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Hauteur (cm) <span class="text-red-500">*</span></label>
+                                <input type="number" :name="'items[' + index + '][hauteur]'"
+                                       x-model="item.hauteur" step="0.1" min="1"
+                                       :class="item._showErrors && !item.hauteur ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Ex: 220">
+                            </div>
+                            <!-- Largeur -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Largeur (cm) <span class="text-red-500">*</span></label>
+                                <input type="number" :name="'items[' + index + '][largeur]'"
+                                       x-model="item.largeur" step="0.1" min="1"
+                                       :class="item._showErrors && !item.largeur ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                       class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Ex: 120">
+                            </div>
+                            <!-- Quantité -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Quantité</label>
+                                <input type="number" :name="'items[' + index + '][quantity]'"
+                                       x-model="item.quantity" min="1"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <!-- Couleur -->
+                            <div x-show="!item.is_standalone_store && !item.is_standalone_mousti">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Couleur</label>
+                                <template x-if="!item.is_garde_corps">
+                                    <select :name="'items[' + index + '][couleur]'"
+                                            x-model="item.couleur"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                        <option value="blanc">Laqué Blanc</option>
+                                        <option value="gris">Laqué Gris</option>
+                                        <option value="noir">Laqué Noir 9005</option>
+                                        <option value="couleur_mat">Laqué Couleur Mat</option>
+                                        <option value="couleur_givre">Laqué Couleur Givré</option>
+                                    </select>
+                                </template>
+                                <template x-if="item.is_garde_corps">
+                                    <div>
+                                        <input type="hidden" :name="'items[' + index + '][couleur]'" value="blanc">
+                                        <div class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500">
+                                            Laqué Blanc (fixe)
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- ======================================================= -->
+                        <!-- COMPOSITION (références profilés — TPR S40)             -->
+                        <!-- ======================================================= -->
+                        <div x-show="item.composition" x-cloak class="mb-3 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                            <div class="text-xs font-semibold text-teal-800 mb-2">Composition — références profilés</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Dormant (cadre)</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_dormant_ref"
+                                                @change="item.comp_seuil_ref = (seuilOptions(item)[0] || '')"
+                                                class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                            <template x-for="ref in (item.composition ? item.composition.dormant.options : [])" :key="ref">
+                                                <option :value="ref" x-text="ref" :selected="ref === item.comp_dormant_ref"></option>
+                                            </template>
+                                        </select>
+                                        <!-- Coupe du profilé : affichée seulement si l'image existe, une réf
+                                             sans image ne laisse aucun trou dans le formulaire. -->
+                                        <button type="button" x-show="profilImage(item.comp_dormant_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_dormant_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_dormant_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_dormant_ref)" :alt="'Coupe ' + item.comp_dormant_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="item.composition && !item.composition.coulissant">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Ouvrant</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_ouvrant_ref"
+                                            class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                        <template x-for="ref in (item.composition ? item.composition.ouvrant.options : [])" :key="ref">
+                                            <option :value="ref" x-text="ref" :selected="ref === item.comp_ouvrant_ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.comp_ouvrant_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_ouvrant_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_ouvrant_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_ouvrant_ref)" :alt="'Coupe ' + item.comp_ouvrant_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="seuilOptions(item).length" x-cloak>
+                                    <label class="block text-xs font-medium text-teal-700 mb-1">Seuil bas <span class="text-red-500">*</span></label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_seuil_ref"
+                                            class="grow min-w-0 border border-teal-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                        <template x-for="ref in seuilOptions(item)" :key="ref">
+                                            <option :value="ref" x-text="ref || '— Sans seuil —'" :selected="ref === item.comp_seuil_ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.comp_seuil_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_seuil_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_seuil_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_seuil_ref)" :alt="'Coupe ' + item.comp_seuil_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="showParclose(item)">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Parclose</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_parclose_ref"
+                                            class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                        <template x-for="ref in parcloseOptions(item)" :key="ref">
+                                            <option :value="ref" x-text="ref" :selected="ref === item.comp_parclose_ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.comp_parclose_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_parclose_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_parclose_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_parclose_ref)" :alt="'Coupe ' + item.comp_parclose_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="item.is_porte && hasSerrureTraverseSel(item)">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Traverse</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_traverse_ref"
+                                            class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                        <template x-for="ref in (item.composition ? item.composition.traverse.options : [])" :key="ref">
+                                            <option :value="ref" x-text="ref" :selected="ref === item.comp_traverse_ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.comp_traverse_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_traverse_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_traverse_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_traverse_ref)" :alt="'Coupe ' + item.comp_traverse_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="needsCouvreJoint(item)" x-cloak>
+                                    <label class="block text-xs font-medium text-teal-700 mb-1">Couvre joint <span class="text-red-500">*</span></label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_couvre_joint_ref"
+                                            class="grow min-w-0 border border-teal-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                        <template x-for="ref in (item.composition ? item.composition.couvre_joint.options : [])" :key="ref">
+                                            <option :value="ref" x-text="ref" :selected="ref === item.comp_couvre_joint_ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.comp_couvre_joint_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_couvre_joint_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_couvre_joint_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_couvre_joint_ref)" :alt="'Coupe ' + item.comp_couvre_joint_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" :name="'items[' + index + '][comp_ouvrant_ref]'" :value="item.composition ? item.comp_ouvrant_ref : ''">
+                        <input type="hidden" :name="'items[' + index + '][comp_dormant_ref]'" :value="item.composition ? item.comp_dormant_ref : ''">
+                        <input type="hidden" :name="'items[' + index + '][comp_parclose_ref]'" :value="showParclose(item) ? item.comp_parclose_ref : ''">
+                        <input type="hidden" :name="'items[' + index + '][comp_traverse_ref]'" :value="item.composition && item.is_porte && hasSerrureTraverseSel(item) ? item.comp_traverse_ref : ''">
+                        <input type="hidden" :name="'items[' + index + '][comp_meneau_ref]'" :value="item.composition && hasPartieFixe(item) ? item.comp_meneau_ref : ''">
+                        <input type="hidden" :name="'items[' + index + '][comp_couvre_joint_ref]'" :value="needsCouvreJoint(item) ? item.comp_couvre_joint_ref : ''">
+
+                        <!-- ======================================================= -->
+                        <!-- COMPOSITION COULISSANT (ouvrant montants multi-quantité) -->
+                        <!-- ======================================================= -->
+                        <div x-show="item.composition && item.composition.coulissant" x-cloak
+                             class="mb-3 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                                <!-- Ouvrant : montants groupés par rôle, réfs multi-choix avec quantité
+                                     de barres par réf (total plafonné au nb de barres du groupe) -->
+                                <div class="mb-3">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Ouvrant — montants verticaux</label>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <!-- Montant latéral (2 barres) -->
+                                        <div x-data="{ open: false }" @click.outside="open = false" class="relative">
+                                            <label class="text-[11px] text-teal-700 font-semibold mb-0.5 block">Montant latéral (2 barres)</label>
+                                            <button type="button" @click="open = !open"
+                                                    class="w-full flex items-center justify-between border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-teal-500">
+                                                <span class="truncate" x-text="protoSummary(item, 'comp_lateral_qty')"></span>
+                                                <svg class="w-3 h-3 shrink-0 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </button>
+                                            <div x-show="open" x-transition x-cloak
+                                                 class="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-2 space-y-0.5">
+                                                <template x-for="ref in (item.composition && item.composition.coulissant ? item.composition.lateral.options : [])" :key="ref">
+                                                    <div class="flex items-center justify-between gap-2 px-2 py-1 rounded hover:bg-teal-50 text-sm">
+                                                        <label class="flex items-center gap-2 cursor-pointer grow">
+                                                            <input type="checkbox"
+                                                                   :checked="item.comp_lateral_qty[ref] !== undefined"
+                                                                   :disabled="item.comp_lateral_qty[ref] === undefined && Object.keys(item.comp_lateral_qty).length >= 2"
+                                                                   @change="protoToggle(item, 'comp_lateral_qty', ref, 2)"
+                                                                   class="rounded text-teal-600 w-4 h-4"><img :src="profilImage(ref)" :alt="'Coupe ' + ref" x-show="profilImage(ref)" x-cloak
+                                                                 @click.stop.prevent="zoomProfil = ref"
+                                                                 :title="'Agrandir la coupe ' + ref"
+                                                                 class="w-7 h-7 shrink-0 object-contain bg-white border border-gray-200 rounded cursor-zoom-in hover:border-teal-500"><span x-text="ref"></span>
+                                                        </label>
+                                                        <div x-show="item.comp_lateral_qty[ref] !== undefined" class="flex items-center gap-1">
+                                                            <button type="button" @click="protoAdjust(item, 'comp_lateral_qty', ref, -1, 2)"
+                                                                    class="w-5 h-5 flex items-center justify-center rounded bg-gray-100 hover:bg-teal-100 text-gray-600 font-bold leading-none">−</button>
+                                                            <span class="w-5 text-center font-semibold text-teal-700" x-text="item.comp_lateral_qty[ref]"></span>
+                                                            <button type="button" @click="protoAdjust(item, 'comp_lateral_qty', ref, 1, 2)"
+                                                                    class="w-5 h-5 flex items-center justify-center rounded bg-gray-100 hover:bg-teal-100 text-gray-600 font-bold leading-none">+</button>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <div class="border-t border-gray-100 mt-1 pt-1 px-2 text-[11px] font-semibold"
+                                                     :class="protoTotal(item, 'comp_lateral_qty') === 2 ? 'text-green-600' : 'text-amber-600'"
+                                                     x-text="protoTotal(item, 'comp_lateral_qty') === 2
+                                                        ? 'Total : 2 / 2 barres ✓'
+                                                        : 'Total : ' + protoTotal(item, 'comp_lateral_qty') + ' / 2 barres — il reste ' + (2 - protoTotal(item, 'comp_lateral_qty'))"></div>
+                                            </div>
+                                            <div class="text-[11px] mt-0.5"
+                                                 :class="protoTotal(item, 'comp_lateral_qty') === 2 ? 'text-green-600' : 'text-amber-600'"
+                                                 x-text="protoTotal(item, 'comp_lateral_qty') === 2 ? '2 / 2 barres ✓' : 'Il reste ' + (2 - protoTotal(item, 'comp_lateral_qty')) + ' barre(s) à affecter'"></div>
+                                        </div>
+                                        <!-- Montant central / fermeture (nb barres selon vantaux) -->
+                                        <div x-data="{ open: false }" @click.outside="open = false" class="relative">
+                                            <label class="text-[11px] text-teal-700 font-semibold mb-0.5 block"
+                                                   x-text="'Montant central (' + item.composition.central.count + ' barres)'"></label>
+                                            <button type="button" @click="open = !open"
+                                                    class="w-full flex items-center justify-between border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-teal-500">
+                                                <span class="truncate" x-text="protoSummary(item, 'comp_central_qty')"></span>
+                                                <svg class="w-3 h-3 shrink-0 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </button>
+                                            <div x-show="open" x-transition x-cloak
+                                                 class="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-2 space-y-0.5">
+                                                <template x-for="ref in (item.composition && item.composition.coulissant ? item.composition.central.options : [])" :key="ref">
+                                                    <div class="flex items-center justify-between gap-2 px-2 py-1 rounded hover:bg-teal-50 text-sm">
+                                                        <label class="flex items-center gap-2 cursor-pointer grow">
+                                                            <input type="checkbox"
+                                                                   :checked="item.comp_central_qty[ref] !== undefined"
+                                                                   :disabled="item.comp_central_qty[ref] === undefined && Object.keys(item.comp_central_qty).length >= item.composition.central.count"
+                                                                   @change="protoToggle(item, 'comp_central_qty', ref, item.composition.central.count)"
+                                                                   class="rounded text-teal-600 w-4 h-4">
+                                                            <img :src="profilImage(ref)" :alt="'Coupe ' + ref" x-show="profilImage(ref)" x-cloak
+                                                                 @click.stop.prevent="zoomProfil = ref"
+                                                                 :title="'Agrandir la coupe ' + ref"
+                                                                 class="w-7 h-7 shrink-0 object-contain bg-white border border-gray-200 rounded cursor-zoom-in hover:border-teal-500"><span x-text="ref"></span>
+                                                        </label>
+                                                        <div x-show="item.comp_central_qty[ref] !== undefined" class="flex items-center gap-1">
+                                                            <button type="button" @click="protoAdjust(item, 'comp_central_qty', ref, -1, item.composition.central.count)"
+                                                                    class="w-5 h-5 flex items-center justify-center rounded bg-gray-100 hover:bg-teal-100 text-gray-600 font-bold leading-none">−</button>
+                                                            <span class="w-5 text-center font-semibold text-teal-700" x-text="item.comp_central_qty[ref]"></span>
+                                                            <button type="button" @click="protoAdjust(item, 'comp_central_qty', ref, 1, item.composition.central.count)"
+                                                                    class="w-5 h-5 flex items-center justify-center rounded bg-gray-100 hover:bg-teal-100 text-gray-600 font-bold leading-none">+</button>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <div class="border-t border-gray-100 mt-1 pt-1 px-2 text-[11px] font-semibold"
+                                                     :class="protoTotal(item, 'comp_central_qty') === item.composition.central.count ? 'text-green-600' : 'text-amber-600'"
+                                                     x-text="protoTotal(item, 'comp_central_qty') === item.composition.central.count
+                                                        ? 'Total : ' + item.composition.central.count + ' / ' + item.composition.central.count + ' barres ✓'
+                                                        : 'Total : ' + protoTotal(item, 'comp_central_qty') + ' / ' + item.composition.central.count + ' barres — il reste ' + (item.composition.central.count - protoTotal(item, 'comp_central_qty'))"></div>
+                                            </div>
+                                            <div class="text-[11px] mt-0.5"
+                                                 :class="protoTotal(item, 'comp_central_qty') === item.composition.central.count ? 'text-green-600' : 'text-amber-600'"
+                                                 x-text="protoTotal(item, 'comp_central_qty') === item.composition.central.count
+                                                    ? item.composition.central.count + ' / ' + item.composition.central.count + ' barres ✓'
+                                                    : 'Il reste ' + (item.composition.central.count - protoTotal(item, 'comp_central_qty')) + ' barre(s) à affecter'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            <!-- Champs cachés : quantités par réf (latéral + central) + seuil -->
+                            <template x-for="(qty, ref) in item.comp_lateral_qty" :key="'lat_'+ref">
+                                <input type="hidden" :name="'items[' + index + '][comp_lateral_qty][' + ref + ']'" :value="qty">
+                            </template>
+                            <template x-for="(qty, ref) in item.comp_central_qty" :key="'cen_'+ref">
+                                <input type="hidden" :name="'items[' + index + '][comp_central_qty][' + ref + ']'" :value="qty">
+                            </template>
+                            <input type="hidden" :name="'items[' + index + '][comp_seuil_ref]'" :value="seuilOptions(item).length ? item.comp_seuil_ref : ''">
+                        </div>
+
+                        <!-- ======================================================= -->
+                        <!-- OPTIONS CHASSIS FIXE (Cadre, Socle, Montant, Traverse)  -->
+                        <!-- ======================================================= -->
+                        <div x-show="item.is_chassi_fix" class="mb-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg space-y-3">
+                            <!-- Cadre + Socle -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Cadre</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.chassi_cadre_ref"
+                                            :name="'items[' + index + '][chassi_cadre_ref]'"
+                                            class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <template x-for="ref in item.chassi_refs.cadre" :key="ref">
+                                            <option :value="ref" x-text="ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.chassi_cadre_ref)" x-cloak
+                                                @click="zoomProfil = item.chassi_cadre_ref"
+                                                :title="'Agrandir la coupe ' + item.chassi_cadre_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.chassi_cadre_ref)" :alt="'Coupe ' + item.chassi_cadre_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Socle</label>
+                                    <div class="flex items-start gap-2">
+                                        <select x-model="item.chassi_socle_ref"
+                                            :name="'items[' + index + '][chassi_socle_ref]'"
+                                            class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <template x-for="ref in item.chassi_refs.socle" :key="ref">
+                                            <option :value="ref" x-text="ref"></option>
+                                        </template>
+                                    </select>
+                                        <button type="button" x-show="profilImage(item.chassi_socle_ref)" x-cloak
+                                                @click="zoomProfil = item.chassi_socle_ref"
+                                                :title="'Agrandir la coupe ' + item.chassi_socle_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.chassi_socle_ref)" :alt="'Coupe ' + item.chassi_socle_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Montant (optionnel) -->
+                            <div class="border-t border-indigo-200 pt-3">
+                                <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                                    <input type="checkbox" x-model="item.chassi_montant_enabled" class="rounded text-indigo-600 w-4 h-4">
+                                    <span class="text-sm font-medium text-gray-700">Montant (optionnel)</span>
+                                </label>
+                                <div x-show="item.chassi_montant_enabled" class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Référence montant</label>
+                                        <div class="flex items-start gap-2">
+                                        <select x-model="item.chassi_montant_ref"
+                                                :name="'items[' + index + '][chassi_montant_ref]'"
+                                                class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <template x-for="ref in item.chassi_refs.montant" :key="ref">
+                                                <option :value="ref" x-text="ref"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" x-show="profilImage(item.chassi_montant_ref)" x-cloak
+                                                @click="zoomProfil = item.chassi_montant_ref"
+                                                :title="'Agrandir la coupe ' + item.chassi_montant_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.chassi_montant_ref)" :alt="'Coupe ' + item.chassi_montant_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Quantité montants</label>
+                                        <input type="number" x-model="item.chassi_montant_qty"
+                                               :name="'items[' + index + '][chassi_montant_qty]'"
+                                               min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Traverse (optionnel) -->
+                            <div class="border-t border-indigo-200 pt-3">
+                                <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                                    <input type="checkbox" x-model="item.chassi_traverse_enabled" class="rounded text-indigo-600 w-4 h-4">
+                                    <span class="text-sm font-medium text-gray-700">Traverse (optionnel)</span>
+                                </label>
+                                <div x-show="item.chassi_traverse_enabled" class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Référence traverse</label>
+                                        <div class="flex items-start gap-2">
+                                        <select x-model="item.chassi_traverse_ref"
+                                                :name="'items[' + index + '][chassi_traverse_ref]'"
+                                                class="grow min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <template x-for="ref in item.chassi_refs.traverse" :key="ref">
+                                                <option :value="ref" x-text="ref"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" x-show="profilImage(item.chassi_traverse_ref)" x-cloak
+                                                @click="zoomProfil = item.chassi_traverse_ref"
+                                                :title="'Agrandir la coupe ' + item.chassi_traverse_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.chassi_traverse_ref)" :alt="'Coupe ' + item.chassi_traverse_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Quantité traverses</label>
+                                        <input type="number" x-model="item.chassi_traverse_qty"
+                                               :name="'items[' + index + '][chassi_traverse_qty]'"
+                                               min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ======================================================= -->
+                        <!-- OPTIONS GARDE CORPS                                      -->
+                        <!-- ======================================================= -->
+                        <div x-show="item.is_garde_corps" class="mb-3 p-3 bg-amber-50 border border-purple-300 rounded-lg space-y-3">
+                            <div class="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">Paramètres Garde Corps</div>
+
+                            <!-- Poteaux + Lignes (si applicable) -->
+                            <template x-if="item.gc_has_poteaux">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Nb Poteaux</label>
+                                    <input type="number" x-model="item.gc_nb_poteaux" min="0"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                </div>
+                                <template x-if="item.gc_has_lignes">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Nb Lignes/Barreaux</label>
+                                    <input type="number" x-model="item.gc_nb_lignes" min="1"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                </div>
+                                </template>
+                            </div>
+                            </template>
+
+                            <!-- Coudes + Fin -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <template x-if="item.gc_has_coudes">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Nb Coudes</label>
+                                    <input type="number" x-model="item.gc_nb_coudes" min="0"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                </div>
+                                </template>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Fin</label>
+                                    <select x-model="item.gc_fin_type"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                        <option value="Support Mur">Support Mur</option>
+                                        <option value="Bouchon 50">Bouchon 50</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Qté Fin</label>
+                                    <input type="number" x-model="item.gc_fin_qty" min="0"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                                </div>
+                            </div>
+
+                            <!-- Ongle : radio 90°/45° pour Rond Linaire -->
+                            <template x-if="item.gc_show_ongle && !item.gc_ongle_checkbox">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Ongle (fixation poteau)</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" x-model="item.gc_ongle" value="90°" class="text-amber-600">
+                                        <span class="text-sm">90°</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" x-model="item.gc_ongle" value="45°" class="text-amber-600">
+                                        <span class="text-sm">45°</span>
+                                    </label>
+                                </div>
+                            </div>
+                            </template>
+
+                            <!-- Ongle : checkbox 90° pour Rond Vitré / Corpsen / Corpsen Sabot -->
+                            <template x-if="item.gc_ongle_checkbox">
+                            <div>
+                                <label class="flex items-center space-x-2 cursor-pointer w-fit">
+                                    <input type="checkbox"
+                                           :checked="item.gc_ongle === '90°'"
+                                           @change="item.gc_ongle = $event.target.checked ? '90°' : '45°'"
+                                           class="rounded text-amber-600 w-4 h-4">
+                                    <span class="text-sm font-medium text-gray-700">90° <span class="text-xs text-gray-400">(Raccord murale EKS 10-35)</span></span>
+                                </label>
+                            </div>
+                            </template>
+
+                            <!-- Hidden inputs -->
+                            <input type="hidden" :name="'items[' + index + '][gc_nb_poteaux]'" :value="item.gc_nb_poteaux">
+                            <input type="hidden" :name="'items[' + index + '][gc_nb_lignes]'"  :value="item.gc_nb_lignes">
+                            <input type="hidden" :name="'items[' + index + '][gc_nb_coudes]'"  :value="item.gc_nb_coudes">
+                            <input type="hidden" :name="'items[' + index + '][gc_fin_type]'"   :value="item.gc_fin_type">
+                            <input type="hidden" :name="'items[' + index + '][gc_fin_qty]'"    :value="item.gc_fin_qty">
+                            <input type="hidden" :name="'items[' + index + '][gc_ongle]'"      :value="item.gc_ongle">
+                        </div>
+
+                        <!-- Remplissage + Vitrage + Motif (affiché aussi pour garde corps vitré) -->
+                        <div x-show="(!item.is_garde_corps || item.gc_has_vitrage) && !item.is_standalone_store && !item.is_standalone_mousti" class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                            <!-- 1. Remplissage -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                    Remplissage <span x-show="item.requires_remplissage" class="text-red-500">*</span>
+                                </label>
+                                <select :name="'items[' + index + '][remplissage_id]'"
+                                        x-model="item.remplissage_id"
+                                        :class="item._showErrors && item.requires_remplissage && !item.remplissage_id ? 'border-red-400 ring-1 ring-red-300' : 'border-gray-300'"
+                                        class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    <option value="">— Choisir —</option>
+                                                                        <option value="424180">Clair de 6 mm</option>
+                                                                        <option value="424181">Clair de 8 mm</option>
+                                                                        <option value="424189">Peaux d&#039;orange</option>
+                                                                        <option value="424191">Planche 11026</option>
+                                                                        <option value="424190">Planche PVC</option>
+                                                                        <option value="424192">Plaque MDF</option>
+                                                                        <option value="424193">Plaque plexi policarbonate</option>
+                                                                        <option value="424184">Solarit bronze de 6 mm</option>
+                                                                        <option value="424183">Solarit clair de 6 mm</option>
+                                                                        <option value="424185">Solarit dark bronze de 6 mm</option>
+                                                                        <option value="424182">Stop sol clair super silver AGC</option>
+                                                                        <option value="424188">Tenta sol bleu 6 mm</option>
+                                                                        <option value="424187">Tenta sol bronze 6 mm</option>
+                                                                        <option value="424186">Tenta sol clair 6 mm classique</option>
+                                                                    </select>
+                            </div>
+
+                            <!-- 2. Vitrage (pas pour garde corps vitré) -->
+                            <div x-show="!item.is_garde_corps">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Vitrage</label>
+                                <select :name="'items[' + index + '][vitrage_type]'"
+                                        x-model="item.vitrage_type"
+                                        @change="onVitrageChange(index)"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    <option value="simple">Simple vitrage</option>
+                                    <option value="double">Double vitrage</option>
+                                </select>
+                            </div>
+
+                            <!-- 3. Motif (optionnel) -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Motif</label>
+                                <select :name="'items[' + index + '][motif_id]'"
+                                        x-model="item.motif_id"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    <option value="">— Sans motif —</option>
+                                                                        <option value="424197"
+                                            x-show="424197 !== doubleVitrageMotifId || item.vitrage_type === 'double'">
+                                        Double vitrage avec Gaz
+                                    </option>
+                                                                        <option value="424195"
+                                            x-show="424195 !== doubleVitrageMotifId || item.vitrage_type === 'double'">
+                                        Facon sablage bonde
+                                    </option>
+                                                                        <option value="424194"
+                                            x-show="424194 !== doubleVitrageMotifId || item.vitrage_type === 'double'">
+                                        Facon sablage total
+                                    </option>
+                                                                        <option value="424198"
+                                            x-show="424198 !== doubleVitrageMotifId || item.vitrage_type === 'double'">
+                                        Feuilleté
+                                    </option>
+                                                                        <option value="424196"
+                                            x-show="424196 !== doubleVitrageMotifId || item.vitrage_type === 'double'">
+                                        Sécurité
+                                    </option>
+                                                                    </select>
+                            </div>
+
+                        </div>
+
+                        <!-- Options d'ouverture (produits standard uniquement) -->
+                        <div x-show="!item.is_chassi_fix && !item.is_standalone_store && !item.is_standalone_mousti && item.options.ouverture && item.options.ouverture.length > 0" class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Type d'ouverture</label>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="opt in item.options.ouverture" :key="opt">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" :name="'items[' + index + '][ouverture_type]'"
+                                               :value="opt" x-model="item.ouverture_type"
+                                               class="text-blue-600">
+                                        <span class="text-sm" x-text="ouvertureLabel(opt)"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Serrure (produits standard uniquement) -->
+                        <div x-show="!item.is_chassi_fix && !item.is_standalone_store && !item.is_standalone_mousti && item.options.serrure && item.options.serrure.length > 0" class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Type de serrure</label>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="opt in item.options.serrure" :key="opt">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio"
+                                               :checked="item.supplements.some(s => s.toLowerCase() === opt.toLowerCase())"
+                                               @change="toggleSupplement(index, opt, $event)"
+                                               class="text-blue-600">
+                                        <span class="text-sm" x-text="opt"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Modèle de crémone : toujours pour les fenêtres, sur sélection Crémone pour les portes -->
+                        <div x-show="item.has_cremone && (!item.is_porte || hasCremoneSel(item))" class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Modèle de crémone</label>
+                            <select :name="'items[' + index + '][cremone_id]'"
+                                    x-model="item.cremone_id"
+                                    class="w-full sm:w-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="">Crémone simple (défaut)</option>
+                                                            </select>
+                        </div>
+
+                        <!-- Suppléments (produits standard uniquement) -->
+                        <div x-show="!item.is_chassi_fix && !item.is_standalone_store && !item.is_standalone_mousti && item.options.supplements && item.options.supplements.length > 0" class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Suppléments (optionnel)</label>
+                            <div class="flex flex-wrap gap-3">
+                                <template x-for="opt in item.options.supplements" :key="opt">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" :value="opt"
+                                               :checked="item.supplements.some(s => s.toLowerCase() === opt.toLowerCase())"
+                                               @change="toggleSupplement(index, opt, $event)"
+                                               class="rounded text-blue-600">
+                                        <span class="text-sm" x-text="opt"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Fast Lock : le nombre de points de fermeture est obligatoire -->
+                        <div x-show="hasFastLock(item)" x-cloak class="mb-3">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Fast Lock — points de fermeture <span class="text-red-500">*</span></label>
+                            <select x-model="item.fast_lock_points"
+                                    class="w-full sm:w-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="1">1 point</option>
+                                <option value="2">2 points</option>
+                                <option value="3">3 points</option>
+                            </select>
+                        </div>
+                        <input type="hidden" :name="'items[' + index + '][fast_lock_points]'" :value="hasFastLock(item) ? item.fast_lock_points : ''">
+
+                        <!-- Hidden supplements input -->
+                        <template x-for="(sup, si) in item.supplements" :key="si">
+                            <input type="hidden" :name="'items[' + index + '][supplements][]'" :value="sup">
+                        </template>
+
+                        <!-- Partie fixe indépendante (Coulissant: Partie fixe droite/gauche/haut/bas) -->
+                        <div x-show="item.is_partie_fix" class="mt-3 pt-3 border-t border-gray-200">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Dimension <span x-text="item.partie_fix_label" class="font-semibold text-blue-700"></span> (cm)
+                            </label>
+                            <input type="number" x-model="item.pf_dim_1"
+                                   :name="'items[' + index + '][pf_dim_1]'"
+                                   step="0.1" min="0"
+                                   class="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                            <input type="hidden" :name="'items[' + index + '][partie_fixe_type]'" value="Sans">
+                            <input type="hidden" :name="'items[' + index + '][couvre_joint_type]'" value="">
+                        </div>
+
+                        <!-- Partie Fixe & Couvre Joint (produits standard uniquement) -->
+                        <div x-show="!item.is_chassi_fix && !item.is_garde_corps && !item.is_partie_fix && !item.is_standalone_store && !item.is_standalone_mousti" class="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Partie Fixe -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Partie Fixe</label>
+                                <template x-if="!item.is_porte">
+                                    <select x-model="item.partie_fixe_type"
+                                            :name="'items[' + index + '][partie_fixe_type]'"
+                                            :disabled="item.is_partie_fix"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Sans">Sans partie fixe</option>
+                                        <option value="Droite">Droite</option>
+                                        <option value="Gauche">Gauche</option>
+                                        <option value="Droite et Gauche">Droite et Gauche</option>
+                                        <option value="Haut">Haut</option>
+                                        <option value="Bas">Bas</option>
+                                        <option value="Haut et Bas">Haut et Bas</option>
+                                    </select>
+                                </template>
+                                <template x-if="item.is_porte">
+                                    <select x-model="item.partie_fixe_type"
+                                            :name="'items[' + index + '][partie_fixe_type]'"
+                                            :disabled="item.is_partie_fix"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Sans">Sans partie fixe</option>
+                                        <option value="Droite">Droite</option>
+                                        <option value="Gauche">Gauche</option>
+                                        <option value="Droite et Gauche">Droite et Gauche</option>
+                                        <option value="Haut">Haut</option>
+                                    </select>
+                                </template>
+
+                                <!-- Dimension(s) partie fixe -->
+                                <div x-show="item.partie_fixe_type && item.partie_fixe_type !== 'Sans'" x-transition class="mt-2 space-y-2">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1"
+                                               x-text="['Droite et Gauche','Haut et Bas','Tous'].includes(item.partie_fixe_type) ? 'Dim. 1 (cm)' : 'Dimension (cm)'"></label>
+                                        <input type="number" x-model="item.pf_dim_1"
+                                               :name="'items[' + index + '][pf_dim_1]'"
+                                               step="0.1" min="0" placeholder="ex: 44.1"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div x-show="['Droite et Gauche','Haut et Bas','Tous'].includes(item.partie_fixe_type)" x-transition>
+                                        <label class="block text-xs text-gray-500 mb-1">Dim. 2 (cm)</label>
+                                        <input type="number" x-model="item.pf_dim_2"
+                                               :name="'items[' + index + '][pf_dim_2]'"
+                                               step="0.1" min="0" placeholder="ex: 43"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div x-show="item.composition && item.composition.meneau.options.length" x-cloak>
+                                        <label class="block text-xs text-gray-500 mb-1">Meneau (profil de séparation)</label>
+                                        <div class="flex items-start gap-2">
+                                        <select x-model="item.comp_meneau_ref"
+                                                class="grow min-w-0 border border-teal-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
+                                            <template x-for="ref in (item.composition ? item.composition.meneau.options : [])" :key="ref">
+                                                <option :value="ref" x-text="ref" :selected="ref === item.comp_meneau_ref"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" x-show="profilImage(item.comp_meneau_ref)" x-cloak
+                                                @click="zoomProfil = item.comp_meneau_ref"
+                                                :title="'Agrandir la coupe ' + item.comp_meneau_ref"
+                                                class="shrink-0 w-[38px] h-[38px] p-1 bg-white border border-gray-300 rounded-lg hover:border-teal-500 focus:ring-2 focus:ring-teal-500 cursor-zoom-in">
+                                            <img :src="profilImage(item.comp_meneau_ref)" :alt="'Coupe ' + item.comp_meneau_ref" class="w-full h-full object-contain">
+                                        </button>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Couvre Joint -->
+                            <div>
+                                <label class="flex items-center space-x-2 cursor-pointer w-fit mb-2">
+                                    <input type="checkbox" x-model="item.sans_couvre_joint"
+                                           @change="item.couvre_joint_type = item.sans_couvre_joint ? 'Droite' : ''"
+                                           class="rounded text-blue-600 w-4 h-4">
+                                    <span class="text-sm font-medium text-gray-700">Sans couvre joint</span>
+                                </label>
+                                <div x-show="item.sans_couvre_joint" x-transition>
+                                    <template x-if="!item.is_porte">
+                                        <select x-model="item.couvre_joint_type"
+                                                :name="'items[' + index + '][couvre_joint_type]'"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                            <option value="Droite">Droite</option>
+                                            <option value="Gauche">Gauche</option>
+                                            <option value="Droite et Gauche">Droite et Gauche</option>
+                                            <option value="Haut">Haut</option>
+                                            <option value="Bas">Bas</option>
+                                            <option value="Haut et Bas">Haut et Bas</option>
+                                            <option value="Tous">Tous</option>
+                                        </select>
+                                    </template>
+                                    <template x-if="item.is_porte">
+                                        <select x-model="item.couvre_joint_type"
+                                                :name="'items[' + index + '][couvre_joint_type]'"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                            <option value="Droite">Droite</option>
+                                            <option value="Gauche">Gauche</option>
+                                            <option value="Droite et Gauche">Droite et Gauche</option>
+                                            <option value="Haut">Haut</option>
+                                            <option value="Tous">Tous</option>
+                                        </select>
+                                    </template>
+                                </div>
+                                <input type="hidden" :disabled="item.is_partie_fix" :name="'items[' + index + '][couvre_joint_type]'" :value="item.sans_couvre_joint ? item.couvre_joint_type : ''">
+                            </div>
+                        </div>
+
+                        <!-- Aperçu dessin produit (live) -->
+                        <div x-show="canPreview(item)" x-transition class="mt-4">
+                            <div class="rounded-xl border border-blue-100 bg-gradient-to-br from-slate-50 via-white to-blue-50 p-3 sm:p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        Aperçu produit
+                                    </span>
+                                    <span class="text-[11px] text-gray-400" x-text="(item.largeur || '—') + ' × ' + (item.hauteur || '—') + ' cm'"></span>
+                                </div>
+                                <div class="flex justify-center">
+                                    <div class="w-full max-w-md sm:max-w-lg lg:max-w-xl" x-html="previewSVG(item)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Store Rideau (masqué pour garde corps et standalone) -->
+                        <div x-show="!item.is_garde_corps && !item.is_standalone_store && !item.is_standalone_mousti" class="mt-3 pt-3 border-t border-gray-200">
+                            <label class="flex items-center space-x-2 cursor-pointer w-fit">
+                                <input type="checkbox" x-model="item.store_enabled"
+                                       class="rounded text-blue-600 w-4 h-4">
+                                <span class="text-sm font-medium text-gray-700">Store Rideau</span>
+                            </label>
+                        </div>
+                        <div x-show="item.store_enabled" x-transition class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                                <!-- 3 dropdowns -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Type de lame</label>
+                                        <select x-model="item.store_lame_type"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                            <option value="lame inj 55">Lame injectée 55mm</option>
+                                            <option value="lame inj 45">Lame injectée 45mm</option>
+                                            <option value="lame inj 42">Lame injectée 42mm</option>
+                                            <option value="lame inj 39">Lame injectée 39mm</option>
+                                            <option value="lame inj 64">Lame injectée 64mm</option>
+                                            <option value="lame extrud">Lame extrudée</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Couleur store</label>
+                                        <select x-model="item.store_couleur"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                            <option value="Blanc">Blanc</option>
+                                            <option value="Noir">Noir</option>
+                                            <option value="Gris">Gris</option>
+                                            <option value="Effet Bois">Effet Bois</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Coffre <span class="text-gray-400">(optionnel)</span></label>
+                                        <select x-model="item.store_coffre"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                            <option value="">— Sans coffre —</option>
+                                            <option value="Coffre encastré">Coffre encastré Extra</option>
+                                            <option value="Coffre alu 15">Coffre alu 15</option>
+                                            <option value="Coffre alu 20">Coffre alu 20</option>
+                                            <option value="Coffre alu 25">Coffre alu 25</option>
+                                            <option value="Coffre PVC">Coffre PVC</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Options -->
+                                <div class="flex flex-wrap gap-4">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" x-model="item.store_encastre" class="rounded text-blue-600 w-4 h-4">
+                                        <span class="text-sm text-gray-700">Encastré</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" x-model="item.store_axe70" class="rounded text-blue-600 w-4 h-4">
+                                        <span class="text-sm text-gray-700">Axe 70</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" x-model="item.store_renforce" class="rounded text-blue-600 w-4 h-4">
+                                        <span class="text-sm text-gray-700">Tirant renforcé</span>
+                                    </label>
+                                </div>
+
+                                <!-- Qté Lame S (Extrudé uniquement) -->
+                                <div x-show="item.store_lame_type === 'lame extrud'" class="flex items-center space-x-2">
+                                    <label class="text-xs font-medium text-gray-600">Quantité Lame S :</label>
+                                    <input type="number" x-model="item.store_lame_s_qty" min="1"
+                                           class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500 bg-white">
+                                </div>
+
+                                <!-- Hidden inputs store -->
+                                <input type="hidden" :name="'items[' + index + '][store_enabled]'"   :value="item.store_enabled ? '1' : '0'">
+                                <input type="hidden" :name="'items[' + index + '][store_lame_type]'" :value="item.store_lame_type">
+                                <input type="hidden" :name="'items[' + index + '][store_couleur]'"   :value="item.store_couleur">
+                                <input type="hidden" :name="'items[' + index + '][store_coffre]'"    :value="item.store_coffre">
+                                <input type="hidden" :name="'items[' + index + '][store_encastre]'"  :value="item.store_encastre ? '1' : '0'">
+                                <input type="hidden" :name="'items[' + index + '][store_axe70]'"     :value="item.store_axe70 ? '1' : '0'">
+                                <input type="hidden" :name="'items[' + index + '][store_renforce]'"  :value="item.store_renforce ? '1' : '0'">
+                                <input type="hidden" :name="'items[' + index + '][store_lame_s_qty]'" :value="item.store_lame_s_qty">
+                        </div>
+
+                        <!-- Moustiquaire (masqué pour garde corps et standalone) -->
+                        <!-- Moustiquaire (masqué pour garde corps et standalone) -->
+                        <div x-show="!item.is_garde_corps && !item.is_standalone_store && !item.is_standalone_mousti" class="mt-2">
+                            <label class="flex items-center space-x-2 cursor-pointer w-fit">
+                                <input type="checkbox" x-model="item.mousti_enabled"
+                                       @change="if(item.mousti_enabled){ item.mousti_hauteur = item.hauteur; item.mousti_largeur = item.largeur; }"
+                                       class="rounded text-green-600 w-4 h-4">
+                                <span class="text-sm font-medium text-gray-700">Moustiquaire</span>
+                            </label>
+                        </div>
+                        <div x-show="item.mousti_enabled" x-transition class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div x-show="!item.is_standalone_mousti" class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Hauteur (cm)</label>
+                                        <input type="number" x-model="item.mousti_hauteur" min="1" step="0.01" placeholder="H"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Largeur (cm)</label>
+                                        <input type="number" x-model="item.mousti_largeur" min="1" step="0.01" placeholder="L"
+                                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 bg-white">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-green-600 mt-2">
+                                    Lame choisie automatiquement selon la hauteur : ≤120 → Lame 120 · ≤180 → Lame 180 · ≤240 → Lame 240
+                                </p>
+                                <input type="hidden" :name="'items[' + index + '][mousti_enabled]'"  :value="item.mousti_enabled ? '1' : '0'">
+                                <input type="hidden" :name="'items[' + index + '][mousti_hauteur]'" :value="item.is_standalone_mousti ? item.hauteur : item.mousti_hauteur">
+                                <input type="hidden" :name="'items[' + index + '][mousti_largeur]'" :value="item.is_standalone_mousti ? item.largeur : item.mousti_largeur">
+                        </div>
+                    </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="items.length === 0" class="text-center py-8 text-gray-400">
+                <p>Cliquez sur "Ajouter un produit" pour commencer</p>
+            </div>
+
+            
+            <div x-show="items.length > 0" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button type="button" @click="addItem()"
+                        class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-blue-200 hover:border-blue-400 text-blue-500 hover:text-blue-700 hover:bg-blue-50 py-3 rounded-xl text-sm font-medium transition duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Ajouter un autre produit
+                </button>
+                <button type="button" @click="addManualItem()"
+                        class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-300 hover:border-purple-500 text-purple-600 hover:text-purple-800 hover:bg-purple-50 py-3 rounded-xl text-sm font-medium transition duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Ajouter une ligne libre
+                </button>
+            </div>
+        </div>
+
+        <!-- Marge + TVA -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800 mb-4">Marges & TVA <span class="text-xs font-normal text-gray-400">(optionnel)</span></h2>
+            <div class="grid grid-cols-1 gap-3">
+                                                <div x-show="hasWindowItems()" class="flex flex-wrap items-center gap-3">
+                    <span class="text-sm font-medium text-gray-600 w-36">Fenêtres / Portes :</span>
+                    <select name="marge_type" x-model="margeType"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="percent">Pourcentage (%)</option>
+                        <option value="dt">Montant fixe (DT)</option>
+                    </select>
+                    <div class="relative">
+                        <input type="number" name="marge_value" value=""
+                               step="0.001" min="0" placeholder="0"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-28 focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-3 top-2 text-gray-400 text-sm" x-text="margeType === 'percent' ? '%' : 'DT'"></span>
+                    </div>
+                </div>
+                                <div x-show="hasGardeCorpsItems()" class="flex flex-wrap items-center gap-3">
+                    <span class="text-sm font-medium text-gray-600 w-36">Garde-corps :</span>
+                    <select name="marge_gc_type" x-model="margeGcType"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="percent">Pourcentage (%)</option>
+                        <option value="dt">Montant fixe (DT)</option>
+                    </select>
+                    <div class="relative">
+                        <input type="number" name="marge_gc_value" value=""
+                               step="0.001" min="0" placeholder="0"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-28 focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-3 top-2 text-gray-400 text-sm" x-text="margeGcType === 'percent' ? '%' : 'DT'"></span>
+                    </div>
+                </div>
+                                <div x-show="hasMoustiItems()" class="flex flex-wrap items-center gap-3">
+                    <span class="text-sm font-medium text-gray-600 w-36">Moustiquaire :</span>
+                    <select name="marge_mousti_type" x-model="margeMoustiType"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="percent">Pourcentage (%)</option>
+                        <option value="dt">Montant fixe (DT)</option>
+                    </select>
+                    <div class="relative">
+                        <input type="number" name="marge_mousti_value" value=""
+                               step="0.001" min="0" placeholder="0"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-28 focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-3 top-2 text-gray-400 text-sm" x-text="margeMoustiType === 'percent' ? '%' : 'DT'"></span>
+                    </div>
+                </div>
+                                <div x-show="hasStoreItems()" class="flex flex-wrap items-center gap-3">
+                    <span class="text-sm font-medium text-gray-600 w-36">Store Rideau :</span>
+                    <select name="marge_store_type" x-model="margeStoreType"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="percent">Pourcentage (%)</option>
+                        <option value="dt">Montant fixe (DT)</option>
+                    </select>
+                    <div class="relative">
+                        <input type="number" name="marge_store_value" value=""
+                               step="0.001" min="0" placeholder="0"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-28 focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute right-3 top-2 text-gray-400 text-sm" x-text="margeStoreType === 'percent' ? '%' : 'DT'"></span>
+                    </div>
+                </div>
+                                <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-gray-100">
+                    <span class="text-sm font-medium text-gray-600 w-36">TVA :</span>
+                    <select name="tva"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                                <option value="0"  selected>Sans TVA (0%)</option>
+                        <option value="7"  >TVA 7%</option>
+                        <option value="13" >TVA 13%</option>
+                        <option value="19" >TVA 19%</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-end space-x-3 pb-4 sm:pb-0">
+            <a href="https://atelierpro.vortech-x.com/alum/devis" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+                Annuler
+            </a>
+            <button type="submit"
+                    class="px-5 sm:px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition duration-200">
+                Créer le devis
+            </button>
+        </div>
+    </form>
+
+    <!-- Agrandissement de la coupe de profilé -->
+    <div x-show="zoomProfil" x-cloak @keydown.escape.window="zoomProfil = null"
+         @click="zoomProfil = null"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+        <div @click.stop class="bg-white rounded-xl shadow-xl p-5 w-full max-w-md">
+            <img :src="profilImage(zoomProfil)" :alt="'Coupe ' + zoomProfil" class="w-full h-80 object-contain">
+            <div class="mt-3 flex items-center justify-between gap-3">
+                <span class="font-mono text-sm font-semibold text-gray-800" x-text="zoomProfil"></span>
+                <button type="button" @click="zoomProfil = null"
+                        class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://atelierpro.vortech-x.com/js/product-drawing.js"></script>
+<script>
+function devisForm() {
+    return {
+        items: [],
+        validationError: '',
+        doubleVitrageMotifId: 424197,
+        familyGroups: {"50":"TPR","51":"TPR","52":"ALUCO","60":"TPR","61":"TPR","62":"ALUCO","63":"ALU ECO","64":"ALU ECO","65":"ALU ECO","66":"ALU ECO","46":"AUTRES","67":"AUTRES","68":"AUTRES"},
+        familyDrawTypes: {"50":"francaise","51":"francaise","52":"francaise","60":"coulissante","61":"coulissante","62":"coulissante","63":"francaise","64":"francaise","65":"coulissante","66":"coulissante","46":"garde_corps","67":"store","68":"mousti"},
+        familyNames: {"50":"A la fran\u00e7aise TPR S40","51":"A la fran\u00e7aise TPR EX45","52":"A la fran\u00e7aise Aluco SQ40","60":"Coulissante TPR S67","61":"Coulissante TPR EX60","62":"Coulissante Aluco Square 67","63":"A la fran\u00e7aise Alu Eco S40","64":"A la fran\u00e7aise Alu Eco EX45","65":"Coulissante Alu Eco S67","66":"Coulissante Alu Eco EX60","46":"Garde Corps","67":"Store Rideaux","68":"Moustiquaire"},
+        // PROTOTYPE Composition coulissant S67 (front only) : réfs exemples, à fixer avec le client
+        protoCoulissantRefs: {
+            dormant: ['67103', '67101', '67110', '67203'],
+            parclose: ['80116', '80124', '67114'],
+            lateral: ['67104', '67108', '67105', '67107', '67109', '67112', '67115'],
+            central: ['67105', '67107', '67104', '67108', '67109', '67112', '67115', '67117'],
+            couvre_joint: ['CSQ 301', 'CSQ 302', '40133'],
+        },
+        // Coupes de profilés fournies par le client (gamme TPR).
+        // Clé = référence sans espace ni casse -> nom de fichier réel.
+        profilsAvecImage: {
+            '40100': '40100.png', '40102': '40102.png', '40104': '40104.png',
+            '40110': '40110.png', '40111': '40111.png', '40121': '40121.png',
+            '40129': '40129.png', '40135': '40135.png', '40139': '40139.png',
+            '40148': '40148.png', '40149': '40149.png', '40150': '40150.png',
+            '40151': '40151.png', '40154': '40154.png', '40155': '40155.png',
+            '40156': '40156.png', '40165': '40165.png', '40166': '40166.png',
+            '40168': '40168.png', '40401': '40401.png', '40402': '40402.png',
+            '40403': '40403.png', '40404': '40404.png', '40405': '40405.png',
+            '40407': '40407.png', '40408': '40408.png', '40410': '40410.png',
+            '40411': '40411.png', '67101': '67101.png', '67102': '67102.png',
+            '67103': '67103.png', '67104': '67104.png', '67105': '67105.png',
+            '67107': '67107.png', '67108': '67108.png', '67110': '67110.png',
+            '67112': '67112.png', '67115': '67115.png', '67201': '67201.png',
+            '67202': '67202.png', '67203': '67203.png', '67204': '67204.png',
+            '67205': '67205.png', '67206': '67206.png', '67207': '67207.png',
+            '67208': '67208.png', 'ex451123': 'EX451123.png', 'ex451125': 'EX451125.png',
+            'ex451210': 'EX451210.png', 'ex451212': 'EX451212.png', 'ex451213': 'EX451213.png',
+            'ex451215': 'EX451215.png', 'ex451216': 'EX451216.png', 'ex451218': 'EX451218.png',
+            'ex451219': 'EX451219.png', 'ex451220': 'EX451220.png', 'ex451310': 'EX451310.png',
+            'ex451311': 'EX451311.png', 'ex451312': 'EX451312.png', 'ex451313': 'EX451313.png',
+            'ex451314': 'EX451314.png', 'ex451315': 'EX451315.png', 'ex451318': 'EX451318.png',
+            'ex451319': 'EX451319.png', 'ex451320': 'EX451320.png', 'ex451321': 'EX451321.png',
+            'ex451513': 'EX451513.png', 'ex451514': 'EX451514.png', 'ex602114': 'EX602114.png',
+            'ex602115': 'EX602115.png', 'ex602116': 'EX602116.png', 'ex602117': 'EX602117.png',
+            'ex602118': 'EX602118.png', 'ex602119': 'EX602119.png', 'ex602121': 'EX602121.png',
+            'ex602122': 'EX602122.png', 'ex602123': 'EX602123.png', 'ex602125': 'EX602125.png',
+            'ex602126': 'EX602126.png', 'ex602211': 'EX602211.png', 'ex602212': 'EX602212.png',
+            'ex602213': 'EX602213.png', 'ex602214': 'EX602214.png', 'ex602216': 'EX602216.png',
+            'ex602217': 'EX602217.png', 'ex602218': 'EX602218.png', 'ex602221': 'EX602221.png',
+            'ex602222': 'EX602222.png', 'ex602223': 'EX602223.png',
+        },        zoomProfil: null,
+
+        margeType: 'percent',
+        margeStoreType: 'percent',
+        margeMoustiType: 'percent',
+        margeGcType: 'percent',
+
+        // Types regroupés par nature, libellés allégés : la famille est déjà choisie
+        // au-dessus, la répéter dans chaque ligne noyait la seule info utile.
+        // « Fenêtre coulissante en 2 vantaux » → groupe Fenêtres, libellé « 2 vantaux ».
+        typeGroups(item) {
+            const ordre = ['FENÊTRES', 'PORTES', 'CHÂSSIS FIXE', 'AUTRES'];
+            const singulier = { 'FENÊTRES': 'Fenêtre', 'PORTES': 'Porte' };
+            const groupes = {};
+
+            (item.types || []).forEach(t => {
+                const nom = t.display_name || t.name || '';
+                const bas = nom.toLowerCase();
+
+                let groupe = 'AUTRES';
+                if (bas.startsWith('porte')) {
+                    groupe = 'PORTES';                       // avant « fenêtre » : « Porte fenêtre… »
+                } else if (bas.startsWith('fenêtre') || bas.startsWith('fenetre')) {
+                    groupe = 'FENÊTRES';
+                } else if (bas.includes('châssis') || bas.includes('chassis')) {
+                    groupe = 'CHÂSSIS FIXE';
+                }
+
+                // « Fenêtre coulissante en 2 vantaux » → « Fenêtre — 2 vantaux » : on
+                // retire la famille, déjà choisie au-dessus, mais on garde la nature,
+                // seule visible une fois la liste refermée.
+                const coupe = nom.indexOf(' en ');
+                (groupes[groupe] = groupes[groupe] || []).push({
+                    id: t.id,
+                    label: (coupe > -1 && singulier[groupe])
+                        ? singulier[groupe] + ' — ' + nom.slice(coupe + 4)
+                        : nom,
+                });
+            });
+
+            return ordre.filter(g => groupes[g]).map(g => ({ label: g, types: groupes[g] }));
+        },
+
+        canPreview(item) {
+            return !item.is_manual && item.product_type_id
+                && parseFloat(item.hauteur) > 0 && parseFloat(item.largeur) > 0
+                && !!window.AlumDrawing;
+        },
+
+        // Correction d'affichage uniquement : la donnée en base ("Osilobattante")
+        // reste inchangée (utilisée par DevisCalculator pour matcher les tags Excel).
+        ouvertureLabel(opt) {
+            return opt === 'Osilobattante' ? 'Oscillo-battante' : opt;
+        },
+
+        previewSVG(item) {
+            if (!this.canPreview(item)) { return ''; }
+            const t = (item.types || []).find(x => String(x.id) === String(item.product_type_id));
+            if (!t) { return ''; }
+            const sup = (item.supplements || []).map(s => (s || '').toLowerCase());
+            const params = window.AlumDrawing.buildParams(this.familyDrawTypes[item.family_id] || null, t, {
+                largeur: parseFloat(item.largeur) || 100,
+                hauteur: parseFloat(item.hauteur) || 100,
+                couleur: item.couleur || 'blanc',
+                partieFixeType: (item.partie_fixe_type && item.partie_fixe_type !== 'Sans' && parseFloat(item.pf_dim_1) > 0) ? item.partie_fixe_type : 'Sans',
+                pfDim1: parseFloat(item.pf_dim_1) || 0,
+                pfDim2: parseFloat(item.pf_dim_2) || 0,
+                chassiMontants: item.is_chassi_fix ? (parseInt(item.chassi_montant_qty, 10) || 0) : 0,
+                chassiTraverses: item.is_chassi_fix ? (parseInt(item.chassi_traverse_qty, 10) || 0) : 0,
+                chassiSocleWide: item.is_chassi_fix && ['40121', '40154', 'AE_40121', 'AE_40154'].includes(item.chassi_socle_ref),
+                chassiMontantWide: item.is_chassi_fix && item.chassi_montant_enabled && ['40121', 'AE_40121'].includes(item.chassi_montant_ref),
+                chassiTraverseWide: item.is_chassi_fix && item.chassi_traverse_enabled && ['40121', 'AE_40121'].includes(item.chassi_traverse_ref),
+                serrureTraverse: sup.some(s => s.includes('serrure travers') || s === 'traverse' || s === 'avec traverse'),
+                typeOuverture: item.ouverture_type === 'Basculante' ? 'basculante' : (item.ouverture_type === 'Osilobattante' ? 'oscillo' : 'francaise'),
+                storeCoffre: item.is_standalone_store ? !!item.store_coffre : true,
+                svgW: 500, svgH: 430,
+            });
+            return params ? window.AlumDrawing.render(params) : '';
+        },
+
+        hasWindowItems() {
+            return this.items.some(i => !i.is_manual && !i.is_garde_corps && !i.is_standalone_store && !i.is_standalone_mousti);
+        },
+        hasGardeCorpsItems() {
+            return this.items.some(i => !i.is_manual && i.is_garde_corps);
+        },
+        hasMoustiItems() {
+            return this.items.some(i => !i.is_manual && (i.mousti_enabled || i.is_standalone_mousti));
+        },
+        hasStoreItems() {
+            return this.items.some(i => !i.is_manual && (i.store_enabled || i.is_standalone_store));
+        },
+
+        init() {
+            this.addItem();
+        },
+
+        submitForm() {
+            this.items.forEach(item => { item._showErrors = true; });
+
+            const firstInvalidIndex = this.items.findIndex(item => {
+                if (item.is_manual) {
+                    return !item.manual_nom || item.manual_nom.trim() === ''
+                        || !item.quantity || item.quantity < 1
+                        || item.manual_unit_price === '' || item.manual_unit_price === null || item.manual_unit_price === undefined;
+                }
+                return !item.family_id || !item.product_type_id || !item.hauteur || !item.largeur;
+            });
+
+            if (firstInvalidIndex !== -1) {
+                const el = document.getElementById('devis-item-' + this.items[firstInvalidIndex]._uid);
+                if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                return;
+            }
+
+            const firstMissingRemplissage = this.items.findIndex(item =>
+                !item.is_manual && item.requires_remplissage && !item.remplissage_id
+            );
+            if (firstMissingRemplissage !== -1) {
+                const el = document.getElementById('devis-item-' + this.items[firstMissingRemplissage]._uid);
+                if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                return;
+            }
+
+            this.$refs.form.submit();
+        },
+
+        addItem() {
+            this.items.push({
+                _uid: Date.now() + Math.random(),
+                family_id: '',
+                product_type_id: '',
+                hauteur: '',
+                largeur: '',
+                quantity: 1,
+                couleur: 'blanc',
+                remplissage_id: '',
+                motif_id: '',
+                cremone_id: '',
+                vitrage_type: 'simple',
+                ouverture_type: '',
+                supplements: [],
+                types: [],
+                options: { vitrage: [], ouverture: [], serrure: [], supplements: [] },
+                // Composition (ouvrant/dormant/traverse/parclose — TPR S40)
+                composition: null,
+                has_cremone: false,
+                comp_ouvrant_ref: '',
+                comp_dormant_ref: '',
+                comp_traverse_ref: '',
+                comp_parclose_ref: '',
+                comp_meneau_ref: '',
+                comp_couvre_joint_ref: '',
+                fast_lock_points: '1',
+                // Garde Corps
+                is_garde_corps: false,
+                gc_has_poteaux: false,
+                gc_has_vitrage: false,
+                gc_has_lignes: false,
+                gc_show_ongle: false,
+                gc_ongle_checkbox: false,
+                gc_has_coudes: false,
+                gc_nb_poteaux: 2,
+                gc_nb_lignes: 1,
+                gc_nb_coudes: 0,
+                gc_fin_type: 'Support Mur',
+                gc_fin_qty: 1,
+                gc_ongle: '90°',
+                // Chassis Fixe
+                is_chassi_fix: false,
+                chassi_refs: { cadre: [], socle: [], montant: [], traverse: [] },
+                chassi_cadre_ref: '',
+                chassi_socle_ref: '',
+                chassi_montant_enabled: false,
+                chassi_montant_ref: '',
+                chassi_montant_qty: 0,
+                chassi_traverse_enabled: false,
+                chassi_traverse_ref: '',
+                chassi_traverse_qty: 0,
+                // Standalone
+                is_standalone_store: false,
+                is_standalone_mousti: false,
+                // Store Rideau
+                store_enabled: false,
+                store_lame_type: 'lame inj 55',
+                store_couleur: 'Blanc',
+                store_coffre: '',
+                store_encastre: false,
+                store_axe70: false,
+                store_renforce: false,
+                store_lame_s_qty: 1,
+                // Moustiquaire
+                mousti_enabled: false,
+                mousti_hauteur: '',
+                mousti_largeur: '',
+                // Partie Fixe & Couvre Joint
+                partie_fixe_type: 'Sans',
+                pf_dim_1: '',
+                pf_dim_2: '',
+                sans_couvre_joint: false,
+                couvre_joint_type: '',
+                // PROTOTYPE Composition coulissant S67 (front only, non soumis)
+                proto_coulissant: null,
+                proto_dormant_ref: '',
+                proto_parclose_ref: '',
+                comp_lateral_qty: {},
+                comp_central_qty: {},
+                comp_traverse_enabled: false,
+                comp_seuil_ref: '',
+                proto_cj_ref: '',
+                // Partie fixe indépendante (Coulissant: Partie fixe droite/gauche/haut/bas)
+                is_partie_fix: false,
+                is_porte: false,
+                partie_fix_label: '',
+                requires_remplissage: false,
+                _showErrors: false,
+            });
+        },
+
+        removeItem(index) {
+            this.items.splice(index, 1);
+        },
+
+        duplicateItem(index) {
+            const clone = JSON.parse(JSON.stringify(this.items[index]));
+            clone._uid = Date.now() + Math.random();
+            clone.hauteur = '';
+            clone.largeur = '';
+            this.items.splice(index + 1, 0, clone);
+        },
+
+        // PROTOTYPE coulissant : sélection {réf: nb de barres} par groupe (latéral/central).
+        // Coche → la réf prend les barres restantes (ou 1 en prenant sur la plus chargée).
+        // Décoche → si une seule réf reste, elle reprend toutes les barres.
+        protoToggle(item, key, ref, maxBars) {
+            const sel = item[key];
+            if (sel[ref] !== undefined) {
+                delete sel[ref];
+                const left = Object.keys(sel);
+                if (left.length === 1) {
+                    sel[left[0]] = maxBars;
+                }
+            } else {
+                if (Object.keys(sel).length >= maxBars) { return; }
+                const remaining = maxBars - this.protoTotal(item, key);
+                if (remaining >= 1) {
+                    sel[ref] = remaining;
+                } else {
+                    const biggest = Object.keys(sel).sort((a, b) => sel[b] - sel[a])[0];
+                    if (biggest && sel[biggest] > 1) { sel[biggest]--; }
+                    sel[ref] = 1;
+                }
+            }
+        },
+
+        protoAdjust(item, key, ref, delta, maxBars) {
+            const sel = item[key];
+            const totalOthers = this.protoTotal(item, key) - Number(sel[ref]);
+            sel[ref] = Math.min(Math.max(Number(sel[ref]) + delta, 1), maxBars - totalOthers);
+        },
+
+        // Number() explicite : les quantités peuvent arriver en chaînes selon leur
+        // origine, et « + » les concaténerait au lieu de les additionner.
+        protoTotal(item, key) {
+            return Object.values(item[key]).reduce((sum, qty) => sum + Number(qty), 0);
+        },
+
+        protoSummary(item, key) {
+            const parts = Object.entries(item[key]).map(([ref, qty]) => ref + ' ×' + qty);
+            return parts.length ? parts.join(', ') : '— choisir —';
+        },
+
+        addManualItem() {
+            this.items.push({
+                _uid: Date.now() + Math.random(),
+                is_manual: true,
+                manual_nom: '',
+                manual_designation: '',
+                hauteur: '',
+                largeur: '',
+                quantity: 1,
+                manual_unit_price: '',
+                _showErrors: false,
+            });
+        },
+
+        async loadTypes(index, familyId) {
+            if (!familyId) {
+                this.items[index].types = [];
+                this.items[index].product_type_id = '';
+                this.items[index].requires_remplissage = false;
+                return;
+            }
+            const group = this.familyGroups[familyId] ?? 'AUTRES';
+            this.items[index].requires_remplissage = ['TPR', 'ALU ECO', 'ALUCO'].includes(group);
+            const response = await fetch(`https://atelierpro.vortech-x.com/alum/api/product-types?family_id=${familyId}`);
+            this.items[index].types = await response.json();
+            this.items[index].product_type_id = '';
+            this.items[index].options = { vitrage: [], ouverture: [], serrure: [], supplements: [] };
+            this.items[index].proto_coulissant = null;
+            this.items[index].comp_lateral_qty = {};
+            this.items[index].comp_central_qty = {};
+        },
+
+        async loadOptions(index, typeId) {
+            if (!typeId) return;
+
+            // Détecte le type de produit
+            const typeInfo = this.items[index].types.find(t => t.id == typeId);
+            const isChassi          = typeInfo && typeInfo.category === 'chassi_fix';
+            const isGardeCorps      = typeInfo && typeInfo.category === 'garde_corps';
+            const isStandaloneStore = typeInfo && typeInfo.category === 'standalone_store';
+            const isStandaloneMousti= typeInfo && typeInfo.category === 'standalone_mousti';
+            const isPorte           = typeInfo && typeInfo.name.toLowerCase().startsWith('porte');
+            this.items[index].is_chassi_fix       = isChassi;
+            this.items[index].is_garde_corps      = isGardeCorps;
+            this.items[index].is_standalone_store = isStandaloneStore;
+            this.items[index].is_standalone_mousti= isStandaloneMousti;
+            this.items[index].is_porte            = isPorte;
+            // Réinitialiser store/mousti à chaque changement de type produit
+            this.items[index].store_enabled  = false;
+            this.items[index].mousti_enabled = false;
+
+            // Composition (dormant/traverse/parclose) : fournie par l'API types
+            const comp = typeInfo ? (typeInfo.composition || null) : null;
+            this.items[index].composition = comp;
+            this.items[index].has_cremone = typeInfo ? !!typeInfo.has_cremone : false;
+            this.items[index].cremone_id = '';
+            if (comp) {
+                this.items[index].comp_ouvrant_ref  = comp.ouvrant.default;
+                this.items[index].comp_dormant_ref  = comp.dormant.default;
+                this.items[index].comp_traverse_ref = comp.traverse.default;
+                this.items[index].comp_parclose_ref = this.parcloseDefault(this.items[index]);
+                this.items[index].comp_meneau_ref   = comp.meneau.default;
+                this.items[index].comp_couvre_joint_ref = comp.couvre_joint.default;
+                if (comp.coulissant) {
+                    this.items[index].comp_lateral_qty = { [comp.lateral.default]: comp.lateral.count };
+                    this.items[index].comp_central_qty = { [comp.central.default]: comp.central.count };
+                } else {
+                    this.items[index].comp_lateral_qty = {};
+                    this.items[index].comp_central_qty = {};
+                }
+                this.items[index].comp_traverse_enabled = false;
+                this.items[index].comp_seuil_ref = (this.seuilOptions(this.items[index])[0] || '');
+            } else {
+                this.items[index].comp_ouvrant_ref  = '';
+                this.items[index].comp_dormant_ref  = '';
+                this.items[index].comp_traverse_ref = '';
+                this.items[index].comp_parclose_ref = '';
+                this.items[index].comp_meneau_ref   = '';
+                this.items[index].comp_couvre_joint_ref = '';
+                this.items[index].comp_lateral_qty  = {};
+                this.items[index].comp_central_qty  = {};
+            }
+
+            // PROTOTYPE (front only) : Composition coulissant — famille "Coulissante TPR S67",
+            // types "... N vantaux". 2 barres latérales + (N-1)*2 barres centrales.
+            // Multi-choix par rôle plafonné au nb de barres. Aucun envoi backend.
+            const protoFamName = this.familyNames[this.items[index].family_id] || '';
+            const protoVantMatch = typeInfo ? typeInfo.name.match(/(\d+)\s*vantaux/i) : null;
+            if (false && protoFamName === 'Coulissante TPR S67' && protoVantMatch) {
+                const nVantaux = parseInt(protoVantMatch[1]);
+                const nbCentral = (nVantaux - 1) * 2;
+                this.items[index].proto_coulissant = { nVantaux: nVantaux, nbCentral: nbCentral };
+                this.items[index].proto_dormant_ref = this.protoCoulissantRefs.dormant[0];
+                this.items[index].proto_parclose_ref = this.protoCoulissantRefs.parclose[0];
+                this.items[index].proto_cj_ref = this.protoCoulissantRefs.couvre_joint[0];
+                this.items[index].comp_lateral_qty = { '67104': 2 };
+                this.items[index].comp_central_qty = { '67105': nbCentral };
+            } else {
+                this.items[index].proto_coulissant = null;
+                this.items[index].proto_dormant_ref = '';
+                this.items[index].proto_parclose_ref = '';
+                this.items[index].proto_cj_ref = '';
+                this.items[index].comp_lateral_qty = {};
+                this.items[index].comp_central_qty = {};
+            }
+
+            // Standalone Store : activer automatiquement le store
+            if (isStandaloneStore) {
+                this.items[index].store_enabled = true;
+                return;
+            }
+
+            // Standalone Moustiquaire : activer automatiquement la moustiquaire
+            if (isStandaloneMousti) {
+                this.items[index].mousti_enabled = true;
+                this.items[index].mousti_hauteur = this.items[index].hauteur;
+                this.items[index].mousti_largeur = this.items[index].largeur;
+                return;
+            }
+
+            // Reset couvre joint si valeur incompatible avec une porte
+            if (isPorte && ['Bas', 'Haut et Bas'].includes(this.items[index].couvre_joint_type)) {
+                this.items[index].couvre_joint_type = 'Droite';
+            }
+
+            if (isGardeCorps) {
+                const name = typeInfo.name;
+                this.items[index].gc_has_poteaux = ['Garde corps Rond Linaire', 'Garde corps Rond Vitré', 'Garde corps Corpsen', 'Garde corps Corpsen Sabot'].includes(name);
+                // Garde corps vitrés : remplissage + motif sélectionnables
+                this.items[index].gc_has_vitrage = ['Garde corps Rond Vitré', 'Garde corps Corpsen', 'Garde corps Corpsen Sabot'].includes(name);
+                this.items[index].requires_remplissage = this.items[index].gc_has_vitrage;
+                this.items[index].gc_has_lignes  = name === 'Garde corps Rond Linaire';
+                this.items[index].gc_show_ongle    = name !== 'Pass Main';
+                this.items[index].gc_ongle_checkbox = ['Garde corps Rond Vitré', 'Garde corps Corpsen', 'Garde corps Corpsen Sabot'].includes(name);
+                // Par défaut : checkbox cochée (90°)
+                if (this.items[index].gc_ongle_checkbox) {
+                    this.items[index].gc_ongle = '90°';
+                }
+                this.items[index].gc_has_coudes  = true;
+                // Defaults pour types sans poteaux
+                if (!this.items[index].gc_has_poteaux) {
+                    this.items[index].gc_nb_poteaux = 0;
+                    this.items[index].gc_nb_lignes  = 0;
+                }
+                return;
+            } else if (isChassi) {
+                // Charge les refs cadre/socle/montant/traverse
+                const response = await fetch(`https://atelierpro.vortech-x.com/alum/api/chassi-fix-refs?type_id=${typeId}`);
+                const refs = await response.json();
+                this.items[index].chassi_refs = refs;
+                this.items[index].chassi_cadre_ref    = refs.cadre[0]    ?? '';
+                this.items[index].chassi_socle_ref    = refs.socle[0]    ?? '';
+                this.items[index].chassi_montant_ref  = refs.montant[0]  ?? '';
+                this.items[index].chassi_traverse_ref = refs.traverse[0] ?? '';
+                this.items[index].chassi_montant_enabled  = false;
+                this.items[index].chassi_traverse_enabled = false;
+            } else {
+                // Produit standard : charge les options normales
+                const response = await fetch(`https://atelierpro.vortech-x.com/alum/api/options?type_id=${typeId}`);
+                const options = await response.json();
+                this.items[index].options = options;
+
+                // Partie fixe indépendante (ex: Coulissant - Partie fixe droite/gauche/haut/bas)
+                this.items[index].is_partie_fix   = !!options.is_partie_fix;
+                this.items[index].partie_fix_label = options.partie_fix_label || '';
+                if (options.is_partie_fix && options.partie_fix_def_dim) {
+                    this.items[index].pf_dim_1 = options.partie_fix_def_dim;
+                }
+
+                if (options.vitrage && options.vitrage.length > 0) {
+                    this.items[index].vitrage_type = 'simple';
+                }
+                if (options.ouverture && options.ouverture.length > 0) {
+                    this.items[index].ouverture_type = options.ouverture[0];
+                }
+                // Serrure : sélectionner le premier choix par défaut
+                if (options.serrure && options.serrure.length > 0) {
+                    const serrureTags = ['Serrure montant', 'Crémone', 'Serrure traverse'];
+                    this.items[index].supplements = [
+                        ...this.items[index].supplements.filter(t => !serrureTags.map(s => s.toLowerCase()).includes(t.toLowerCase())),
+                        options.serrure[0]
+                    ];
+                }
+            }
+        },
+
+        onVitrageChange(index) {
+            if (this.items[index].vitrage_type === 'double' && this.doubleVitrageMotifId) {
+                this.items[index].motif_id = this.doubleVitrageMotifId;
+            } else if (this.items[index].vitrage_type === 'simple' && this.items[index].motif_id == this.doubleVitrageMotifId) {
+                this.items[index].motif_id = '';
+            }
+            // La parclose dépend du vitrage : revenir à celle par défaut
+            if (this.items[index].composition) {
+                this.items[index].comp_parclose_ref = this.parcloseDefault(this.items[index]);
+            }
+        },
+
+        // Certains ouvrants (ex. 40404) intègrent la parclose : pas de choix à faire
+        showParclose(item) {
+            if (!item.composition || item.composition.coulissant) { return false; }
+            const elim = item.composition.ouvrant.eliminate_parclose || [];
+            return !elim.includes(item.comp_ouvrant_ref);
+        },
+
+        parcloseOptions(item) {
+            if (!item.composition) { return []; }
+            const key = item.vitrage_type === 'double' ? 'double' : 'simple';
+            return item.composition.parclose[key].options;
+        },
+
+        parcloseDefault(item) {
+            if (!item.composition) { return ''; }
+            const key = item.vitrage_type === 'double' ? 'double' : 'simple';
+            return item.composition.parclose[key].default;
+        },
+
+        hasSerrureTraverseSel(item) {
+            return (item.supplements || []).some(s => (s || '').toLowerCase().includes('serrure travers'));
+        },
+
+        // Coupe du profilé : une image par référence dans public/images/profils.
+        // Gamme TPR uniquement — les réfs Alu Eco (AE_) n'ont pas de vignette.
+        // Une réf sans image reçoit une coupe générique, à remplacer au fil de l'eau.
+        profilImage(ref) {
+            // Les réfs du châssis fixe arrivent en nombres (clés PHP numériques),
+            // celles de la composition en chaînes : normaliser avant tout traitement.
+            const code = String(ref ?? '').trim();
+            if (code === '' || code.startsWith('AE_')) { return null; }
+            const base = 'https://atelierpro.vortech-x.com/profils/';
+            const fichier = this.profilsAvecImage[code.toLowerCase().replace(/\s+/g, '')];
+            return base + (fichier || '_defaut.svg');
+        },
+
+        // Fast Lock : le choix du nombre de points ne vaut que si l'option est cochée
+        hasFastLock(item) {
+            return (item.supplements || []).some(s => (s || '').toLowerCase() === 'fast lock');
+        },
+
+        hasCremoneSel(item) {
+            return (item.supplements || []).some(s => (s || '').toLowerCase() === 'crémone');
+        },
+
+        hasPartieFixe(item) {
+            return item.partie_fixe_type && item.partie_fixe_type !== 'Sans';
+        },
+
+        // Coulissant porte : options de seuil bas si le dormant choisi est composite
+        seuilOptions(item) {
+            if (!item.composition || !item.composition.coulissant || !item.composition.dormant_composite) { return []; }
+            return item.composition.dormant_composite[item.comp_dormant_ref] || [];
+        },
+
+        // Couvre joint obligatoire si le dormant choisi est un déclencheur (dormant nu),
+        // SAUF si "Sans couvre joint" + "Tous" est coché (pas de couvre joint du tout).
+        needsCouvreJoint(item) {
+            if (item.sans_couvre_joint && item.couvre_joint_type === 'Tous') {
+                return false;
+            }
+            return !!(item.composition
+                && item.composition.couvre_joint
+                && item.composition.couvre_joint.triggers.includes(item.comp_dormant_ref));
+        },
+
+        toggleSupplement(index, value, event) {
+            const sups = this.items[index].supplements;
+            if (event.target.type === 'radio') {
+                // Radio: remove all other serrure tags first, then add selected
+                const serrureTags = ['Serrure montant', 'Crémone', 'Serrure traverse'];
+                this.items[index].supplements = sups.filter(s => !serrureTags.map(t => t.toLowerCase()).includes(s.toLowerCase()));
+                this.items[index].supplements.push(value);
+            } else if (event.target.checked) {
+                if (!sups.includes(value)) sups.push(value);
+            } else {
+                const i = sups.indexOf(value);
+                if (i > -1) sups.splice(i, 1);
+            }
+        },
+    };
+}
+</script>
+            </main>
+        </div>
+    </div>
+
+    <!-- Alpine.js for interactivity -->
+    <script src="https://atelierpro.vortech-x.com/js/alpine.min.js" defer></script>
+
+    <script>
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .catch(err => console.log('SW erreur:', err));
+            });
+        }
+
+        // Bouton installation PWA
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+            installBtn.classList.add('flex');
+        });
+
+        function installPWA() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+                installBtn.classList.remove('flex');
+            });
+        }
+
+        // Cacher le bouton si déjà installé
+        window.addEventListener('appinstalled', () => {
+            installBtn.classList.add('hidden');
+            installBtn.classList.remove('flex');
+            deferredPrompt = null;
+        });
+    </script>
+    
+    <!-- Modal CGU -->
+    <div id="cguModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Conditions générales d'utilisation</h2>
+                <button type="button" onclick="document.getElementById('cguModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-sm text-gray-600 space-y-3">
+                <p><strong>1. Objet</strong><br>AtelierPro est une plateforme édité par Vortech-x destinée à la gestion des devis, bons de livraison et factures pour les ateliers de menuiserie aluminium.</p>
+                <p><strong>2. Accès au service</strong><br>L'accès est réservé aux utilisateurs disposant d'un compte valide. Chaque utilisateur est responsable de la confidentialité de ses identifiants.</p>
+                <p><strong>3. Confidentialité</strong><br>L'utilisateur s'engage à ne pas divulguer, reproduire ou diffuser le contenu, les fonctionnalités ou les données de la plateforme à des tiers non autorisés.</p>
+                <p><strong>4. Propriété intellectuelle</strong><br>L'ensemble des éléments de la plateforme (code, design, logos, contenus) reste la propriété exclusive de Vortech-x.</p>
+                <p><strong>5. Responsabilités</strong><br>Vortech-x met tout en œuvre pour assurer la disponibilité et la fiabilité du service, sans garantie d'absence d'interruption ou d'erreur.</p>
+                <p><strong>6. Abonnement et résiliation</strong><br>L'accès à la plateforme est soumis aux conditions d'abonnement convenues. Vortech-x se réserve le droit de suspendre l'accès en cas de non-respect des présentes conditions.</p>
+                <p><strong>7. Modification</strong><br>Vortech-x peut modifier les présentes conditions à tout moment. Les utilisateurs seront informés de toute modification substantielle.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Charte des données personnelles et des cookies -->
+    <div id="charteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Charte des données personnelles et des cookies</h2>
+                <button type="button" onclick="document.getElementById('charteModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-sm text-gray-600 space-y-3">
+                <p><strong>1. Données collectées</strong><br>Lors de l'utilisation d'AtelierPro, nous collectons les données nécessaires au fonctionnement du service : identifiants de connexion, informations de l'entreprise (nom, logo, coordonnées) et données saisies pour la gestion des devis, clients, livraisons et factures.</p>
+                <p><strong>2. Finalité du traitement</strong><br>Ces données sont utilisées exclusivement pour fournir, sécuriser et améliorer le service AtelierPro. Elles ne sont ni vendues, ni partagées avec des tiers à des fins commerciales.</p>
+                <p><strong>3. Conservation</strong><br>Les données sont conservées tant que le compte est actif. En cas de résiliation, elles peuvent être supprimées ou archivées dans les délais légaux applicables.</p>
+                <p><strong>4. Droits des utilisateurs</strong><br>Chaque utilisateur peut demander l'accès, la rectification ou la suppression de ses données personnelles en contactant l'éditeur à l'adresse contact@vortech-x.com.</p>
+                <p><strong>5. Cookies</strong><br>La plateforme utilise des cookies strictement nécessaires au fonctionnement (session de connexion, préférences d'affichage). Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
+                <p><strong>6. Sécurité</strong><br>Vortech-x met en place des mesures techniques et organisationnelles appropriées pour protéger les données contre tout accès non autorisé, perte ou altération.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

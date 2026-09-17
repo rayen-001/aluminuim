@@ -359,6 +359,10 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
     'CSQ_124': 22.000,
     'CSQ_Coulisse': 48.000,
     'CSQ_Coffre': 95.000,
+    'Glissière 55': 48.000,
+    'Glissière 45': 42.000,
+    'Axe 60 Garv': 24.000,
+    'Lame S': 22.000,
     'MOUSTI_Coulisse': 36.000,
     'MOUSTI_Coffre': 58.000,
     'MOUSTI_Tirage': 28.000,
@@ -367,7 +371,13 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
     'Lame final 45': 38.000,
     'Lame final 39': 35.000,
     'Lame final 42': 38.000,
-    'Lame final 64': 48.000
+    'Lame final 64': 48.000,
+    'Lame extrudée': 85.000,
+    'Lame injectée 55': 45.000,
+    'Lame injectée 45': 38.000,
+    'Lame injectée 42': 38.000,
+    'Lame injectée 39': 35.000,
+    'Lame injectée 64': 58.000
   };
 
   return fallbackPrices[ref] || 75.000;
@@ -529,7 +539,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     const vantauxMatch = typeDef?.name.match(/(\d+)\s*vantaux/i);
     if (vantauxMatch) {
       nbVantaux = parseInt(vantauxMatch[1]);
-    } else if (typeDef?.name.toLowerCase().includes('1 vantail') || typeDef?.name.toLowerCase().includes('soufflet') || (isPorte && !typeDef?.name.toLowerCase().includes('2'))) {
+    } else if (typeDef?.name.toLowerCase().includes('1 vantail') || typeDef?.name.toLowerCase().includes('1v') || item.product_type_id?.includes('1v') || item.product_type_id?.includes('1_v') || typeDef?.name.toLowerCase().includes('soufflet') || (isPorte && !typeDef?.name.toLowerCase().includes('2'))) {
       nbVantaux = 1;
     }
 
@@ -858,55 +868,65 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     // -------------------------------------------------------------
     else if (isStore) {
       const slatCfg = detectSlatConfig(item);
+      const isEncastre = item.store_encastre !== false;
+      const isExtrude = slatCfg.lameRef.toLowerCase().includes('extrud');
 
-      // 1. Coulisses H
+      // Formules atelier précises
+      const lLame = Math.max(10, isEncastre ? parseFloat((L + 4.5).toFixed(2)) : parseFloat((L - 5.0).toFixed(2)));
+      const lGlissiere = isEncastre ? parseFloat((H + 15.0).toFixed(2)) : H;
+      const lAxe = Math.max(10, isEncastre ? parseFloat((L + 9.0).toFixed(2)) : parseFloat((L - 7.0).toFixed(2)));
+      const debitageJointBrosse = isEncastre ? parseFloat((H + 15.0 + L / 4.0).toFixed(2)) : H;
+      const nbLames = Math.round(H / 5.0) + 1;
+
+      // 1. Coulisses / Glissières H
+      const glissRef = isExtrude ? 'Glissière 55' : (slatCfg.lameRef.includes('55') ? 'Glissière 55' : (slatCfg.lameRef.includes('45') ? 'Glissière 45' : 'Glissière 55'));
       cuttingPieces.push({
         id: `cut_${itemIdx}_store_coul`,
         itemIndex: itemIdx,
         elementLabel,
         pieceType: 'dormant_h',
-        profilRef: 'CSQ_Coulisse',
-        profilDesignation: 'Coulisses latérales de guidage Volet CSQ',
-        lengthCm: H,
+        profilRef: glissRef,
+        profilDesignation: `${glissRef} de guidage latéral`,
+        lengthCm: lGlissiere,
         quantity: 2 * qty,
         angleLeft: '90°',
         angleRight: '90°',
-        notes: 'Coulisses de descente gauche et droite'
+        notes: isEncastre ? 'Coulisses encastrées (+15cm dans coffre)' : 'Coulisses standard'
       });
 
-      // 2. Coffre supérieur L
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_store_coffre`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_l',
-        profilRef: 'CSQ_Coffre',
-        profilDesignation: 'Caisson / Coffre d’enroulement supérieur',
-        lengthCm: L,
-        quantity: 1 * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Coffre aluminium d’enroulement'
-      });
+      // 2. Coffre supérieur L (si non encastré ou avec coffre)
+      if (item.store_coffre && item.store_coffre !== '— Sans coffre —') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_store_coffre`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: 'CSQ_Coffre',
+          profilDesignation: `Caisson / Coffre d’enroulement supérieur (${item.store_coffre})`,
+          lengthCm: L,
+          quantity: 1 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Coffre aluminium d’enroulement'
+        });
+      }
 
-      // 3. Axe tubulaire Ø60 octogonal (L - 7cm)
-      const lAxe = Math.max(10, L - 7.0);
+      // 3. Axe tubulaire Ø60 octogonal
       cuttingPieces.push({
         id: `cut_${itemIdx}_store_axe`,
         itemIndex: itemIdx,
         elementLabel,
         pieceType: 'traverse',
-        profilRef: 'Axe_60',
-        profilDesignation: 'Tube Axe d’enroulement octogonal Ø60',
+        profilRef: 'Axe 60 Garv',
+        profilDesignation: 'Axe 60 Garv (Tube octogonal galvanisé Ø60)',
         lengthCm: lAxe,
         quantity: 1 * qty,
         angleLeft: '90°',
         angleRight: '90°',
-        notes: 'Axe d’enroulement motorisé ou manuel'
+        notes: isEncastre ? 'Axe d’enroulement (+9cm)' : 'Axe d’enroulement (-7cm)'
       });
 
-      // 4. Lame finale basse (L - 5cm)
-      const lLame = Math.max(10, L - 5.0);
+      // 4. Lame finale basse
       cuttingPieces.push({
         id: `cut_${itemIdx}_store_lame_fin`,
         itemIndex: itemIdx,
@@ -921,8 +941,24 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         notes: 'Lame finale avec joint d’arrêt bas'
       });
 
-      // 5. Tablier de Lames (Nombre calculé avec pas exact)
-      const nbLames = Math.ceil(H / slatCfg.stepCm);
+      // 5. Lame S (Couvre-joint / tulipe) — 4 barres en Extrudé
+      if (isExtrude) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_store_lame_s`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'couvre_joint',
+          profilRef: 'Lame S',
+          profilDesignation: 'Lame S (Couvre-joint tablier extrudé)',
+          lengthCm: lLame,
+          quantity: 4 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: '4 barres Lame S par volet extrudé'
+        });
+      }
+
+      // 6. Tablier de Lames
       cuttingPieces.push({
         id: `cut_${itemIdx}_store_lames`,
         itemIndex: itemIdx,
@@ -934,74 +970,122 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         quantity: nbLames * qty,
         angleLeft: '90°',
         angleRight: '90°',
-        notes: `${nbLames} lames par volet (${slatCfg.lameType}, pas ${slatCfg.stepCm * 10}mm)`
+        notes: `${nbLames} lames par volet (${slatCfg.lameType})`
       });
 
-      // Accessoires Volet
-      // Bouchons de lames (2 par lame)
-      const nbBouchons = nbLames * 2 * qty;
+      // Accessoires Volet Roulant
+      // Bouchons de lames (1 par lame)
+      const nbBouchons = nbLames * qty;
+      const bouchonPrice = isExtrude ? 0.359 : 0.093; // Prix HT (0.427 / 0.111 TTC)
+      const bouchonNom = isExtrude ? 'Bouchon extrudé' : 'Bouchon lame 55';
       rawAccessories.push({
         id: `acc_bouchons_lame_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel,
-        designation: `${slatCfg.capNom} (Embouts latéraux)`,
-        reference: slatCfg.capNom,
+        designation: `${bouchonNom} (Embouts latéraux)`,
+        reference: bouchonNom,
         category: 'accessoire',
         quantity: nbBouchons,
         unit: 'unité',
-        unitPriceHt: slatCfg.capUnitPrice,
-        totalPriceHt: parseFloat((nbBouchons * slatCfg.capUnitPrice).toFixed(3)),
-        details: '2 embouts par lame pour guidage silencieux'
-      });
-
-      // Blocs de sécurité anti-soulèvement (2 par volet)
-      const secuPrice = getAccPrice('acc_bloc_secu_60', 31.212);
-      rawAccessories.push({
-        id: `acc_secu_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Blocs de sécurité anti-soulèvement type 60',
-        reference: 'Bloc sécu 60',
-        category: 'accessoire',
-        quantity: 2 * qty,
-        unit: 'unité',
-        unitPriceHt: secuPrice,
-        totalPriceHt: parseFloat((secuPrice * 2 * qty).toFixed(3)),
-        details: 'Attaches rigides tablier anti-effraction'
+        unitPriceHt: bouchonPrice,
+        totalPriceHt: parseFloat((nbBouchons * bouchonPrice).toFixed(3)),
+        details: '1 embout par lame pour guidage silencieux'
       });
 
       // Rallonge d'axe télescopique 60
-      const rallongePrice = getAccPrice('acc_rallonge_axe_60', 3.240);
+      const rallongePrice = 3.500; // HT (4.165 TTC)
       rawAccessories.push({
         id: `acc_rallonge_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel,
-        designation: 'Rallonge d’axe télescopique type 60',
-        reference: 'Rallonge axe 60',
+        designation: 'Rallonge Axe 60',
+        reference: 'Rallonge Axe 60',
         category: 'accessoire',
         quantity: 1 * qty,
         unit: 'unité',
         unitPriceHt: rallongePrice,
         totalPriceHt: parseFloat((rallongePrice * qty).toFixed(3)),
-        details: 'Embout réglable tube d’enroulement'
+        details: 'Embout réglable tube d’enroulement 60'
       });
 
       // Joint brosse coulisses volet
-      const storeBrosseMeters = parseFloat(((4 * H * qty) / 100).toFixed(2));
-      totalJointBrosseCmGlobal += 4 * H * qty;
-      const jBrossePrice = getAccPrice('acc_joint_brosse_76', 0.378);
+      const storeBrosseMeters = parseFloat(((4 * qty * debitageJointBrosse) / 100).toFixed(2));
+      totalJointBrosseCmGlobal += 4 * qty * debitageJointBrosse;
+      const jBrossePrice = 0.190; // HT (0.226 TTC / ml)
       rawAccessories.push({
         id: `acc_jbrosse_store_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel,
-        designation: 'Joint brosse de coulisse volet 7/6',
-        reference: 'Joint brosse 7/6',
+        designation: 'Joint brosse de 6mm',
+        reference: 'Joint brosse de 6mm',
         category: 'joint',
         quantity: storeBrosseMeters,
         unit: 'm',
         unitPriceHt: jBrossePrice,
         totalPriceHt: parseFloat((storeBrosseMeters * jBrossePrice).toFixed(3)),
-        details: 'Guidage étanche tablier dans coulisses'
+        details: `4 coupes de ${debitageJointBrosse} cm par volet`
+      });
+
+      // Tirette simple 55
+      const nbTirettes = (L > 140 ? 3 : 2) * qty;
+      const tirettePrice = 2.500; // HT (2.975 TTC)
+      rawAccessories.push({
+        id: `acc_tirette_${itemIdx}`,
+        itemIndex: itemIdx,
+        elementLabel,
+        designation: 'Tirette simple 55',
+        reference: 'Tirette simple 55',
+        category: 'accessoire',
+        quantity: nbTirettes,
+        unit: 'unité',
+        unitPriceHt: tirettePrice,
+        totalPriceHt: parseFloat((nbTirettes * tirettePrice).toFixed(3)),
+        details: `${L > 140 ? 3 : 2} attaches tablier par volet`
+      });
+
+      // Silicone (Sélicomne)
+      rawAccessories.push({
+        id: `acc_silicone_${itemIdx}`,
+        itemIndex: itemIdx,
+        elementLabel,
+        designation: 'Sélicomne (Cartouche étanchéité)',
+        reference: 'Sélicomne',
+        category: 'accessoire',
+        quantity: 1 * qty,
+        unit: 'unité',
+        unitPriceHt: 7.250, // HT (8.628 TTC)
+        totalPriceHt: parseFloat((7.250 * qty).toFixed(3)),
+        details: 'Étanchéité caisson et coulisses'
+      });
+
+      // Vis et chevilles
+      rawAccessories.push({
+        id: `acc_vis_chev_${itemIdx}`,
+        itemIndex: itemIdx,
+        elementLabel,
+        designation: 'Vis et chevis',
+        reference: 'Vis et chevis',
+        category: 'visserie',
+        quantity: 12 * qty,
+        unit: 'unité',
+        unitPriceHt: 0.160, // HT (0.190 TTC)
+        totalPriceHt: parseFloat((12 * qty * 0.160).toFixed(3)),
+        details: 'Fixation complète coulisses'
+      });
+
+      // Kit Moteur
+      rawAccessories.push({
+        id: `acc_kit_moteur_${itemIdx}`,
+        itemIndex: itemIdx,
+        elementLabel,
+        designation: 'Kit Moteur',
+        reference: 'Kit Moteur',
+        category: 'moteur',
+        quantity: 1 * qty,
+        unit: 'unité',
+        unitPriceHt: 4.000, // HT (4.760 TTC)
+        totalPriceHt: parseFloat((4.000 * qty).toFixed(3)),
+        details: 'Support moteur et adaptateur'
       });
     }
 
@@ -1228,74 +1312,228 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         itemIndex: itemIdx,
         elementLabel,
         designation: 'Joint d’étanchéité vitrage fixe (J242 / ML03V)',
-        reference: 'Joint 242',
+        reference: 'J242 / ML03V',
         category: 'joint',
         quantity: jVitMeters,
         unit: 'm',
         unitPriceHt: jVitPrice,
         totalPriceHt: parseFloat((jVitMeters * jVitPrice).toFixed(3)),
-        details: 'Maintien périphérique vitrage'
+        details: 'Joint extérieur et intérieur vitrage fixe'
       });
     }
-
     // -------------------------------------------------------------
-    // F. FRAPPE / FENÊTRES & PORTES (Série 40 ALLUCO / SQUARE 40)
+    // F. FRAPPE / FENÊTRES & PORTES (Toutes Gammes : EX45, S40, Aluco, Alu Eco)
     // -------------------------------------------------------------
     else {
-      const dormantFrappeRef = item.comp_dormant_ref || '40100';
-      const ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? '40403' : '40401');
-      const battementRef = '40112';
-      const parcloseFrappeRef = item.comp_parclose_ref || '40110';
+      const isEX45 = item.family_id === '51' || item.family_id === '64';
+      const isAluco = fam?.group === 'ALUCO';
+      const isAluEco = fam?.group === 'ALU ECO';
 
-      // 1. Dormant Montants H (45°)
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_frappe_dorm_h`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_h',
-        profilRef: dormantFrappeRef,
-        profilDesignation: `Dormant Montant vertical (${dormantFrappeRef})`,
-        lengthCm: H,
-        quantity: 2 * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: 'Cadre dormant extérieur montant'
-      });
+      // 1. Profilés de dormant (Tapée vs Plat) & Déductions par Gamme
+      let dormantTapeeRef = item.comp_dormant_ref || '40402';
+      let dormantFlatRef = '40100';
+      let tapeeExtensionCm = 2.5; // +25mm par côté -> +5.0cm L et H
+      let ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? '40403' : '40401');
+      let battementRef = '40112';
+      let parcloseFrappeRef = item.comp_parclose_ref || '40110';
+      let meneauDefaultRef = '40121';
 
-      // 2. Dormant Traverses L (45°)
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_frappe_dorm_l`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_l',
-        profilRef: dormantFrappeRef,
-        profilDesignation: `Dormant Traverse horizontale (${dormantFrappeRef})`,
-        lengthCm: L,
-        quantity: (isPorte ? 1 : 2) * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: isPorte ? 'Dormant traverse haute' : 'Dormant haut et bas'
-      });
+      if (isEX45) {
+        dormantTapeeRef = item.comp_dormant_ref && item.comp_dormant_ref.includes('1123') ? item.comp_dormant_ref : 'EX45 1123';
+        dormantFlatRef = 'EX45 1125';
+        tapeeExtensionCm = 2.1; // +21mm par côté -> +4.2cm L et H
+        ouvrantFrappeRef = item.comp_ouvrant_ref || 'EX45 1210';
+        battementRef = 'EX45 1212';
+        parcloseFrappeRef = item.comp_parclose_ref || 'EX45 1312';
+        meneauDefaultRef = 'EX45 1130';
+      } else if (isAluco) {
+        dormantTapeeRef = item.comp_dormant_ref || 'FSQ 124';
+        dormantFlatRef = 'FSQ 100';
+        tapeeExtensionCm = 2.5;
+        ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? 'FSQ 403' : 'FSQ 104');
+        battementRef = 'FSQ 112';
+        parcloseFrappeRef = item.comp_parclose_ref || 'FSQ 110';
+        meneauDefaultRef = 'FSQ 107';
+      } else if (isAluEco) {
+        dormantTapeeRef = item.comp_dormant_ref || 'AE_40402';
+        dormantFlatRef = 'AE_40100';
+        tapeeExtensionCm = 2.5;
+        ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? 'AE_40403' : 'AE_40401');
+        battementRef = 'AE_40112';
+        parcloseFrappeRef = item.comp_parclose_ref || 'AE_40110';
+        meneauDefaultRef = 'AE_40121';
+      }
 
-      // Formules officielles ALLUCO SQUARE 40:
-      // Fenêtre 1V : H - 4.4 / L - 4.4
-      // Fenêtre 2V : H - 4.4 / (L - 4.9)/2
-      // Porte 1V : H - 4.6 / L - 7.8
-      // Porte 2V : H - 4.6 / (L - 8.3)/2
-      let hOuvrant = Math.max(10, parseFloat((H - (isPorte ? 4.6 : 4.4)).toFixed(1)));
-      let lOuvrant = Math.max(10, parseFloat((isPorte 
-        ? (nbVantaux === 1 ? L - 7.8 : (L - 8.3) / 2) 
-        : (nbVantaux === 1 ? L - 4.4 : (L - 4.9) / 2)
-      ).toFixed(1)));
+      // 2. Gestion Côté par Côté du Dormant (Tapée vs Sans Couvre-joint)
+      const sansCJ = !!item.sans_couvre_joint;
+      const cjPos = item.couvre_joint_type || '';
 
-      // 3. Ouvrant Montants (45°)
+      const hasGaucheTapee = !sansCJ || !['Gauche', 'Droite et Gauche', 'Tous'].includes(cjPos);
+      const hasDroiteTapee = !sansCJ || !['Droite', 'Droite et Gauche', 'Tous'].includes(cjPos);
+      const hasHautTapee = !sansCJ || !['Haut', 'Haut et Bas', 'Tous'].includes(cjPos);
+      const hasBasTapee = isPorte ? false : (!sansCJ || !['Bas', 'Haut et Bas', 'Tous'].includes(cjPos));
+
+      const lenMGauche = hasGaucheTapee ? parseFloat((H + 2 * tapeeExtensionCm).toFixed(2)) : H;
+      const refMGauche = hasGaucheTapee ? dormantTapeeRef : dormantFlatRef;
+      const lenMDroit = hasDroiteTapee ? parseFloat((H + 2 * tapeeExtensionCm).toFixed(2)) : H;
+      const refMDroit = hasDroiteTapee ? dormantTapeeRef : dormantFlatRef;
+
+      const lenTHaut = hasHautTapee ? parseFloat((L + 2 * tapeeExtensionCm).toFixed(2)) : L;
+      const refTHaut = hasHautTapee ? dormantTapeeRef : dormantFlatRef;
+      const lenTBas = hasBasTapee ? parseFloat((L + 2 * tapeeExtensionCm).toFixed(2)) : L;
+      const refTBas = hasBasTapee ? dormantTapeeRef : dormantFlatRef;
+
+      // Débitage des Montants Dormant
+      if (lenMGauche === lenMDroit && refMGauche === refMDroit) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_h',
+          profilRef: refMGauche,
+          profilDesignation: `Dormant Montants verticaux (${refMGauche})`,
+          lengthCm: lenMGauche,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Cadre dormant extérieur montants'
+        });
+      } else {
+        if (hasDroiteTapee) {
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_frappe_dorm_hd`,
+            itemIndex: itemIdx,
+            elementLabel,
+            pieceType: 'dormant_h',
+            profilRef: refMDroit,
+            profilDesignation: `Dormant Montant Droit (${refMDroit})`,
+            lengthCm: lenMDroit,
+            quantity: 1 * qty,
+            angleLeft: '45°',
+            angleRight: '45°',
+            notes: 'Montant droit avec tapée'
+          });
+        }
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_hg`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_h',
+          profilRef: refMGauche,
+          profilDesignation: `Dormant Montant Gauche (${refMGauche})`,
+          lengthCm: lenMGauche,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: hasGaucheTapee ? 'Montant gauche avec tapée' : 'Montant gauche sans tapée'
+        });
+        if (!hasDroiteTapee && hasGaucheTapee) {
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_frappe_dorm_hd_flat`,
+            itemIndex: itemIdx,
+            elementLabel,
+            pieceType: 'dormant_h',
+            profilRef: refMDroit,
+            profilDesignation: `Dormant Montant Droit (${refMDroit})`,
+            lengthCm: lenMDroit,
+            quantity: 1 * qty,
+            angleLeft: '45°',
+            angleRight: '45°',
+            notes: 'Montant droit sans tapée'
+          });
+        }
+      }
+
+      // Débitage des Traverses Dormant
+      if (isPorte) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: refTHaut,
+          profilDesignation: `Dormant Traverse haute (${refTHaut})`,
+          lengthCm: lenTHaut,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Dormant traverse haute porte'
+        });
+      } else if (lenTHaut === lenTBas && refTHaut === refTBas) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: refTHaut,
+          profilDesignation: `Dormant Traverse horizontale (${refTHaut})`,
+          lengthCm: lenTHaut,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Dormant haut et bas'
+        });
+      } else {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_lh`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: refTHaut,
+          profilDesignation: `Dormant Traverse haute (${refTHaut})`,
+          lengthCm: lenTHaut,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Traverse haute'
+        });
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_frappe_dorm_lb`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: refTBas,
+          profilDesignation: `Dormant Traverse basse (${refTBas})`,
+          lengthCm: lenTBas,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Traverse basse'
+        });
+      }
+
+      // 3. Formules Ouvrant Battant
+      const hasPartieFixe = item.partie_fixe_type && item.partie_fixe_type !== 'Sans';
+      const pfDim = parseFloat(String(item.pf_dim_1)) || 0;
+
+      let hOuvrant = 0;
+      let lOuvrant = 0;
+
+      if (isEX45) {
+        hOuvrant = Math.max(10, parseFloat((H - 4.20).toFixed(2)));
+        if (hasPartieFixe) {
+          lOuvrant = Math.max(10, parseFloat((L - (pfDim > 0 ? pfDim : 0) - 3.70).toFixed(2)));
+        } else if (nbVantaux === 1) {
+          lOuvrant = Math.max(10, parseFloat((L - 4.20).toFixed(2)));
+        } else {
+          lOuvrant = Math.max(10, parseFloat(((L - 4.90) / 2).toFixed(2)));
+        }
+      } else {
+        hOuvrant = Math.max(10, parseFloat((H - (isPorte ? 4.6 : 4.4)).toFixed(1)));
+        lOuvrant = Math.max(10, parseFloat((isPorte 
+          ? (nbVantaux === 1 ? L - 7.8 : (L - 8.3) / 2) 
+          : (nbVantaux === 1 ? L - 4.4 : (L - 4.9) / 2)
+        ).toFixed(1)));
+      }
+
+      // Ouvrant Montants (45°)
       cuttingPieces.push({
         id: `cut_${itemIdx}_frappe_ouvr_h`,
         itemIndex: itemIdx,
         elementLabel,
         pieceType: 'ouvrant_h',
         profilRef: ouvrantFrappeRef,
-        profilDesignation: `Ouvrant Montant battant FSQ ${isPorte ? '403' : '401'} (${ouvrantFrappeRef})`,
+        profilDesignation: `Ouvrant Montant battant (${ouvrantFrappeRef})`,
         lengthCm: hOuvrant,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -1303,14 +1541,14 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         notes: 'Montants ouvrants battants'
       });
 
-      // 4. Ouvrant Traverses (45°)
+      // Ouvrant Traverses (45°)
       cuttingPieces.push({
         id: `cut_${itemIdx}_frappe_ouvr_l`,
         itemIndex: itemIdx,
         elementLabel,
         pieceType: 'ouvrant_l',
         profilRef: ouvrantFrappeRef,
-        profilDesignation: `Ouvrant Traverse battant FSQ ${isPorte ? '403' : '401'} (${ouvrantFrappeRef})`,
+        profilDesignation: `Ouvrant Traverse battant (${ouvrantFrappeRef})`,
         lengthCm: lOuvrant,
         quantity: 2 * nbVantaux * qty,
         angleLeft: '45°',
@@ -1318,7 +1556,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         notes: 'Traverses haute et basse ouvrant'
       });
 
-      // 5. Battement central (UNIQUEMENT pour 2 vantaux)
+      // 4. Battement central (UNIQUEMENT pour 2 vantaux)
       if (nbVantaux > 1) {
         const hBattement = Math.max(10, parseFloat((H - (isPorte ? 7.9 : 11.1)).toFixed(1)));
         cuttingPieces.push({
@@ -1327,7 +1565,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           elementLabel,
           pieceType: 'chicane',
           profilRef: battementRef,
-          profilDesignation: `Battement Central FSQ 112 (${battementRef})`,
+          profilDesignation: `Battement Central (${battementRef})`,
           lengthCm: hBattement,
           quantity: 1 * qty,
           angleLeft: '90°',
@@ -1336,7 +1574,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         });
       }
 
-      // 6. Socle bas pour portes (FSQ 121 + FSQ 122)
+      // 5. Socle bas pour portes
       if (isPorte) {
         const lSocle = Math.max(10, parseFloat((nbVantaux === 1 ? L - 21.5 : (L - 35.7) / 2).toFixed(1)));
         cuttingPieces.push({
@@ -1344,8 +1582,8 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           itemIndex: itemIdx,
           elementLabel,
           pieceType: 'traverse',
-          profilRef: '40121',
-          profilDesignation: 'Socle bas de porte FSQ 121 (130mm)',
+          profilRef: isEX45 ? 'EX45 1215' : '40121',
+          profilDesignation: 'Socle bas de porte (130mm)',
           lengthCm: lSocle,
           quantity: (nbVantaux === 1 ? 2 : 4) * qty,
           angleLeft: '90°',
@@ -1354,14 +1592,25 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         });
       }
 
-      // 7. Parcloses
+      // 6. Parcloses Ouvrant
       const skipParclose = PROFILES_WITHOUT_PARCLOSE.includes(item.comp_ouvrant_ref || '');
       if (!skipParclose) {
-        const hParc = Math.max(5, parseFloat((isPorte ? H - 26.6 : H - 17.8).toFixed(1)));
-        const lParc = Math.max(5, parseFloat((isPorte 
-          ? (nbVantaux === 1 ? L - 21.5 : (L - 35.5) / 2) 
-          : (nbVantaux === 1 ? L - 13.4 : (L - 22.9) / 2)
-        ).toFixed(1)));
+        let hParc = 0;
+        let lParc = 0;
+        let angleParc: '45°' | '90°' = '45°';
+
+        if (isEX45) {
+          hParc = Math.max(5, parseFloat((hOuvrant - 9.80).toFixed(2)));
+          lParc = Math.max(5, parseFloat((lOuvrant - 9.50).toFixed(2)));
+          angleParc = '90°';
+        } else {
+          hParc = Math.max(5, parseFloat((isPorte ? H - 26.6 : H - 17.8).toFixed(1)));
+          lParc = Math.max(5, parseFloat((isPorte 
+            ? (nbVantaux === 1 ? L - 21.5 : (L - 35.5) / 2) 
+            : (nbVantaux === 1 ? L - 13.4 : (L - 22.9) / 2)
+          ).toFixed(1)));
+          angleParc = '45°';
+        }
 
         cuttingPieces.push({
           id: `cut_${itemIdx}_frappe_parc_h`,
@@ -1369,11 +1618,11 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           elementLabel,
           pieceType: 'parclose',
           profilRef: parcloseFrappeRef,
-          profilDesignation: `Parclose Montant FSQ 110/111 (${parcloseFrappeRef})`,
+          profilDesignation: `Parclose Montant (${parcloseFrappeRef})`,
           lengthCm: hParc,
           quantity: 2 * nbVantaux * qty,
-          angleLeft: '45°',
-          angleRight: '45°',
+          angleLeft: angleParc,
+          angleRight: angleParc,
           notes: 'Parclose verticale ouvrant'
         });
 
@@ -1383,236 +1632,488 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           elementLabel,
           pieceType: 'parclose',
           profilRef: parcloseFrappeRef,
-          profilDesignation: `Parclose Traverse FSQ 110/111 (${parcloseFrappeRef})`,
+          profilDesignation: `Parclose Traverse (${parcloseFrappeRef})`,
           lengthCm: lParc,
           quantity: 2 * nbVantaux * qty,
-          angleLeft: '45°',
-          angleRight: '45°',
+          angleLeft: angleParc,
+          angleRight: angleParc,
           notes: 'Parclose horizontale ouvrant'
         });
       }
 
-      // Accessoires Frappe ALLUCO 40
-      const eq40Price = getAccPrice('acc_equerre_40', 2.160);
-      rawAccessories.push({
-        id: `acc_eq40_cadre_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Équerres d’assemblage cadre 40 (36440FR)',
-        reference: 'Équerre 40',
-        category: 'equerre',
-        quantity: 4 * qty,
-        unit: 'unité',
-        unitPriceHt: eq40Price,
-        totalPriceHt: parseFloat((4 * qty * eq40Price).toFixed(3)),
-        details: '4 équerres par cadre extérieur'
-      });
+      // 7. Partie Fixe & Meneaux
+      if (hasPartieFixe) {
+        const meneauRef = item.comp_meneau_ref || meneauDefaultRef;
+        const pfType = item.partie_fixe_type || 'Droite';
+        const isVertical = !['Haut', 'Bas', 'Haut et Bas'].includes(pfType);
+        const nbMeneaux = ['Droite et Gauche', 'Haut et Bas'].includes(pfType) ? 2 : 1;
 
-      rawAccessories.push({
-        id: `acc_eq40_ouvr_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Équerres d’assemblage ouvrant 40 (36440FR)',
-        reference: 'Équerre 40',
-        category: 'equerre',
-        quantity: 4 * nbVantaux * qty,
-        unit: 'unité',
-        unitPriceHt: eq40Price,
-        totalPriceHt: parseFloat((4 * nbVantaux * qty * eq40Price).toFixed(3)),
-        details: '4 équerres par vantail battant'
-      });
+        let meneauLen = 0;
+        if (isEX45) {
+          meneauLen = Math.max(10, parseFloat((isVertical ? H - 5.80 : L - 5.80).toFixed(2)));
+        } else {
+          meneauLen = Math.max(10, parseFloat((isVertical ? H - 8.00 : L - 8.00).toFixed(1)));
+        }
 
-      const visPrice = getAccPrice('acc_vis_six_pans', 0.216);
-      const nbVisSIP = (isPorte ? (nbVantaux === 1 ? 8 : 16) : (nbVantaux === 1 ? 8 : 12)) * qty;
-      rawAccessories.push({
-        id: `acc_vis_frappe_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Vis d’assemblage cruciformes 4.8×25 SIP',
-        reference: 'Vis SIP 4.8×25',
-        category: 'visserie',
-        quantity: nbVisSIP,
-        unit: 'unité',
-        unitPriceHt: visPrice,
-        totalPriceHt: parseFloat((nbVisSIP * visPrice).toFixed(3)),
-        details: 'Fixation des équerres et profilés'
-      });
-
-      // Paumelles
-      const paumellePrice = getAccPrice('acc_paumelle', 5.940);
-      const nbPaumelles = (isPorte ? (H > 200 ? 4 : 3) : (H > 160 ? 3 : 2)) * nbVantaux * qty;
-      rawAccessories.push({
-        id: `acc_paumelles_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: isPorte ? 'Paumelles de porte renforcées Bridge (00600N)' : 'Paumelles de fenêtre à frappe (00120U)',
-        reference: isPorte ? 'Paumelle Bridge' : 'Paumelle',
-        category: 'verrou',
-        quantity: nbPaumelles,
-        unit: 'unité',
-        unitPriceHt: paumellePrice,
-        totalPriceHt: parseFloat((nbPaumelles * paumellePrice).toFixed(3)),
-        details: `${isPorte ? '3 à 4' : '2 à 3'} paumelles par vantail`
-      });
-
-      // Crémone ou Serrure porte
-      if (isPorte) {
-        const serrurePrice = getAccPrice('acc_serrure_montante', 48.600);
-        rawAccessories.push({
-          id: `acc_serrure_porte_${itemIdx}`,
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_meneau_pf`,
           itemIndex: itemIdx,
-          elementLabel,
-          designation: 'Serrure montante multipoints pour porte (SMSQR / 950302)',
-          reference: 'Serrure montante',
-          category: 'verrou',
-          quantity: 1 * qty,
-          unit: 'unité',
-          unitPriceHt: serrurePrice,
-          totalPriceHt: parseFloat((serrurePrice * qty).toFixed(3)),
-          details: 'Serrure principale barillet 3 points'
+          elementLabel: `${elementLabel} - Meneau (${pfType})`,
+          pieceType: 'traverse',
+          profilRef: meneauRef,
+          profilDesignation: `Meneau profil de séparation (${meneauRef})`,
+          lengthCm: meneauLen,
+          quantity: nbMeneaux * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: `Séparation Partie Fixe (${pfType})`
         });
 
-        const poigneePrice = getAccPrice('acc_poignee_bequille', 14.580);
+        // Parcloses Fixe
+        if (isEX45) {
+          const hPfParc = Math.max(5, parseFloat((H - 5.60).toFixed(2)));
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_pf_parc_h`,
+            itemIndex: itemIdx,
+            elementLabel: `${elementLabel} - Parclose Fixe`,
+            pieceType: 'parclose',
+            profilRef: parcloseFrappeRef,
+            profilDesignation: `Parclose Fixe Montant (${parcloseFrappeRef})`,
+            lengthCm: hPfParc,
+            quantity: 2 * nbMeneaux * qty,
+            angleLeft: '90°',
+            angleRight: '90°'
+          });
+        } else {
+          const hPfParc = Math.max(5, isVertical ? H - 8.0 : pfDim - 4.0);
+          const lPfParc = Math.max(5, isVertical ? pfDim - 4.0 : L - 8.0);
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_pf_parc_h`,
+            itemIndex: itemIdx,
+            elementLabel: `${elementLabel} - Parclose Fixe`,
+            pieceType: 'parclose',
+            profilRef: parcloseFrappeRef,
+            profilDesignation: `Parclose Fixe Montant (${parcloseFrappeRef})`,
+            lengthCm: hPfParc,
+            quantity: 2 * nbMeneaux * qty,
+            angleLeft: '45°',
+            angleRight: '45°'
+          });
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_pf_parc_l`,
+            itemIndex: itemIdx,
+            elementLabel: `${elementLabel} - Parclose Fixe`,
+            pieceType: 'parclose',
+            profilRef: parcloseFrappeRef,
+            profilDesignation: `Parclose Fixe Traverse (${parcloseFrappeRef})`,
+            lengthCm: lPfParc,
+            quantity: 2 * nbMeneaux * qty,
+            angleLeft: '45°',
+            angleRight: '45°'
+          });
+        }
+      }
+
+      // 8. Accessoires & Quincaillerie Gamme par Gamme
+      if (isEX45) {
+        // Joints Spécifiques EX45
         rawAccessories.push({
-          id: `acc_poignee_${itemIdx}`,
+          id: `acc_ex45_n101_${itemIdx}`,
           itemIndex: itemIdx,
           elementLabel,
-          designation: 'Paire de poignées béquilles aluminium (02563 Kora)',
-          reference: 'Poignée béquille',
+          designation: 'Ex45 N101 (Joint dormant)',
+          reference: 'Ex45 N101',
+          category: 'joint',
+          quantity: 4 * 0.90 * qty,
+          unit: 'm',
+          unitPriceHt: 1.785,
+          totalPriceHt: parseFloat((4 * 0.90 * qty * 1.785).toFixed(3)),
+          details: 'Joint dormant EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_n103_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Ex45 N103 (Joint ouvrant)',
+          reference: 'Ex45 N103',
+          category: 'joint',
+          quantity: 4 * 0.90 * qty,
+          unit: 'm',
+          unitPriceHt: 1.785,
+          totalPriceHt: parseFloat((4 * 0.90 * qty * 1.785).toFixed(3)),
+          details: 'Joint ouvrant EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_n105_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 N105 (Joint battement)',
+          reference: 'EX45 N105',
+          category: 'joint',
+          quantity: 2 * 0.90 * qty,
+          unit: 'm',
+          unitPriceHt: 1.428,
+          totalPriceHt: parseFloat((2 * 0.90 * qty * 1.428).toFixed(3)),
+          details: 'Joint battement EX45'
+        });
+        rawAccessories.push({
+          id: `acc_n52_035_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'N52 035 (Joint vitrage)',
+          reference: 'N52 035',
+          category: 'joint',
+          quantity: 2 * 0.90 * qty,
+          unit: 'm',
+          unitPriceHt: 4.165,
+          totalPriceHt: parseFloat((2 * 0.90 * qty * 4.165).toFixed(3)),
+          details: 'Joint vitrage haute performance'
+        });
+
+        // Équerres & Quincaillerie EX45
+        rawAccessories.push({
+          id: `acc_ex45_a114_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 114 (Équerre dormant)',
+          reference: 'EX45 A 114',
+          category: 'equerre',
+          quantity: 4 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+          details: '4 équerres cadre dormant EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a115_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 115 (Équerre ouvrant)',
+          reference: 'EX45 A 115',
+          category: 'equerre',
+          quantity: 4 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+          details: '4 équerres ouvrant EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a112_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 112 (Équerres renfort)',
+          reference: 'EX45 A 112',
+          category: 'equerre',
+          quantity: 8 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((8 * qty * 1.190).toFixed(3)),
+          details: 'Équerres d’alignement onglet EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex60_a256_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX60 A256 (Busettes évacuation eau)',
+          reference: 'EX60 A256',
+          category: 'accessoire',
+          quantity: 2 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.428,
+          totalPriceHt: parseFloat((2 * qty * 1.428).toFixed(3)),
+          details: 'Drainage extérieur dormant'
+        });
+        rawAccessories.push({
+          id: `acc_bouchon_parc_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Bouchon Paraclose',
+          reference: 'Bouchon Paraclose',
+          category: 'accessoire',
+          quantity: 8 * qty,
+          unit: 'unité',
+          unitPriceHt: 0.107,
+          totalPriceHt: parseFloat((8 * qty * 0.107).toFixed(3)),
+          details: 'Bouchons de maintien parclose'
+        });
+        rawAccessories.push({
+          id: `acc_bouchon_trou_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Bouchon trou',
+          reference: 'Bouchon trou',
+          category: 'accessoire',
+          quantity: 4 * qty,
+          unit: 'unité',
+          unitPriceHt: 0.119,
+          totalPriceHt: parseFloat((4 * qty * 0.119).toFixed(3)),
+          details: 'Obturateurs trous d’usinage'
+        });
+        rawAccessories.push({
+          id: `acc_vis_chevis_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Vis et chevis',
+          reference: 'Vis et chevis',
+          category: 'visserie',
+          quantity: 4 * qty,
+          unit: 'unité',
+          unitPriceHt: 0.190,
+          totalPriceHt: parseFloat((4 * qty * 0.190).toFixed(3)),
+          details: 'Fixation maçonnerie'
+        });
+        rawAccessories.push({
+          id: `acc_selicomne_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Selicomne',
+          reference: 'Selicomne',
+          category: 'accessoire',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: 8.628,
+          totalPriceHt: parseFloat((1 * qty * 8.628).toFixed(3)),
+          details: 'Mastic d’étanchéité'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a130_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 130 (A la française)',
+          reference: 'EX45 A 130',
           category: 'verrou',
           quantity: 1 * qty,
           unit: 'unité',
-          unitPriceHt: poigneePrice,
-          totalPriceHt: parseFloat((poigneePrice * qty).toFixed(3)),
-          details: 'Béquille double avec rosaces'
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((1 * qty * 1.190).toFixed(3)),
+          details: 'Accessoire verrouillage frappe EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a132_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 132 (A la française)',
+          reference: 'EX45 A 132',
+          category: 'verrou',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((1 * qty * 1.190).toFixed(3)),
+          details: 'Guide tringle EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a133_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 133 (A la française)',
+          reference: 'EX45 A 133',
+          category: 'verrou',
+          quantity: 2 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+          details: 'Verrouillage d’angle EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a134_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 134 (A la française)',
+          reference: 'EX45 A 134',
+          category: 'verrou',
+          quantity: 2 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+          details: 'Pions de fermeture EX45'
+        });
+        rawAccessories.push({
+          id: `acc_ex45_a120_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'EX45 A 120 (Paumelle frappe)',
+          reference: 'EX45 A 120',
+          category: 'verrou',
+          quantity: 2 * qty,
+          unit: 'unité',
+          unitPriceHt: 1.190,
+          totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+          details: 'Paumelle d’articulation EX45'
         });
       } else {
-        const cremonePrice = getAccPrice('acc_cremone', 15.876);
+        // Standard S40 / Aluco / Alu Eco Accessories
+        const eq40Price = getAccPrice('acc_equerre_40', 2.160);
         rawAccessories.push({
-          id: `acc_cremone_${itemIdx}`,
+          id: `acc_eq40_cadre_${itemIdx}`,
           itemIndex: itemIdx,
           elementLabel,
-          designation: 'Crémone de fenêtre à frappe (00957)',
-          reference: 'Crémone',
-          category: 'verrou',
-          quantity: 1 * qty,
+          designation: 'Équerres d’assemblage cadre 40 (36440FR)',
+          reference: 'Équerre 40',
+          category: 'equerre',
+          quantity: 4 * qty,
           unit: 'unité',
-          unitPriceHt: cremonePrice,
-          totalPriceHt: parseFloat((cremonePrice * qty).toFixed(3)),
-          details: '1 crémone avec mécanisme par châssis'
+          unitPriceHt: eq40Price,
+          totalPriceHt: parseFloat((4 * qty * eq40Price).toFixed(3)),
+          details: '4 équerres par cadre extérieur'
+        });
+        rawAccessories.push({
+          id: `acc_eq40_ouvr_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Équerres d’assemblage ouvrant 40 (36440FR)',
+          reference: 'Équerre 40',
+          category: 'equerre',
+          quantity: 4 * nbVantaux * qty,
+          unit: 'unité',
+          unitPriceHt: eq40Price,
+          totalPriceHt: parseFloat((4 * nbVantaux * qty * eq40Price).toFixed(3)),
+          details: '4 équerres par vantail battant'
         });
 
-        const kitCremonePrice = getAccPrice('acc_kit_cremone', 7.344);
+        const visPrice = getAccPrice('acc_vis_six_pans', 0.216);
+        const nbVisSIP = (isPorte ? (nbVantaux === 1 ? 8 : 16) : (nbVantaux === 1 ? 8 : 12)) * qty;
         rawAccessories.push({
-          id: `acc_kit_cremone_${itemIdx}`,
+          id: `acc_vis_frappe_${itemIdx}`,
           itemIndex: itemIdx,
           elementLabel,
-          designation: 'Kit tringles et accessoires crémone (02574000K)',
-          reference: 'Kit crémone',
-          category: 'verrou',
-          quantity: 1 * qty,
+          designation: 'Vis d’assemblage cruciformes 4.8×25 SIP',
+          reference: 'Vis SIP 4.8×25',
+          category: 'visserie',
+          quantity: nbVisSIP,
           unit: 'unité',
-          unitPriceHt: kitCremonePrice,
-          totalPriceHt: parseFloat((kitCremonePrice * qty).toFixed(3)),
-          details: 'Tringles de verrouillage haut et bas'
+          unitPriceHt: visPrice,
+          totalPriceHt: parseFloat((nbVisSIP * visPrice).toFixed(3)),
+          details: 'Fixation des équerres et profilés'
+        });
+
+        const paumellePrice = getAccPrice('acc_paumelle', 5.940);
+        const nbPaumelles = (isPorte ? (H > 200 ? 4 : 3) : (H > 160 ? 3 : 2)) * nbVantaux * qty;
+        rawAccessories.push({
+          id: `acc_paumelles_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: isPorte ? 'Paumelles de porte renforcées Bridge (00600N)' : 'Paumelles de fenêtre à frappe (00120U)',
+          reference: isPorte ? 'Paumelle Bridge' : 'Paumelle',
+          category: 'verrou',
+          quantity: nbPaumelles,
+          unit: 'unité',
+          unitPriceHt: paumellePrice,
+          totalPriceHt: parseFloat((nbPaumelles * paumellePrice).toFixed(3)),
+          details: `${isPorte ? '3 à 4' : '2 à 3'} paumelles par vantail`
+        });
+
+        const isOscillo = item.type_ouverture?.toLowerCase().includes('oscillo') || item.ouverture_type?.toLowerCase().includes('oscillo');
+        const isSoufflet = item.type_ouverture?.toLowerCase().includes('soufflet') || item.ouverture_type?.toLowerCase().includes('soufflet');
+        const isCremoneCle = item.cremone_type === 'cle' || item.supplements?.some(s => s.toLowerCase().includes('clé') || s.toLowerCase().includes('cle'));
+
+        if (isOscillo) {
+          const oscilloPrice = getAccPrice('acc_kit_oscillo_battant', 65.000);
+          rawAccessories.push({
+            id: `acc_oscillo_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Kit Oscillo-battant complet (compas, tringles, gâches)',
+            reference: 'Kit Oscillo-battant',
+            category: 'verrou',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: oscilloPrice,
+            totalPriceHt: parseFloat((oscilloPrice * qty).toFixed(3)),
+            details: 'Mécanisme oscillo-battant complet'
+          });
+        } else if (isSoufflet) {
+          const loqPrice = getAccPrice('acc_loqueteau', 3.780);
+          rawAccessories.push({
+            id: `acc_loqueteau_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Loqueteau vasistas / soufflet avec compas',
+            reference: 'Loqueteau soufflet',
+            category: 'verrou',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: loqPrice,
+            totalPriceHt: parseFloat((loqPrice * qty).toFixed(3)),
+            details: 'Fermeture et compas vasistas'
+          });
+        } else if (isCremoneCle) {
+          const cremClePrice = getAccPrice('acc_cremone_cle', 32.000);
+          rawAccessories.push({
+            id: `acc_cremone_cle_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Crémone à clé de sécurité (Barillet intégré)',
+            reference: 'Crémone à clé',
+            category: 'verrou',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: cremClePrice,
+            totalPriceHt: parseFloat((cremClePrice * qty).toFixed(3)),
+            details: 'Crémone avec verrouillage par clé'
+          });
+        } else {
+          const cremonePrice = getAccPrice('acc_cremone', 15.876);
+          rawAccessories.push({
+            id: `acc_cremone_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Crémone de fenêtre à frappe (00957)',
+            reference: 'Crémone',
+            category: 'verrou',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: cremonePrice,
+            totalPriceHt: parseFloat((cremonePrice * qty).toFixed(3)),
+            details: '1 crémone avec mécanisme par châssis'
+          });
+          const kitCremonePrice = getAccPrice('acc_kit_cremone', 7.344);
+          rawAccessories.push({
+            id: `acc_kit_cremone_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Kit tringles et accessoires crémone (02574000K)',
+            reference: 'Kit crémone',
+            category: 'verrou',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: kitCremonePrice,
+            totalPriceHt: parseFloat((kitCremonePrice * qty).toFixed(3)),
+            details: 'Tringles de verrouillage haut et bas'
+          });
+        }
+
+        // Joints S40
+        const j247Meters = parseFloat(((2 * (H + L) * 2 * qty) / 100).toFixed(2));
+        const j247Price = getAccPrice('acc_joint_247', 0.324);
+        rawAccessories.push({
+          id: `acc_j247_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Joint 247 d’étanchéité cadre dormant (J784 / JB247)',
+          reference: 'Joint 247',
+          category: 'joint',
+          quantity: j247Meters,
+          unit: 'm',
+          unitPriceHt: j247Price,
+          totalPriceHt: parseFloat((j247Meters * j247Price).toFixed(3)),
+          details: 'Étanchéité périphérique cadre extérieur'
         });
       }
 
-      // Angles de parclose
-      if (!skipParclose) {
-        const angleParcPrice = getAccPrice('acc_angle_pareclose', 0.270);
-        const nbAngles = nbVantaux * 8 * qty;
-        rawAccessories.push({
-          id: `acc_angles_parc_${itemIdx}`,
-          itemIndex: itemIdx,
-          elementLabel,
-          designation: 'Angles de pareclose (Coins de fixation)',
-          reference: 'Angle de pareclose',
-          category: 'accessoire',
-          quantity: nbAngles,
-          unit: 'unité',
-          unitPriceHt: angleParcPrice,
-          totalPriceHt: parseFloat((nbAngles * angleParcPrice).toFixed(3)),
-          details: '8 angles par vantail'
-        });
+      // 9. Vitrage Frappe (Calcul Miroiterie)
+      let hVerre = 0;
+      let lVerre = 0;
+
+      if (isEX45) {
+        hVerre = 35.00;
+        lVerre = 25.80;
+      } else {
+        hVerre = Math.max(5, parseFloat((H - (isPorte ? 23.6 : 14.9)).toFixed(1)));
+        lVerre = Math.max(5, parseFloat((isPorte 
+          ? (nbVantaux === 1 ? L - 22.7 : (L - 38.5) / 2) 
+          : (nbVantaux === 1 ? L - 14.9 : (L - 25.7) / 2)
+        ).toFixed(1)));
       }
-
-      // Verrouillage semi-fixe & Bouchon 112 si 2 vantaux
-      if (nbVantaux > 1) {
-        const verrouPrice = getAccPrice('acc_verrou_semi_fixe', 7.020);
-        rawAccessories.push({
-          id: `acc_verrou_semifixe_${itemIdx}`,
-          itemIndex: itemIdx,
-          elementLabel,
-          designation: isPorte ? 'Verrou semi-fixe pour porte (02168K)' : 'Verrou semi-fixe pour fenêtre (02111K)',
-          reference: 'Verrouillage semi-fixe',
-          category: 'verrou',
-          quantity: 1 * qty,
-          unit: 'unité',
-          unitPriceHt: verrouPrice,
-          totalPriceHt: parseFloat((verrouPrice * qty).toFixed(3)),
-          details: 'Verrouillage haut et bas vantail passif'
-        });
-
-        const bouchonPrice = getAccPrice('acc_bouchon_112', 3.132);
-        rawAccessories.push({
-          id: `acc_bouchon_112_${itemIdx}`,
-          itemIndex: itemIdx,
-          elementLabel,
-          designation: 'Bouchon de battement central (ACC40 112)',
-          reference: 'Bouchon 112',
-          category: 'accessoire',
-          quantity: 1 * qty,
-          unit: 'unité',
-          unitPriceHt: bouchonPrice,
-          totalPriceHt: parseFloat((bouchonPrice * qty).toFixed(3)),
-          details: 'Étanchéité et finition battement'
-        });
-      }
-
-      // Busettes d'eau
-      const busettePrice = getAccPrice('acc_bouchon_lateral', 0.378);
-      rawAccessories.push({
-        id: `acc_busettes_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Busettes d’évacuation d’eau dormant (ACC67 256)',
-        reference: 'Busette eau',
-        category: 'accessoire',
-        quantity: 2 * qty,
-        unit: 'unité',
-        unitPriceHt: busettePrice,
-        totalPriceHt: parseFloat((2 * qty * busettePrice).toFixed(3)),
-        details: 'Clapets de drainage extérieur'
-      });
-
-      // Joints Frappe ALLUCO 40
-      const j247Meters = parseFloat(((2 * (H + L) * 2 * qty) / 100).toFixed(2));
-      const j247Price = getAccPrice('acc_joint_247', 0.324);
-      rawAccessories.push({
-        id: `acc_j247_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Joint 247 d’étanchéité cadre dormant (J784 / JB247)',
-        reference: 'Joint 247',
-        category: 'joint',
-        quantity: j247Meters,
-        unit: 'm',
-        unitPriceHt: j247Price,
-        totalPriceHt: parseFloat((j247Meters * j247Price).toFixed(3)),
-        details: 'Étanchéité périphérique cadre extérieur'
-      });
-
-      // Vitrage ALLUCO 40
-      // Fenêtre 1V : L - 14.9 / H - 14.9
-      // Fenêtre 2V : (L - 25.7)/2 / H - 14.9
-      // Porte 1V : L - 22.7 / H - 23.6
-      // Porte 2V : (L - 38.5)/2 / H - 23.6
-      const hVerre = Math.max(5, parseFloat((H - (isPorte ? 23.6 : 14.9)).toFixed(1)));
-      let lVerre = Math.max(5, parseFloat((isPorte 
-        ? (nbVantaux === 1 ? L - 22.7 : (L - 38.5) / 2) 
-        : (nbVantaux === 1 ? L - 14.9 : (L - 25.7) / 2)
-      ).toFixed(1)));
 
       const unitAreaM2 = parseFloat(((hVerre / 100) * (lVerre / 100)).toFixed(3));
       const totalVerresQty = nbVantaux * qty;
@@ -1629,87 +2130,190 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         totalAreaM2: parseFloat((unitAreaM2 * totalVerresQty * (isDouble ? 2 : 1)).toFixed(3)),
         vitrageType: item.remplissage_id || 'Simple Clair 6mm'
       });
+    }
 
-      const perimetreVerre = 2 * (hVerre + lVerre);
-      const itemJointVitrageCm = perimetreVerre * 2 * totalVerresQty;
-      totalJointVitrageCmGlobal += itemJointVitrageCm;
-
-      const j242Meters = parseFloat((itemJointVitrageCm / 100).toFixed(2));
-      const j242Price = getAccPrice('acc_joint_242', 0.324);
-      rawAccessories.push({
-        id: `acc_j242_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Joint 242 de vitrage ouvrant (J242 / ML03V)',
-        reference: 'Joint 242',
-        category: 'joint',
-        quantity: j242Meters,
-        unit: 'm',
-        unitPriceHt: j242Price,
-        totalPriceHt: parseFloat((j242Meters * j242Price).toFixed(3)),
-        details: 'Maintien étanche du vitrage'
-      });
-
-      if (isPorte) {
-        const jBrossePorteM = parseFloat(((L * qty) / 100).toFixed(2));
-        totalJointBrosseCmGlobal += L * qty;
-        const jBrossePrice = getAccPrice('acc_joint_brosse_76', 0.378);
-        rawAccessories.push({
-          id: `acc_jbrosse_porte_${itemIdx}`,
+    // -------------------------------------------------------------
+    // G. COUVRE JOINT SPÉCIFIQUE (Si profilé clipsable sur dormant plat)
+    // -------------------------------------------------------------
+    if (includeMenuiserie && item.couvre_joint_type && item.couvre_joint_type !== 'Sans' && !item.sans_couvre_joint) {
+      const cjRef = item.comp_couvre_joint_ref || (fam?.group === 'ALUCO' ? 'CJ 101' : '40108');
+      const cjPos = item.couvre_joint_type;
+      
+      if (cjPos === 'Haut') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_haut`,
           itemIndex: itemIdx,
-          elementLabel,
-          designation: 'Joint brosse d’étanchéité bas de porte (JBR7X6)',
-          reference: 'Joint brosse 7/6',
-          category: 'joint',
-          quantity: jBrossePorteM,
-          unit: 'm',
-          unitPriceHt: jBrossePrice,
-          totalPriceHt: parseFloat((jBrossePorteM * jBrossePrice).toFixed(3)),
-          details: 'Calfeutrement seuil bas de porte'
+          elementLabel: `${elementLabel} - Couvre Joint (Haut)`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (Haut)`,
+          lengthCm: L,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
+        });
+      } else if (cjPos === 'Gauche' || cjPos === 'Droite') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_${cjPos.toLowerCase()}`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Couvre Joint (${cjPos})`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (${cjPos})`,
+          lengthCm: H,
+          quantity: 1 * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
+        });
+      } else if (cjPos === 'Droite et Gauche') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_dg`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Couvre Joint (Gauche & Droite)`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (Montants)`,
+          lengthCm: H,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
+        });
+      } else if (cjPos === 'Haut et Bas') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_hb`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Couvre Joint (Haut & Bas)`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (Traverses)`,
+          lengthCm: L,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
+        });
+      } else if (cjPos === 'Tous' || cjPos === '4 Côtés') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_tous_h`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Couvre Joint (4 côtés - H)`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (Montants)`,
+          lengthCm: H,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
+        });
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_cj_tous_l`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Couvre Joint (4 côtés - L)`,
+          pieceType: 'couvre_joint',
+          profilRef: cjRef,
+          profilDesignation: `Couvre-joint ${cjRef} (Traverses)`,
+          lengthCm: L,
+          quantity: (isPorte ? 1 : 2) * qty,
+          angleLeft: '45°',
+          angleRight: '45°'
         });
       }
     }
 
-    // Attached Shutter (Volet Intégré / Monobloc)
+    // -------------------------------------------------------------
+    // I. QUINCAILLERIE SPÉCIFIQUE (Oscillo-battant, Crémones, Serrures)
+    // -------------------------------------------------------------
+    if (includeMenuiserie) {
+      // Kit Oscillo-battant
+      if (item.ouverture_type === 'Osilobattante' || item.ouverture_type === 'Oscillo-battante' || item.ouverture_type === 'oscillo_battant') {
+        const obPrice = getAccPrice('acc_kit_ob', 105.000);
+        rawAccessories.push({
+          id: `acc_kit_ob_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Kit mécanisme Oscillo-battant complet (OB Roto/Master)',
+          reference: 'Kit Oscillo-battant',
+          category: 'verrou',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: obPrice,
+          totalPriceHt: parseFloat((obPrice * qty).toFixed(3)),
+          details: 'Compas, crémone OB, renvois d’angle et gâches micro-ventilation'
+        });
+      }
+
+      // Crémone à clé
+      if (item.cremone_id === 'cle' || item.cremone_id === 'A clé') {
+        const cremoneClePrice = getAccPrice('acc_cremone_cle', 32.000);
+        rawAccessories.push({
+          id: `acc_cremone_cle_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Poignée Crémone à clé avec barillet de sécurité',
+          reference: 'Crémone à clé',
+          category: 'verrou',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: cremoneClePrice,
+          totalPriceHt: parseFloat((cremoneClePrice * qty).toFixed(3)),
+          details: 'Verrouillage sécurisé par clé'
+        });
+      }
+    }
+
+    // Attached Shutter (Volet Intégré)
     if (hasAttachedStore) {
       const slatCfg = detectSlatConfig(item);
+      const isEncastre = item.store_encastre !== false;
+      const isExtrude = slatCfg.lameRef.toLowerCase().includes('extrud');
 
+      const lLame = Math.max(10, isEncastre ? parseFloat((L + 4.5).toFixed(2)) : parseFloat((L - 5.0).toFixed(2)));
+      const lGlissiere = isEncastre ? parseFloat((H + 15.0).toFixed(2)) : H;
+      const lAxe = Math.max(10, isEncastre ? parseFloat((L + 9.0).toFixed(2)) : parseFloat((L - 7.0).toFixed(2)));
+      const debitageJointBrosse = isEncastre ? parseFloat((H + 15.0 + L / 4.0).toFixed(2)) : H;
+      const nbLames = Math.round(H / 5.0) + 1;
+
+      const glissRef = isExtrude ? 'Glissière 55' : (slatCfg.lameRef.includes('55') ? 'Glissière 55' : 'Glissière 45');
       cuttingPieces.push({
         id: `cut_${itemIdx}_att_store_coul`,
         itemIndex: itemIdx,
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'dormant_h',
-        profilRef: 'CSQ_Coulisse',
-        profilDesignation: 'Coulisses latérales Volet Intégré',
-        lengthCm: H,
+        profilRef: glissRef,
+        profilDesignation: `${glissRef} de guidage latéral Volet Intégré`,
+        lengthCm: lGlissiere,
         quantity: 2 * qty,
         angleLeft: '90°',
         angleRight: '90°'
       });
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_att_store_coffre`,
-        itemIndex: itemIdx,
-        elementLabel: `${elementLabel} - Volet Intégré`,
-        pieceType: 'dormant_l',
-        profilRef: 'CSQ_Coffre',
-        profilDesignation: 'Caisson Coffre Volet Intégré',
-        lengthCm: L,
-        quantity: 1 * qty,
-        angleLeft: '90°',
-        angleRight: '90°'
-      });
+
+      if (item.store_coffre && item.store_coffre !== '— Sans coffre —') {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_att_store_coffre`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Volet Intégré`,
+          pieceType: 'dormant_l',
+          profilRef: 'CSQ_Coffre',
+          profilDesignation: `Caisson Coffre Volet Intégré (${item.store_coffre})`,
+          lengthCm: L,
+          quantity: 1 * qty,
+          angleLeft: '90°',
+          angleRight: '90°'
+        });
+      }
+
       cuttingPieces.push({
         id: `cut_${itemIdx}_att_store_axe`,
         itemIndex: itemIdx,
         elementLabel: `${elementLabel} - Volet Intégré`,
         pieceType: 'traverse',
-        profilRef: 'Axe_60',
-        profilDesignation: 'Tube Axe octogonal Ø60',
-        lengthCm: Math.max(10, L - 7.0),
+        profilRef: 'Axe 60 Garv',
+        profilDesignation: 'Axe 60 Garv (Tube octogonal Ø60)',
+        lengthCm: lAxe,
         quantity: 1 * qty,
         angleLeft: '90°',
         angleRight: '90°'
       });
+
       cuttingPieces.push({
         id: `cut_${itemIdx}_att_store_lame_fin`,
         itemIndex: itemIdx,
@@ -1717,13 +2321,27 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         pieceType: 'traverse',
         profilRef: slatCfg.lameFinalRef,
         profilDesignation: slatCfg.lameFinalDesignation,
-        lengthCm: Math.max(10, L - 5.0),
+        lengthCm: lLame,
         quantity: 1 * qty,
         angleLeft: '90°',
         angleRight: '90°'
       });
 
-      const nbLames = Math.ceil(H / slatCfg.stepCm);
+      if (isExtrude) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_att_store_lame_s`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} - Volet Intégré`,
+          pieceType: 'couvre_joint',
+          profilRef: 'Lame S',
+          profilDesignation: 'Lame S (Couvre-joint tablier extrudé)',
+          lengthCm: lLame,
+          quantity: 4 * qty,
+          angleLeft: '90°',
+          angleRight: '90°'
+        });
+      }
+
       cuttingPieces.push({
         id: `cut_${itemIdx}_att_store_lames`,
         itemIndex: itemIdx,
@@ -1731,72 +2349,59 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         pieceType: 'lame_volet',
         profilRef: slatCfg.lameRef,
         profilDesignation: slatCfg.lameDesignation,
-        lengthCm: Math.max(10, L - 5.0),
+        lengthCm: lLame,
         quantity: nbLames * qty,
         angleLeft: '90°',
         angleRight: '90°'
       });
 
-      const nbBouchons = nbLames * 2 * qty;
+      const nbBouchons = nbLames * qty;
+      const bouchonPrice = isExtrude ? 0.359 : 0.093;
+      const bouchonNom = isExtrude ? 'Bouchon extrudé' : 'Bouchon lame 55';
       rawAccessories.push({
         id: `acc_att_bouchons_lame_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel: `${elementLabel} - Volet Intégré`,
-        designation: `${slatCfg.capNom} (Embouts latéraux)`,
-        reference: slatCfg.capNom,
+        designation: `${bouchonNom} (Embouts latéraux)`,
+        reference: bouchonNom,
         category: 'accessoire',
         quantity: nbBouchons,
         unit: 'unité',
-        unitPriceHt: slatCfg.capUnitPrice,
-        totalPriceHt: parseFloat((nbBouchons * slatCfg.capUnitPrice).toFixed(3)),
-        details: '2 embouts par lame'
+        unitPriceHt: bouchonPrice,
+        totalPriceHt: parseFloat((nbBouchons * bouchonPrice).toFixed(3)),
+        details: '1 embout par lame'
       });
 
-      const secuPrice = getAccPrice('acc_bloc_secu_60', 31.212);
-      rawAccessories.push({
-        id: `acc_att_secu_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel: `${elementLabel} - Volet Intégré`,
-        designation: 'Blocs de sécurité anti-soulèvement type 60',
-        reference: 'Bloc sécu 60',
-        category: 'accessoire',
-        quantity: 2 * qty,
-        unit: 'unité',
-        unitPriceHt: secuPrice,
-        totalPriceHt: parseFloat((secuPrice * 2 * qty).toFixed(3)),
-        details: 'Attaches tablier anti-effraction'
-      });
-
-      const rallongePrice = getAccPrice('acc_rallonge_axe_60', 3.240);
+      const rallongePrice = 3.500;
       rawAccessories.push({
         id: `acc_att_rallonge_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel: `${elementLabel} - Volet Intégré`,
-        designation: 'Rallonge d’axe télescopique type 60',
-        reference: 'Rallonge axe 60',
+        designation: 'Rallonge Axe 60',
+        reference: 'Rallonge Axe 60',
         category: 'accessoire',
         quantity: 1 * qty,
         unit: 'unité',
         unitPriceHt: rallongePrice,
         totalPriceHt: parseFloat((rallongePrice * qty).toFixed(3)),
-        details: 'Embout réglable tube d’enroulement'
+        details: 'Embout réglable tube d’enroulement 60'
       });
 
-      const storeBrosseM = parseFloat(((4 * H * qty) / 100).toFixed(2));
-      totalJointBrosseCmGlobal += 4 * H * qty;
-      const jBrossePrice = getAccPrice('acc_joint_brosse_76', 0.378);
+      const storeBrosseM = parseFloat(((4 * qty * debitageJointBrosse) / 100).toFixed(2));
+      totalJointBrosseCmGlobal += 4 * qty * debitageJointBrosse;
+      const jBrossePrice = 0.190;
       rawAccessories.push({
         id: `acc_att_jbrosse_${itemIdx}`,
         itemIndex: itemIdx,
         elementLabel: `${elementLabel} - Volet Intégré`,
-        designation: 'Joint brosse coulisse volet intégré',
-        reference: 'Joint brosse 7/6',
+        designation: 'Joint brosse de 6mm',
+        reference: 'Joint brosse de 6mm',
         category: 'joint',
         quantity: storeBrosseM,
         unit: 'm',
         unitPriceHt: jBrossePrice,
         totalPriceHt: parseFloat((storeBrosseM * jBrossePrice).toFixed(3)),
-        details: 'Guidage étanche tablier'
+        details: `4 coupes de ${debitageJointBrosse} cm par volet`
       });
     }
 
@@ -1932,8 +2537,12 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
 
     // Volet Roulant / Store
     'CSQ_Coulisse': 'Profilé Coulisses Volet Roulant',
+    'Glissière 55': 'Profilé Glissière 55mm Volet Roulant',
+    'Glissière 45': 'Profilé Glissière 45mm Volet Roulant',
     'CSQ_Coffre': 'Caisson / Coffre Volet Roulant',
     'Axe_60': 'Tube Axe Octogonal Ø60 Volet',
+    'Axe 60 Garv': 'Tube Axe Octogonal Ø60 Galvanisé (Axe 60 Garv)',
+    'Lame S': 'Lame S (Couvre-joint tablier extrudé)',
     'Lame_Finale': 'Lame Finale Basse Volet',
     'Lame final 55': 'Lame Finale Basse 55',
     'Lame final 45': 'Lame Finale Basse 45',
@@ -1969,7 +2578,13 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
   } = {};
 
   cuttingPieces.forEach(cp => {
-    const isSlat = cp.pieceType === 'lame_volet' || cp.profilRef === 'Axe_60' || cp.profilRef === '2878';
+    const isSlat = cp.pieceType === 'lame_volet' || 
+      cp.profilRef === 'Axe_60' || 
+      cp.profilRef === 'Axe 60 Garv' || 
+      cp.profilRef === '2878' || 
+      cp.profilRef === 'Lame S' ||
+      cp.profilRef.toLowerCase().includes('lame inject') || 
+      cp.profilRef.toLowerCase().includes('lame extrud');
     if (!piecesByRef[cp.profilRef]) {
       const standardName = PROFILE_EXTRUSION_NAMES[cp.profilRef] || cp.profilDesignation;
       piecesByRef[cp.profilRef] = { 

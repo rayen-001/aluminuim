@@ -200,7 +200,7 @@ export interface CaisseMovement {
 
 export interface DefaultProfilesConfig {
   s40_dormant?: string;   // e.g. '40402' (Dormant couvre-joint) or '40100'
-  s40_ouvrant?: string;   // e.g. '40404' (Monobloc) or '40401'
+  s40_ouvrant?: string;   // e.g. '40404' (Parclose intégrée) or '40401'
   s40_parclose?: string;  // e.g. '40110'
   s67_dormant?: string;   // e.g. '67101' or '67103'
   s67_lateral?: string;   // e.g. '67104' or '67108'

@@ -1,0 +1,2299 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2">
+    <title>Devis DEV-AL-2026-1612 - AtelierPro</title>
+    <link rel="icon" href="/icon-192.png" type="image/png">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AtelierPro">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+
+    <link rel="preload" as="style" href="https://atelierpro.vortech-x.com/build/assets/app-BK-PA_9S.css" /><link rel="modulepreload" as="script" href="https://atelierpro.vortech-x.com/build/assets/app-CAiCLEjY.js" /><link rel="stylesheet" href="https://atelierpro.vortech-x.com/build/assets/app-BK-PA_9S.css" /><script type="module" src="https://atelierpro.vortech-x.com/build/assets/app-CAiCLEjY.js"></script>    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Styles d'impression */
+        @media print {
+            /* Masquer tout le chrome de l'application */
+            aside, header, .no-print {
+                display: none !important;
+            }
+
+            /* Reset du body */
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Container principal prend toute la page */
+            .flex.h-screen {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* Main content prend toute la largeur */
+            .flex-1.flex.flex-col {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* Contenu de la page */
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* S'assurer que le contenu du bulletin est visible */
+            .bulletin-content {
+                display: block !important;
+                visibility: visible !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 antialiased">
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+
+        <!-- Mobile menu button -->
+        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-900 text-white rounded-lg shadow-lg">
+            <svg x-show="!sidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <svg x-show="sidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <!-- Sidebar overlay for mobile -->
+        <div x-show="sidebarOpen"
+             x-cloak
+             @click="sidebarOpen = false"
+             class="lg:hidden fixed inset-0 bg-black/40 z-30"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="backdrop-filter: blur(2px);"></div>
+
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-blue-900 to-indigo-900 text-white flex-shrink-0 fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:translate-x-0" :class="{ '-translate-x-full lg:translate-x-0': !sidebarOpen, 'translate-x-0': sidebarOpen }" x-data="{ open: true }">
+            <div class="flex flex-col h-full">
+
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-20 border-b border-blue-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold">AtelierPro</h1>
+                            <p class="text-xs text-blue-200">Gestion Atelier</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+
+                    <!-- Dashboard -->
+                    <a href="https://atelierpro.vortech-x.com/dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="font-medium">Tableau de bord</span>
+                    </a>
+
+                    <!-- Module Aluminium -->
+                    <div x-data="{ open: true }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 rounded-lg transition duration-200 bg-white/20 shadow-lg">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                                </svg>
+                                <span class="font-medium">Aluminium</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="ml-4 mt-1 space-y-1">
+                            <a href="https://atelierpro.vortech-x.com/alum/devis" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 bg-white/20">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Devis</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/alum/bl" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <span>Bons de Livraison</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/alum/factures" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span>Factures</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/articles" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm transition duration-200 hover:bg-white/10">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                                <span>Articles</span>
+                            </a>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Clients -->
+                    <a href="https://atelierpro.vortech-x.com/clients" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="font-medium">Clients</span>
+                    </a>
+
+                    <!-- Fournisseurs -->
+                    <a href="https://atelierpro.vortech-x.com/fournisseurs" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        <span class="font-medium">Fournisseurs</span>
+                    </a>
+
+                    <!-- Module RH -->
+                    <div x-data="{ open: false }" class="space-y-1">
+                        <button @click="open = !open" class="w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="font-medium">RH</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open" x-transition class="ml-4 space-y-1">
+                            <a href="https://atelierpro.vortech-x.com/rh/employees" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Employés</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/advances" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Avances sur Salaire</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/leaves" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Congés</span>
+                            </a>
+                            <a href="https://atelierpro.vortech-x.com/rh/payrolls" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-200 hover:bg-white/5">
+                                <span class="text-sm">Bulletins de Paie</span>
+                            </a>
+                        </div>
+                    </div>
+
+
+                    <!-- Caisse -->
+                    <a href="https://atelierpro.vortech-x.com/caisse" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="font-medium">Gestion Caisse</span>
+                    </a>
+
+
+                    <div class="pt-4 mt-4 border-t border-blue-800">
+                        <!-- Rapport Caisse -->
+
+
+
+
+
+
+
+                        <!-- Settings -->
+                        <a href="https://atelierpro.vortech-x.com/settings" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 hover:bg-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="font-medium">Paramètres</span>
+                        </a>
+
+                        
+                    </div>
+                </nav>
+
+                <!-- Liens légaux -->
+                <div class="px-4 pt-3 text-center text-xs text-blue-200 space-y-1">
+                    <div>
+                        <button type="button" onclick="document.getElementById('cguModal').classList.remove('hidden')" class="text-red-300 hover:text-red-100 underline">Conditions générales d'utilisation</button>
+                    </div>
+                    <div>
+                        <button type="button" onclick="document.getElementById('charteModal').classList.remove('hidden')" class="text-red-300 hover:text-red-100 underline">Charte des données &amp; cookies</button>
+                    </div>
+                </div>
+
+                <!-- User Info & Logout -->
+                <div class="px-4 py-4 border-t border-blue-800">
+                    <div class="flex items-center space-x-3 px-4 py-3 bg-white/10 rounded-lg">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-bold">Sy</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">Syma</p>
+                            <p class="text-xs text-blue-200">Administrateur</p>
+                        </div>
+                        <form method="POST" action="https://atelierpro.vortech-x.com/logout">
+                            <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                            <button type="submit" class="p-2 hover:bg-white/10 rounded-lg transition duration-200" title="Déconnexion">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative z-0">
+
+            <!-- Top Bar -->
+                                                            <header class="bg-gray-50 px-4 sm:px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="ml-12 lg:ml-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Devis DEV-AL-2026-1612</h2>
+                        <p class="text-xs sm:text-sm text-gray-500">Bienvenue sur AtelierPro</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="pwa-install-btn" onclick="installPWA()"
+                                class="hidden items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Installer l'app
+                        </button>
+                        <div class="text-xs sm:text-sm text-gray-600 hidden sm:block">
+                            <span class="font-medium">mercredi 16 septembre 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+
+                <!-- Flash Messages -->
+                
+                
+                
+                <!-- Page Content -->
+                <div class="p-3 sm:p-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-4 sm:mb-6 gap-3">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <a href="https://atelierpro.vortech-x.com/alum/devis" class="p-2 hover:bg-gray-100 rounded-lg shrink-0">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-lg sm:text-2xl font-bold text-gray-900">DEV-AL-2026-1612</h1>
+                <p class="text-gray-500 text-xs sm:text-sm mt-0.5">16/09/2026</p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 justify-end">
+            
+                                            <a href="https://atelierpro.vortech-x.com/alum/devis/1612/edit"
+                   class="flex items-center space-x-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <span>Modifier</span>
+                </a>
+                                                    
+                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button @click="open = !open"
+                    class="flex items-center space-x-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Dupliquer</span>
+                    <svg class="w-3 h-3 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-transition x-cloak
+                    class="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                    <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/dupliquer">
+                        <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                        <button type="submit" class="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition text-left">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copie identique
+                        </button>
+                    </form>
+                    <div class="border-t border-gray-100"></div>
+                    <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/dupliquer">
+                        <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                        <input type="hidden" name="gamme" value="TPR">
+                        <button type="submit" class="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition text-left">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            Variante TPR
+                        </button>
+                    </form>
+                    <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/dupliquer">
+                        <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                        <input type="hidden" name="gamme" value="Alu Eco">
+                        <button type="submit" class="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition text-left">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            Variante Alu Eco
+                        </button>
+                    </form>
+                </div>
+            </div>
+                        
+                        <button onclick="lancerDecoupage('https://atelierpro.vortech-x.com/alum/devis/1612/programme-decoupage')"
+               class="flex items-center space-x-1 bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+                </svg>
+                <span>Plan de Découpage</span>
+            </button>
+                        
+                        <a href="https://atelierpro.vortech-x.com/alum/devis/1612/fiche-achat"
+               class="flex items-center space-x-1 bg-teal-600 hover:bg-teal-700 text-white px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span>Fiche d'Achat</span>
+            </a>
+                                    <a href="https://atelierpro.vortech-x.com/alum/devis/1612/fiche-store"
+               class="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Fiche Technique</span>
+            </a>
+                                    <a href="https://atelierpro.vortech-x.com/alum/devis/1612/devis-client"
+               class="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                <span>Devis Client</span>
+            </a>
+                    </div>
+    </div>
+
+    
+    <!-- Info Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Client</div>
+            <div class="font-semibold text-gray-800">— Sans client —</div>
+                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Statut</div>
+            <span class="inline-block px-2.5 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 mb-3">
+                En cours
+            </span>
+                        <div class="flex flex-wrap gap-1.5">
+                                                                                <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/status">
+                    <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                    <input type="hidden" name="status" value="accepte">
+                    <button type="submit"
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium border bg-green-100 text-green-700 border-current hover:opacity-80 transition">
+                        → Accepté
+                    </button>
+                </form>
+                                                                                                <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/status">
+                    <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                    <input type="hidden" name="status" value="annule">
+                    <button type="submit"
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium border bg-red-100 text-red-600 border-current hover:opacity-80 transition">
+                        → Annulé
+                    </button>
+                </form>
+                                                                <form method="POST" action="https://atelierpro.vortech-x.com/alum/devis/1612/status">
+                    <input type="hidden" name="_token" value="u7ERXiOnejl0Mj5APkUUR4uyhtAW5YxnNZjAb6C2" autocomplete="off">                    <input type="hidden" name="status" value="refuse">
+                    <button type="submit"
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium border bg-orange-100 text-orange-700 border-current hover:opacity-80 transition">
+                        → Refusé
+                    </button>
+                </form>
+                                            </div>
+                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Total</div>
+            <div class="text-2xl font-bold text-blue-700">5,876.899 <span class="text-base font-normal">DT</span></div>
+        </div>
+    </div>
+
+    
+    <!-- Items — Accordéon + Tabs -->
+    
+        <div class="flex items-center justify-between mb-3" x-data>
+        <span class="text-xs text-gray-400">5 produit(s)</span>
+        <div class="flex gap-2">
+            <button @click="$dispatch('toggle-all', { open: true })"
+                class="text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
+                Tout développer
+            </button>
+            <button @click="$dispatch('toggle-all', { open: false })"
+                class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                Tout réduire
+            </button>
+        </div>
+    </div>
+    
+    
+                
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-3 overflow-hidden"
+         x-data="{ open: true, tab: 'store' }"
+         @toggle-all.window="open = $event.detail.open">
+
+        
+        <div class="px-4 py-3 flex items-center justify-between transition-colors
+                    cursor-pointer select-none hover:bg-gray-50"
+              @click="open = !open" >
+            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+                     :class="open ? 'rotate-90' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                                <span class="text-xs font-bold text-gray-400 shrink-0 w-5 text-center">1</span>
+                <div class="min-w-0 truncate">
+                    <span class="font-semibold text-gray-800 text-sm">Store Rideaux</span>
+                    <span class="text-gray-400 mx-1">›</span>
+                    <span class="text-gray-700 text-sm">Store Rideaux</span>
+                                                        </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0 flex-wrap justify-end ml-2">
+                <span class="hidden sm:inline">H:<strong class="text-gray-800 ml-0.5">132</strong></span>
+                <span class="hidden sm:inline">L:<strong class="text-gray-800 ml-0.5">158</strong></span>
+                <span>×<strong class="text-gray-800 ml-0.5">1</strong></span>
+                <span class="hidden sm:inline capitalize text-gray-500">blanc</span>
+                                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium text-xs">+ Store</span>
+                                                                <span class="font-bold text-gray-900 border-l border-gray-200 pl-2 sm:pl-3">
+                    790.890 DT
+                </span>
+            </div>
+        </div>
+
+        
+        <div x-show="open" x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+
+                        <div class="border-t border-gray-100"></div>
+            
+            
+            
+            
+                        <div >
+                                                <div class="px-4 py-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-b border-gray-100">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 mb-2">Dessin produit</div>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-sm"><svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360" style="max-width:100%;height:auto;display:block;"><rect x="30" y="25.177215189873" width="12" height="255.64556962025" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="324" y="25.177215189873" width="12" height="255.64556962025" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="42" y="25.177215189873" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="38.935302390999" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="52.693389592124" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="66.451476793249" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="80.209563994374" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="93.967651195499" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="107.72573839662" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="121.48382559775" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="135.24191279887" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="149" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="162.75808720113" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="176.51617440225" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="190.27426160338" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="204.0323488045" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="217.79043600563" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="231.54852320675" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="245.30661040788" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="259.064697609" width="282" height="13.758087201125" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="272.82278481013" width="282" height="8" fill="#ffffff" stroke="#3f4750" stroke-width="1.2"/><line x1="30" y1="297.82278481013" x2="30" y2="307.82278481013" stroke="#4b5563" stroke-width="1"/><line x1="336" y1="297.82278481013" x2="336" y2="307.82278481013" stroke="#4b5563" stroke-width="1"/><line x1="30" y1="302.82278481013" x2="336" y2="302.82278481013" stroke="#4b5563" stroke-width="1"/><text x="183" y="296.82278481013" text-anchor="middle" font-size="11" fill="#4b5563" font-family="Arial">158 cm</text><line x1="351" y1="25.177215189873" x2="361" y2="25.177215189873" stroke="#4b5563" stroke-width="1"/><line x1="351" y1="280.82278481013" x2="361" y2="280.82278481013" stroke="#4b5563" stroke-width="1"/><line x1="356" y1="25.177215189873" x2="356" y2="280.82278481013" stroke="#4b5563" stroke-width="1"/><text x="362" y="157" text-anchor="start" font-size="11" fill="#4b5563" font-family="Arial">132 cm</text></svg></div>
+                    </div>
+                </div>
+                                <div class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex flex-wrap items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span class="text-xs font-semibold text-blue-700">lame extrud</span>
+                    <span class="text-xs text-gray-500">Blanc</span>
+                                                            <span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Encastré</span>
+                                                                            </div>
+                <div class="overflow-x-auto">
+                <div style="min-width:600px">
+                    <table class="w-full text-xs">
+                        <thead class="bg-blue-50/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Référence</th>
+                                <th class="px-3 py-2 text-center font-medium text-gray-500">Qté</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Débitage</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total D.</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Prix Article</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Unt</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total Prix (DT)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-blue-50">
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame extrudée</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">27</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    162.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    4,387.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    83.300
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    580.125
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame final 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    162.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    162.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    89.250
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    23.021
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame S</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    162.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    650.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    23.800
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    24.556
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Glissière 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    147.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    294.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    77.350
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    36.097
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Axe 60 Garv</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    167.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    167.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    47.600
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    13.706
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Rallonge Axe 60</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.165
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.165
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Joint brosse de 6mm</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    186.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    746.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.226
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/ml                                    </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    1.687
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Bouchon extrudé</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">27</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.427
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    11.535
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Moteur 20 NM</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    71.400
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    71.400
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Kit Moteur</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.760
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.760
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Tirette simple 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">3</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    2.975
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.925
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Sélicomne</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    8.628
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.628
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Vis et chevis</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">12</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.190
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    2.285
+                                </td>
+                            </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="px-4 py-2 border-t border-blue-100 text-right text-sm bg-blue-50">
+                    <span class="text-blue-600">Sous-total store :</span>
+                    <span class="font-semibold text-blue-700 ml-2">790.890 DT</span>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+                
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-3 overflow-hidden"
+         x-data="{ open: false, tab: 'store' }"
+         @toggle-all.window="open = $event.detail.open">
+
+        
+        <div class="px-4 py-3 flex items-center justify-between transition-colors
+                    cursor-pointer select-none hover:bg-gray-50"
+              @click="open = !open" >
+            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+                     :class="open ? 'rotate-90' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                                <span class="text-xs font-bold text-gray-400 shrink-0 w-5 text-center">2</span>
+                <div class="min-w-0 truncate">
+                    <span class="font-semibold text-gray-800 text-sm">Store Rideaux</span>
+                    <span class="text-gray-400 mx-1">›</span>
+                    <span class="text-gray-700 text-sm">Store Rideaux</span>
+                                                        </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0 flex-wrap justify-end ml-2">
+                <span class="hidden sm:inline">H:<strong class="text-gray-800 ml-0.5">125</strong></span>
+                <span class="hidden sm:inline">L:<strong class="text-gray-800 ml-0.5">146</strong></span>
+                <span>×<strong class="text-gray-800 ml-0.5">1</strong></span>
+                <span class="hidden sm:inline capitalize text-gray-500">blanc</span>
+                                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium text-xs">+ Store</span>
+                                                                <span class="font-bold text-gray-900 border-l border-gray-200 pl-2 sm:pl-3">
+                    721.414 DT
+                </span>
+            </div>
+        </div>
+
+        
+        <div x-show="open" x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+
+                        <div class="border-t border-gray-100"></div>
+            
+            
+            
+            
+                        <div >
+                                                <div class="px-4 py-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-b border-gray-100">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 mb-2">Dessin produit</div>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-sm"><svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360" style="max-width:100%;height:auto;display:block;"><rect x="32.328" y="24" width="12" height="258" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="321.672" y="24" width="12" height="258" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="44.328" y="24" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="37.888888888889" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="51.777777777778" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="65.666666666667" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="79.555555555556" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="93.444444444444" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="107.33333333333" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="121.22222222222" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="135.11111111111" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="149" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="162.88888888889" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="176.77777777778" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="190.66666666667" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="204.55555555556" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="218.44444444444" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="232.33333333333" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="246.22222222222" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="260.11111111111" width="277.344" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="44.328" y="274" width="277.344" height="8" fill="#ffffff" stroke="#3f4750" stroke-width="1.2"/><line x1="32.328" y1="299" x2="32.328" y2="309" stroke="#4b5563" stroke-width="1"/><line x1="333.672" y1="299" x2="333.672" y2="309" stroke="#4b5563" stroke-width="1"/><line x1="32.328" y1="304" x2="333.672" y2="304" stroke="#4b5563" stroke-width="1"/><text x="183" y="298" text-anchor="middle" font-size="11" fill="#4b5563" font-family="Arial">146 cm</text><line x1="348.672" y1="24" x2="358.672" y2="24" stroke="#4b5563" stroke-width="1"/><line x1="348.672" y1="282" x2="358.672" y2="282" stroke="#4b5563" stroke-width="1"/><line x1="353.672" y1="24" x2="353.672" y2="282" stroke="#4b5563" stroke-width="1"/><text x="359.672" y="157" text-anchor="start" font-size="11" fill="#4b5563" font-family="Arial">125 cm</text></svg></div>
+                    </div>
+                </div>
+                                <div class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex flex-wrap items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span class="text-xs font-semibold text-blue-700">lame extrud</span>
+                    <span class="text-xs text-gray-500">Blanc</span>
+                                                            <span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Encastré</span>
+                                                                            </div>
+                <div class="overflow-x-auto">
+                <div style="min-width:600px">
+                    <table class="w-full text-xs">
+                        <thead class="bg-blue-50/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Référence</th>
+                                <th class="px-3 py-2 text-center font-medium text-gray-500">Qté</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Débitage</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total D.</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Prix Article</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Unt</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total Prix (DT)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-blue-50">
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame extrudée</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    150.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    3,913.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    83.300
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    517.386
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame final 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    150.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    150.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    89.250
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    21.321
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame S</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    150.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    602.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    23.800
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    22.742
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Glissière 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    140.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    280.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    77.350
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    34.378
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Axe 60 Garv</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    155.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    155.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    47.600
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    12.721
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Rallonge Axe 60</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.165
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.165
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Joint brosse de 6mm</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    176.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    706.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.226
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/ml                                    </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    1.596
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Bouchon extrudé</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.427
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    11.107
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Moteur 20 NM</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    71.400
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    71.400
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Kit Moteur</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.760
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.760
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Tirette simple 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">3</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    2.975
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.925
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Sélicomne</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    8.628
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.628
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Vis et chevis</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">12</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.190
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    2.285
+                                </td>
+                            </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="px-4 py-2 border-t border-blue-100 text-right text-sm bg-blue-50">
+                    <span class="text-blue-600">Sous-total store :</span>
+                    <span class="font-semibold text-blue-700 ml-2">721.414 DT</span>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+                
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-3 overflow-hidden"
+         x-data="{ open: false, tab: 'store' }"
+         @toggle-all.window="open = $event.detail.open">
+
+        
+        <div class="px-4 py-3 flex items-center justify-between transition-colors
+                    cursor-pointer select-none hover:bg-gray-50"
+              @click="open = !open" >
+            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+                     :class="open ? 'rotate-90' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                                <span class="text-xs font-bold text-gray-400 shrink-0 w-5 text-center">3</span>
+                <div class="min-w-0 truncate">
+                    <span class="font-semibold text-gray-800 text-sm">Store Rideaux</span>
+                    <span class="text-gray-400 mx-1">›</span>
+                    <span class="text-gray-700 text-sm">Store Rideaux</span>
+                                                        </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0 flex-wrap justify-end ml-2">
+                <span class="hidden sm:inline">H:<strong class="text-gray-800 ml-0.5">132</strong></span>
+                <span class="hidden sm:inline">L:<strong class="text-gray-800 ml-0.5">122</strong></span>
+                <span>×<strong class="text-gray-800 ml-0.5">2</strong></span>
+                <span class="hidden sm:inline capitalize text-gray-500">blanc</span>
+                                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium text-xs">+ Store</span>
+                                                                <span class="font-bold text-gray-900 border-l border-gray-200 pl-2 sm:pl-3">
+                    585.376 DT
+                </span>
+            </div>
+        </div>
+
+        
+        <div x-show="open" x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+
+                        <div class="border-t border-gray-100"></div>
+            
+            
+            
+            
+                        <div >
+                                                <div class="px-4 py-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-b border-gray-100">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 mb-2">Dessin produit</div>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-sm"><svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360" style="max-width:100%;height:auto;display:block;"><rect x="63.772727272727" y="24" width="9.5381818181818" height="258" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="292.68909090909" y="24" width="9.5381818181818" height="258" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="73.310909090909" y="24" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="37.888888888889" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="51.777777777778" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="65.666666666667" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="79.555555555556" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="93.444444444444" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="107.33333333333" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="121.22222222222" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="135.11111111111" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="149" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="162.88888888889" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="176.77777777778" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="190.66666666667" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="204.55555555556" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="218.44444444444" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="232.33333333333" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="246.22222222222" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="260.11111111111" width="219.37818181818" height="13.888888888889" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="73.310909090909" y="274" width="219.37818181818" height="8" fill="#ffffff" stroke="#3f4750" stroke-width="1.2"/><line x1="63.772727272727" y1="299" x2="63.772727272727" y2="309" stroke="#4b5563" stroke-width="1"/><line x1="302.22727272727" y1="299" x2="302.22727272727" y2="309" stroke="#4b5563" stroke-width="1"/><line x1="63.772727272727" y1="304" x2="302.22727272727" y2="304" stroke="#4b5563" stroke-width="1"/><text x="183" y="298" text-anchor="middle" font-size="11" fill="#4b5563" font-family="Arial">122 cm</text><line x1="317.22727272727" y1="24" x2="327.22727272727" y2="24" stroke="#4b5563" stroke-width="1"/><line x1="317.22727272727" y1="282" x2="327.22727272727" y2="282" stroke="#4b5563" stroke-width="1"/><line x1="322.22727272727" y1="24" x2="322.22727272727" y2="282" stroke="#4b5563" stroke-width="1"/><text x="328.22727272727" y="157" text-anchor="start" font-size="11" fill="#4b5563" font-family="Arial">132 cm</text></svg></div>
+                    </div>
+                </div>
+                                <div class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex flex-wrap items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span class="text-xs font-semibold text-blue-700">lame inj 55</span>
+                    <span class="text-xs text-gray-500">Blanc</span>
+                                                            <span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Encastré</span>
+                                                                            </div>
+                <div class="overflow-x-auto">
+                <div style="min-width:600px">
+                    <table class="w-full text-xs">
+                        <thead class="bg-blue-50/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Référence</th>
+                                <th class="px-3 py-2 text-center font-medium text-gray-500">Qté</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Débitage</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total D.</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Prix Article</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Unt</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total Prix (DT)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-blue-50">
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame injectée 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">54</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    126.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    6,831.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    21.420
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    252.276
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame final 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    126.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    253.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    89.250
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    35.842
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Glissière 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    147.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    588.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    77.350
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    72.193
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Axe 60 Garv</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    131.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    262.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    47.600
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    21.502
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Rallonge Axe 60</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.165
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.330
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Joint brosse de 6mm</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">8</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    177.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    1,420.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.226
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/ml                                    </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    3.211
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Bouchon lame 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">54</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.111
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    5.976
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Moteur 20 NM</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    71.400
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    142.800
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Kit Moteur</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.760
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    9.520
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Tirette simple 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    2.975
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    11.900
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Sélicomne</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    8.628
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    17.255
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Vis et chevis</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">24</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.190
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.570
+                                </td>
+                            </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="px-4 py-2 border-t border-blue-100 text-right text-sm bg-blue-50">
+                    <span class="text-blue-600">Sous-total store :</span>
+                    <span class="font-semibold text-blue-700 ml-2">585.376 DT</span>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+                
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-3 overflow-hidden"
+         x-data="{ open: false, tab: 'store' }"
+         @toggle-all.window="open = $event.detail.open">
+
+        
+        <div class="px-4 py-3 flex items-center justify-between transition-colors
+                    cursor-pointer select-none hover:bg-gray-50"
+              @click="open = !open" >
+            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+                     :class="open ? 'rotate-90' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                                <span class="text-xs font-bold text-gray-400 shrink-0 w-5 text-center">4</span>
+                <div class="min-w-0 truncate">
+                    <span class="font-semibold text-gray-800 text-sm">Store Rideaux</span>
+                    <span class="text-gray-400 mx-1">›</span>
+                    <span class="text-gray-700 text-sm">Store Rideaux</span>
+                                                        </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0 flex-wrap justify-end ml-2">
+                <span class="hidden sm:inline">H:<strong class="text-gray-800 ml-0.5">123</strong></span>
+                <span class="hidden sm:inline">L:<strong class="text-gray-800 ml-0.5">160</strong></span>
+                <span>×<strong class="text-gray-800 ml-0.5">1</strong></span>
+                <span class="hidden sm:inline capitalize text-gray-500">blanc</span>
+                                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium text-xs">+ Store</span>
+                                                                <span class="font-bold text-gray-900 border-l border-gray-200 pl-2 sm:pl-3">
+                    774.313 DT
+                </span>
+            </div>
+        </div>
+
+        
+        <div x-show="open" x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+
+                        <div class="border-t border-gray-100"></div>
+            
+            
+            
+            
+                        <div >
+                                                <div class="px-4 py-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-b border-gray-100">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 mb-2">Dessin produit</div>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-sm"><svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360" style="max-width:100%;height:auto;display:block;"><rect x="30" y="35.38125" width="12" height="235.2375" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="324" y="35.38125" width="12" height="235.2375" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="42" y="35.38125" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="49.58359375" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="63.7859375" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="77.98828125" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="92.190625" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="106.39296875" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="120.5953125" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="134.79765625" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="149" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="163.20234375" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="177.4046875" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="191.60703125" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="205.809375" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="220.01171875" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="234.2140625" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="248.41640625" width="282" height="14.20234375" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="262.61875" width="282" height="8" fill="#ffffff" stroke="#3f4750" stroke-width="1.2"/><line x1="30" y1="287.61875" x2="30" y2="297.61875" stroke="#4b5563" stroke-width="1"/><line x1="336" y1="287.61875" x2="336" y2="297.61875" stroke="#4b5563" stroke-width="1"/><line x1="30" y1="292.61875" x2="336" y2="292.61875" stroke="#4b5563" stroke-width="1"/><text x="183" y="286.61875" text-anchor="middle" font-size="11" fill="#4b5563" font-family="Arial">160 cm</text><line x1="351" y1="35.38125" x2="361" y2="35.38125" stroke="#4b5563" stroke-width="1"/><line x1="351" y1="270.61875" x2="361" y2="270.61875" stroke="#4b5563" stroke-width="1"/><line x1="356" y1="35.38125" x2="356" y2="270.61875" stroke="#4b5563" stroke-width="1"/><text x="362" y="157" text-anchor="start" font-size="11" fill="#4b5563" font-family="Arial">123 cm</text></svg></div>
+                    </div>
+                </div>
+                                <div class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex flex-wrap items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span class="text-xs font-semibold text-blue-700">lame extrud</span>
+                    <span class="text-xs text-gray-500">Blanc</span>
+                                                            <span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Encastré</span>
+                                                                            </div>
+                <div class="overflow-x-auto">
+                <div style="min-width:600px">
+                    <table class="w-full text-xs">
+                        <thead class="bg-blue-50/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Référence</th>
+                                <th class="px-3 py-2 text-center font-medium text-gray-500">Qté</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Débitage</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total D.</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Prix Article</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Unt</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total Prix (DT)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-blue-50">
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame extrudée</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    164.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    4,277.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    83.300
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    565.514
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame final 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    164.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    164.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    89.250
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    23.304
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame S</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    164.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    658.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    23.800
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    24.858
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Glissière 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    138.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    276.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    77.350
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    33.887
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Axe 60 Garv</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    169.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    169.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    47.600
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    13.870
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Rallonge Axe 60</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.165
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.165
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Joint brosse de 6mm</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    178.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    712.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.226
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/ml                                    </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    1.610
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Bouchon extrudé</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.427
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    11.107
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Moteur 20 NM</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    71.400
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    71.400
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Kit Moteur</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.760
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.760
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Tirette simple 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">3</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    2.975
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.925
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Sélicomne</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    8.628
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.628
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Vis et chevis</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">12</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.190
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    2.285
+                                </td>
+                            </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="px-4 py-2 border-t border-blue-100 text-right text-sm bg-blue-50">
+                    <span class="text-blue-600">Sous-total store :</span>
+                    <span class="font-semibold text-blue-700 ml-2">774.313 DT</span>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+                
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-3 overflow-hidden"
+         x-data="{ open: false, tab: 'store' }"
+         @toggle-all.window="open = $event.detail.open">
+
+        
+        <div class="px-4 py-3 flex items-center justify-between transition-colors
+                    cursor-pointer select-none hover:bg-gray-50"
+              @click="open = !open" >
+            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+                     :class="open ? 'rotate-90' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                                <span class="text-xs font-bold text-gray-400 shrink-0 w-5 text-center">5</span>
+                <div class="min-w-0 truncate">
+                    <span class="font-semibold text-gray-800 text-sm">Store Rideaux</span>
+                    <span class="text-gray-400 mx-1">›</span>
+                    <span class="text-gray-700 text-sm">Store Rideaux</span>
+                                                        </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0 flex-wrap justify-end ml-2">
+                <span class="hidden sm:inline">H:<strong class="text-gray-800 ml-0.5">123</strong></span>
+                <span class="hidden sm:inline">L:<strong class="text-gray-800 ml-0.5">200</strong></span>
+                <span>×<strong class="text-gray-800 ml-0.5">1</strong></span>
+                <span class="hidden sm:inline capitalize text-gray-500">blanc</span>
+                                                <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium text-xs">+ Store</span>
+                                                                <span class="font-bold text-gray-900 border-l border-gray-200 pl-2 sm:pl-3">
+                    926.908 DT
+                </span>
+            </div>
+        </div>
+
+        
+        <div x-show="open" x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+
+                        <div class="border-t border-gray-100"></div>
+            
+            
+            
+            
+                        <div >
+                                                <div class="px-4 py-4 bg-gradient-to-br from-slate-50 via-white to-blue-50 border-b border-gray-100">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-700/70 mb-2">Dessin produit</div>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-sm"><svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360" style="max-width:100%;height:auto;display:block;"><rect x="30" y="58.905" width="12" height="188.19" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="324" y="58.905" width="12" height="188.19" fill="#ffffff" stroke="#3f4750" stroke-width="1.1"/><rect x="42" y="58.905" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="72.765769230769" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="86.626538461538" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="100.48730769231" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="114.34807692308" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="128.20884615385" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="142.06961538462" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="155.93038461538" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="169.79115384615" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="183.65192307692" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="197.51269230769" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="211.37346153846" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="225.23423076923" width="282" height="13.860769230769" fill="#ffffff" stroke="#3f4750" stroke-width="0.8"/><rect x="42" y="239.095" width="282" height="8" fill="#ffffff" stroke="#3f4750" stroke-width="1.2"/><line x1="30" y1="264.095" x2="30" y2="274.095" stroke="#4b5563" stroke-width="1"/><line x1="336" y1="264.095" x2="336" y2="274.095" stroke="#4b5563" stroke-width="1"/><line x1="30" y1="269.095" x2="336" y2="269.095" stroke="#4b5563" stroke-width="1"/><text x="183" y="263.095" text-anchor="middle" font-size="11" fill="#4b5563" font-family="Arial">200 cm</text><line x1="351" y1="58.905" x2="361" y2="58.905" stroke="#4b5563" stroke-width="1"/><line x1="351" y1="247.095" x2="361" y2="247.095" stroke="#4b5563" stroke-width="1"/><line x1="356" y1="58.905" x2="356" y2="247.095" stroke="#4b5563" stroke-width="1"/><text x="362" y="157" text-anchor="start" font-size="11" fill="#4b5563" font-family="Arial">123 cm</text></svg></div>
+                    </div>
+                </div>
+                                <div class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex flex-wrap items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span class="text-xs font-semibold text-blue-700">lame extrud</span>
+                    <span class="text-xs text-gray-500">Blanc</span>
+                                                            <span class="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Encastré</span>
+                                                                            </div>
+                <div class="overflow-x-auto">
+                <div style="min-width:600px">
+                    <table class="w-full text-xs">
+                        <thead class="bg-blue-50/50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Référence</th>
+                                <th class="px-3 py-2 text-center font-medium text-gray-500">Qté</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Débitage</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total D.</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Prix Article</th>
+                                <th class="px-3 py-2 text-left font-medium text-gray-500">Unt</th>
+                                <th class="px-3 py-2 text-right font-medium text-gray-500">Total Prix (DT)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-blue-50">
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame extrudée</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    204.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    5,317.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    83.300
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    703.026
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame final 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    204.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    204.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    89.250
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    28.971
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Lame S</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    204.50
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    818.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    23.800
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    30.902
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Glissière 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">2</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    138.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    276.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    77.350
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    33.887
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Axe 60 Garv</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    209.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    209.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    47.600
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                     DT/barre                                 </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    17.152
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Rallonge Axe 60</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.165
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.165
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Joint brosse de 6mm</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">4</td>
+                                <td class="px-3 py-1.5 text-right text-gray-900">
+                                    188.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    752.00
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.226
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/ml                                    </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    1.700
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Bouchon extrudé</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">26</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.427
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    11.107
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Moteur 20 NM</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    71.400
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    71.400
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Kit Moteur</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    4.760
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    4.760
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Tirette simple 55</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">3</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    2.975
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.925
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Sélicomne</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">1</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    8.628
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    8.628
+                                </td>
+                            </tr>
+                                                        <tr class="hover:bg-blue-50/30">
+                                <td class="px-3 py-1.5 font-mono text-gray-800">Vis et chevis</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600">12</td>
+                                <td class="px-3 py-1.5 text-right text-gray-300">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-600">
+                                    —
+                                </td>
+                                <td class="px-3 py-1.5 text-right text-gray-700">
+                                    0.190
+                                </td>
+                                <td class="px-3 py-1.5 text-left text-gray-500">
+                                       DT/pce                                   </td>
+                                <td class="px-3 py-1.5 text-right font-semibold text-gray-900">
+                                    2.285
+                                </td>
+                            </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+                </div>
+                <div class="px-4 py-2 border-t border-blue-100 text-right text-sm bg-blue-50">
+                    <span class="text-blue-600">Sous-total store :</span>
+                    <span class="font-semibold text-blue-700 ml-2">926.908 DT</span>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+    
+    <!-- Total -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div class="flex flex-wrap items-center justify-end gap-4 sm:gap-6">
+                                    <div class="text-right">
+                <div class="text-sm text-gray-500">Stores Rideau</div>
+                <div class="text-lg font-semibold text-blue-700">3,798.901 DT</div>
+            </div>
+                        <div class="text-right">
+                <div class="text-sm text-gray-500">Sous-total HT</div>
+                <div class="text-lg font-semibold text-gray-800">3,798.901 DT</div>
+            </div>
+                                    <div class="text-right">
+                <div class="text-sm text-gray-500">Marge</div>
+                <div class="text-xs text-gray-400">Store 30%</div>
+                <div class="text-lg font-semibold text-orange-600">+ 1,139.670 DT</div>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-gray-500">Total HT</div>
+                <div class="text-lg font-semibold text-gray-800">4,938.571 DT</div>
+            </div>
+                                    <div class="text-right">
+                <div class="text-sm text-gray-500">TVA 19%</div>
+                <div class="text-lg font-semibold text-gray-600">+ 938.328 DT</div>
+            </div>
+                        <div class="text-right border-l border-gray-200 pl-4 sm:pl-6">
+                <div class="text-sm text-gray-500">Total TTC</div>
+                <div class="text-2xl font-bold text-blue-700">5,876.899 DT</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION LIVRAISON & FACTURATION ===== -->
+        </div>
+
+
+<div id="pdfLoader" style="display:none; position:fixed; inset:0; z-index:9999;
+     background:rgba(15,23,42,.65); backdrop-filter:blur(4px);
+     align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:20px; padding:44px 48px; text-align:center;
+              box-shadow:0 25px 60px rgba(0,0,0,.25); max-width:360px; width:90%;">
+
+    
+    <div style="margin-bottom:24px; position:relative; display:inline-block;">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="animation:spin 1.4s linear infinite;">
+        <circle cx="32" cy="32" r="28" stroke="#e2e8f0" stroke-width="5"/>
+        <path d="M32 4 A28 28 0 0 1 60 32" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"
+           style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+      </svg>
+    </div>
+
+    <div style="font-size:17px; font-weight:700; color:#1e3a5f; margin-bottom:8px;">
+      Génération en cours…
+    </div>
+    <div style="font-size:13px; color:#64748b; margin-bottom:24px; line-height:1.6;">
+      Calcul du plan de découpage<br>et optimisation des barres
+    </div>
+
+    
+    <div style="background:#f1f5f9; border-radius:99px; height:6px; overflow:hidden; margin-bottom:14px;">
+      <div id="pdfProgressBar" style="height:100%; width:0%; border-radius:99px;
+           background:linear-gradient(90deg,#f59e0b,#fbbf24);
+           transition:width .4s ease;"></div>
+    </div>
+
+    
+    <div style="font-size:12px; color:#94a3b8;">
+      Temps écoulé : <span id="pdfTimer">0</span>s
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+function lancerDecoupage(baseUrl) {
+    const token   = Math.random().toString(36).slice(2, 11);
+    const pollUrl = 'https://atelierpro.vortech-x.com/alum/pdf-ready/:token'.replace(':token', token);
+
+    const loader  = document.getElementById('pdfLoader');
+    const timerEl = document.getElementById('pdfTimer');
+    const barEl   = document.getElementById('pdfProgressBar');
+
+    // Réinitialiser la barre
+    barEl.style.background = 'linear-gradient(90deg,#f59e0b,#fbbf24)';
+    barEl.style.width = '0%';
+    loader.style.display = 'flex';
+
+    // Déclencher le téléchargement sans quitter la page
+    const a = document.createElement('a');
+    a.href = baseUrl + '?token=' + token;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Chronomètre + barre de progression estimée
+    let elapsed = 0;
+    const tick = setInterval(() => {
+        elapsed++;
+        timerEl.textContent = elapsed;
+        const pct = 90 * (1 - Math.exp(-elapsed / 25));
+        barEl.style.width = pct + '%';
+    }, 1000);
+
+    // Polling AJAX toutes les 800ms
+    const poll = setInterval(() => {
+        fetch(pollUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ready) {
+                    clearInterval(poll);
+                    clearInterval(tick);
+                    barEl.style.width = '100%';
+                    barEl.style.background = 'linear-gradient(90deg,#22c55e,#4ade80)';
+                    setTimeout(() => { loader.style.display = 'none'; }, 700);
+                }
+            })
+            .catch(() => {}); // silencieux si réseau
+    }, 800);
+
+    // Sécurité : fermer après 3 minutes quoi qu'il arrive
+    setTimeout(() => {
+        clearInterval(poll);
+        clearInterval(tick);
+        loader.style.display = 'none';
+    }, 180000);
+}
+</script>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Alpine.js for interactivity -->
+    <script src="https://atelierpro.vortech-x.com/js/alpine.min.js" defer></script>
+
+    <script>
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .catch(err => console.log('SW erreur:', err));
+            });
+        }
+
+        // Bouton installation PWA
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+            installBtn.classList.add('flex');
+        });
+
+        function installPWA() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                installBtn.classList.add('hidden');
+                installBtn.classList.remove('flex');
+            });
+        }
+
+        // Cacher le bouton si déjà installé
+        window.addEventListener('appinstalled', () => {
+            installBtn.classList.add('hidden');
+            installBtn.classList.remove('flex');
+            deferredPrompt = null;
+        });
+    </script>
+    
+    <!-- Modal CGU -->
+    <div id="cguModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Conditions générales d'utilisation</h2>
+                <button type="button" onclick="document.getElementById('cguModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-sm text-gray-600 space-y-3">
+                <p><strong>1. Objet</strong><br>AtelierPro est une plateforme édité par Vortech-x destinée à la gestion des devis, bons de livraison et factures pour les ateliers de menuiserie aluminium.</p>
+                <p><strong>2. Accès au service</strong><br>L'accès est réservé aux utilisateurs disposant d'un compte valide. Chaque utilisateur est responsable de la confidentialité de ses identifiants.</p>
+                <p><strong>3. Confidentialité</strong><br>L'utilisateur s'engage à ne pas divulguer, reproduire ou diffuser le contenu, les fonctionnalités ou les données de la plateforme à des tiers non autorisés.</p>
+                <p><strong>4. Propriété intellectuelle</strong><br>L'ensemble des éléments de la plateforme (code, design, logos, contenus) reste la propriété exclusive de Vortech-x.</p>
+                <p><strong>5. Responsabilités</strong><br>Vortech-x met tout en œuvre pour assurer la disponibilité et la fiabilité du service, sans garantie d'absence d'interruption ou d'erreur.</p>
+                <p><strong>6. Abonnement et résiliation</strong><br>L'accès à la plateforme est soumis aux conditions d'abonnement convenues. Vortech-x se réserve le droit de suspendre l'accès en cas de non-respect des présentes conditions.</p>
+                <p><strong>7. Modification</strong><br>Vortech-x peut modifier les présentes conditions à tout moment. Les utilisateurs seront informés de toute modification substantielle.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Charte des données personnelles et des cookies -->
+    <div id="charteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Charte des données personnelles et des cookies</h2>
+                <button type="button" onclick="document.getElementById('charteModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-sm text-gray-600 space-y-3">
+                <p><strong>1. Données collectées</strong><br>Lors de l'utilisation d'AtelierPro, nous collectons les données nécessaires au fonctionnement du service : identifiants de connexion, informations de l'entreprise (nom, logo, coordonnées) et données saisies pour la gestion des devis, clients, livraisons et factures.</p>
+                <p><strong>2. Finalité du traitement</strong><br>Ces données sont utilisées exclusivement pour fournir, sécuriser et améliorer le service AtelierPro. Elles ne sont ni vendues, ni partagées avec des tiers à des fins commerciales.</p>
+                <p><strong>3. Conservation</strong><br>Les données sont conservées tant que le compte est actif. En cas de résiliation, elles peuvent être supprimées ou archivées dans les délais légaux applicables.</p>
+                <p><strong>4. Droits des utilisateurs</strong><br>Chaque utilisateur peut demander l'accès, la rectification ou la suppression de ses données personnelles en contactant l'éditeur à l'adresse contact@vortech-x.com.</p>
+                <p><strong>5. Cookies</strong><br>La plateforme utilise des cookies strictement nécessaires au fonctionnement (session de connexion, préférences d'affichage). Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
+                <p><strong>6. Sécurité</strong><br>Vortech-x met en place des mesures techniques et organisationnelles appropriées pour protéger les données contre tout accès non autorisé, perte ou altération.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

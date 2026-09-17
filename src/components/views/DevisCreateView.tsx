@@ -12,6 +12,7 @@ import {
 } from '../../data/productCatalog';
 import { renderAlumDrawing, DrawingParams } from '../../utils/productDrawing';
 import { DevisItemState, calculateDevisTotals, STORE_MOTORS, PROFILES_WITHOUT_PARCLOSE, getStoreElementPrice } from '../../utils/devisCalculator';
+import { getProfileImageUrl, hasProfileImage } from '../../data/profileImages';
 import { FicheAtelierModal } from './FicheAtelierModal';
 import { 
   Plus, 
@@ -38,7 +39,8 @@ import {
   Settings2,
   ChevronDown,
   ChevronUp,
-  SlidersHorizontal
+  SlidersHorizontal,
+  KeyRound
 } from 'lucide-react';
 
 interface DevisCreateViewProps {
@@ -50,14 +52,14 @@ interface DevisCreateViewProps {
 const PROFILE_OPTION_NAMES: Record<string, string> = {
   // Ouvrants Frappe
   '40401': '40401 — Ouvrant battant standard (avec parclose)',
-  '40404': '40404 — ⭐ Ouvrant monobloc (parclose intégrée)',
+  '40404': '40404 — Ouvrant avec parclose intégrée (sans parclose)',
   '40150': '40150 — Ouvrant battant tubulaire lourd',
   '40151': '40151 — Ouvrant grand vitrage',
   '40403': '40403 — Ouvrant battant porte',
   '40405': '40405 — Ouvrant forme T',
   '40406': '40406 — Ouvrant double vitrage',
   'AE_40401': 'AE_40401 — Ouvrant battant standard',
-  'AE_40404': 'AE_40404 — ⭐ Ouvrant monobloc sans parclose',
+  'AE_40404': 'AE_40404 — Ouvrant avec parclose intégrée (sans parclose)',
   'AE_40150': 'AE_40150 — Ouvrant battant lourd',
   'FSQ 104': 'FSQ 104 — Ouvrant battant Aluco',
   'FSQ 102': 'FSQ 102 — Ouvrant forme L',
@@ -123,14 +125,98 @@ const PROFILE_OPTION_NAMES: Record<string, string> = {
   'CSQ 105': 'CSQ 105 — Chicane centrale Aluco',
   'CSQ 107': 'CSQ 107 — Chicane centrale renforcée Aluco',
 
-  // Châssis Fixe
+  // Meneaux / Profilés de Séparation Partie Fixe
+  '40121': '40121 — Meneau profil de séparation 40 mm (Standard)',
+  '40156': '40156 — Meneau montant tubulaire renforcé',
   '40154': '40154 — Socle 142 mm',
-  '40121': '40121 — Socle 130 mm',
   '40155': '40155 — Meneau montant 89 mm',
-  '40156': '40156 — Meneau montant renforcé',
   '40104': '40104 — Traverse intermédiaire 89 mm',
+  'AE_40121': 'AE_40121 — Meneau de séparation Alu Eco',
   'FSQ 107': 'FSQ 107 — Meneau montant Aluco',
-  'FSQ 108': 'FSQ 108 — Traverse intermédiaire Aluco'
+  'FSQ 108': 'FSQ 108 — Traverse intermédiaire Aluco',
+
+  // Couvre-joints
+  '40103': '40103 — Couvre-joint clip 30 mm (Standard)',
+  '40108': '40108 — Couvre-joint 50 mm à clipper',
+  '40167': '40167 — Couvre-joint mouluré décoratif',
+  'AE_40103': 'AE_40103 — Couvre-joint Alu Eco',
+  'CJ 101': 'CJ 101 — Couvre-joint Aluco',
+  'CJ 102': 'CJ 102 — Couvre-joint large Aluco',
+
+  // TPR EX45 & EX60
+  'EX45 1123': 'EX45 1123 — Dormant avec tapée 21mm (EX45 Standard)',
+  'EX45 1125': 'EX45 1125 — Dormant plat sans tapée (EX45)',
+  'EX45 1120': 'EX45 1120 — Dormant spécial EX45',
+  'EX45 1130': 'EX45 1130 — Meneau fixe de séparation EX45',
+  'EX45 1210': 'EX45 1210 — Ouvrant battant fenêtre EX45',
+  'EX45 1212': 'EX45 1212 — Battement central 2V EX45',
+  'EX45 1215': 'EX45 1215 — Socle bas porte EX45',
+  'EX45 1218': 'EX45 1218 — Ouvrant battant porte lourde EX45',
+  'EX45 1312': 'EX45 1312 — Parclose droite 18mm EX45',
+  'EX45 1310': 'EX45 1310 — Parclose fine EX45',
+  'EX45 1314': 'EX45 1314 — Parclose double vitrage EX45',
+  'EX60 2114': 'EX60 2114 — Dormant 2 rails EX60 (Standard)',
+  'EX60 2110': 'EX60 2110 — Dormant 3 rails EX60'
+};
+
+const getOuvertureLabel = (ouv: string): string => {
+  switch (ouv.toLowerCase()) {
+    case 'française':
+    case 'francaise':
+      return 'À la française';
+    case 'osilobattante':
+    case 'oscillo-battante':
+    case 'oscillo_battant':
+      return 'Oscillo-battante';
+    case 'basculante':
+      return 'Basculante';
+    case 'soufflet':
+      return 'Soufflet';
+    default:
+      return ouv;
+  }
+};
+
+const getPartieFixeOptions = (isPorte: boolean) => {
+  if (isPorte) {
+    return [
+      { id: 'Sans', label: 'Sans partie fixe' },
+      { id: 'Droite', label: 'Droite' },
+      { id: 'Gauche', label: 'Gauche' },
+      { id: 'Droite et Gauche', label: 'Droite et Gauche' },
+      { id: 'Haut', label: 'Haut (Imposte)' }
+    ];
+  }
+  return [
+    { id: 'Sans', label: 'Sans partie fixe' },
+    { id: 'Droite', label: 'Droite' },
+    { id: 'Gauche', label: 'Gauche' },
+    { id: 'Droite et Gauche', label: 'Droite et Gauche' },
+    { id: 'Haut', label: 'Haut (Imposte)' },
+    { id: 'Bas', label: 'Bas (Allège)' },
+    { id: 'Haut et Bas', label: 'Haut et Bas' }
+  ];
+};
+
+const getCouvreJointPositions = (isPorte: boolean) => {
+  if (isPorte) {
+    return [
+      { id: 'Droite', label: 'Droite' },
+      { id: 'Gauche', label: 'Gauche' },
+      { id: 'Droite et Gauche', label: 'Droite et Gauche' },
+      { id: 'Haut', label: 'Haut' },
+      { id: 'Tous', label: 'Tous les côtés (U 3 côtés)' }
+    ];
+  }
+  return [
+    { id: 'Droite', label: 'Droite' },
+    { id: 'Gauche', label: 'Gauche' },
+    { id: 'Droite et Gauche', label: 'Droite et Gauche' },
+    { id: 'Haut', label: 'Haut' },
+    { id: 'Bas', label: 'Bas' },
+    { id: 'Haut et Bas', label: 'Haut et Bas' },
+    { id: 'Tous', label: 'Tous les 4 côtés' }
+  ];
 };
 
 export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
@@ -185,6 +271,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     vitrage_type: 'simple',
     motif_id: '',
     ouverture_type: '',
+    cremone_id: 'simple',
     supplements: [],
     fast_lock_points: '1',
     comp_ouvrant_ref: '',
@@ -222,6 +309,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
   const [validationError, setValidationError] = useState('');
   const [expandedProfiles, setExpandedProfiles] = useState<Record<number, boolean>>({});
+  const [zoomProfil, setZoomProfil] = useState<string | null>(null);
 
   // Marges bundle for calculations
   const margesConfig = {
@@ -292,14 +380,21 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
   const handleFamilyChange = (idx: number, familyId: string) => {
     const types = getProductTypesForFamily(familyId);
     const firstType = types[0];
-    updateItem(idx, {
-      family_id: familyId,
-      product_type_id: firstType ? firstType.id : '',
-      hauteur: items[idx].hauteur || 140,
-      largeur: items[idx].largeur || 120
-    });
     if (firstType) {
+      updateItem(idx, {
+        family_id: familyId,
+        product_type_id: firstType.id,
+        hauteur: items[idx].hauteur || 140,
+        largeur: items[idx].largeur || 120
+      });
       applyTypeOptions(idx, firstType, familyId);
+    } else {
+      updateItem(idx, {
+        family_id: familyId,
+        product_type_id: '',
+        hauteur: items[idx].hauteur || 140,
+        largeur: items[idx].largeur || 120
+      });
     }
   };
 
@@ -322,42 +417,25 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     const fam = FAMILIES.find(f => f.id === familyId);
     const isAluco = fam?.group === 'ALUCO';
     const isAluEco = fam?.group === 'ALU ECO';
-    const isTPR = fam?.group === 'TPR' || (!isAluco && !isAluEco);
+    const isCoulissant = typeDef.category === 'coulissant' || fam?.drawType === 'coulissante';
 
     let chassiRefs = CHASSI_FIX_REFS_DEFAULT;
     if (isAluco) chassiRefs = CHASSI_FIX_REFS_ALUCO;
     if (isAluEco) chassiRefs = CHASSI_FIX_REFS_ALUECO;
 
-    const comp = typeDef.composition;
+    const defProfiles = typeDef.defaultProfiles;
 
-    // Profilés configurés par défaut par l'atelier dans Paramètres
-    const defaultDormant = comp?.coulissant
-      ? (isTPR && settings?.default_profiles?.s67_dormant ? settings.default_profiles.s67_dormant : (comp?.dormant.default || ''))
-      : (isTPR && settings?.default_profiles?.s40_dormant ? settings.default_profiles.s40_dormant : (comp?.dormant.default || ''));
+    // Profilés configurés par défaut pour le type de produit
+    const defaultDormant = defProfiles?.dormant || (isCoulissant ? (isAluco ? 'FSQ 201' : isAluEco ? 'AE_67101' : '67101') : (isAluco ? 'FSQ 124' : isAluEco ? 'AE_40402' : '40402'));
+    const defaultOuvrant = defProfiles?.ouvrant || (isPorte ? (isAluco ? 'FSQ 403' : isAluEco ? 'AE_40403' : '40403') : (isAluco ? 'FSQ 104' : isAluEco ? 'AE_40401' : '40401'));
+    const defaultParclose = defProfiles?.parclose || (isAluco ? 'FSQ 110' : isAluEco ? 'AE_40110' : '40110');
+    const defaultLateral = defProfiles?.chicane || (isAluco ? 'FSQ 204' : isAluEco ? 'AE_67104' : '67104');
+    const defaultCentral = defProfiles?.chicane || (isAluco ? 'FSQ 205' : isAluEco ? 'AE_67105' : '67105');
+    const defaultTraverse = defProfiles?.traverse || (isAluco ? 'FSQ 107' : isAluEco ? 'AE_40121' : '40121');
+    const defaultCouvreJoint = defProfiles?.couvre_joint || (isAluco ? 'CJ 101' : '40108');
 
-    const defaultOuvrant = (isTPR && !comp?.coulissant && settings?.default_profiles?.s40_ouvrant)
-      ? settings.default_profiles.s40_ouvrant
-      : (comp?.ouvrant.default || '');
-
-    const defaultParclose = (isTPR && !comp?.coulissant && settings?.default_profiles?.s40_parclose)
-      ? settings.default_profiles.s40_parclose
-      : (comp?.parclose.simple.default || '');
-
-    const defaultLateral = (isTPR && comp?.coulissant && settings?.default_profiles?.s67_lateral)
-      ? settings.default_profiles.s67_lateral
-      : (comp?.lateral?.default || '');
-
-    const defaultCentral = (isTPR && comp?.coulissant && settings?.default_profiles?.s67_central)
-      ? settings.default_profiles.s67_central
-      : (comp?.central?.default || '');
-
-    const defaultFixCadre = (isTPR && settings?.default_profiles?.fix_cadre)
-      ? settings.default_profiles.fix_cadre
-      : chassiRefs.cadre[0];
-
-    const defaultFixSocle = (isTPR && settings?.default_profiles?.fix_socle)
-      ? settings.default_profiles.fix_socle
-      : chassiRefs.socle[0];
+    const defaultFixCadre = defProfiles?.dormant || chassiRefs.cadre[0];
+    const defaultFixSocle = chassiRefs.socle[0];
 
     updateItem(idx, {
       include_menuiserie: !(isStore || isMousti),
@@ -370,10 +448,11 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       comp_dormant_ref: defaultDormant,
       comp_ouvrant_ref: defaultOuvrant,
       comp_parclose_ref: defaultParclose,
-      comp_traverse_ref: comp?.traverse.default || '',
-      comp_lateral_qty: comp?.lateral ? { [defaultLateral || comp.lateral.default]: comp.lateral.count } : {},
-      comp_central_qty: comp?.central ? { [defaultCentral || comp.central.default]: comp.central.count } : {},
-      comp_seuil_ref: (comp?.dormant_composite && comp.dormant_composite[defaultDormant || comp.dormant.default]) ? comp.dormant_composite[defaultDormant || comp.dormant.default][0] : '',
+      comp_traverse_ref: defaultTraverse,
+      comp_couvre_joint_ref: defaultCouvreJoint,
+      comp_lateral_qty: isCoulissant ? { [defaultLateral]: 2 } : {},
+      comp_central_qty: isCoulissant ? { [defaultCentral]: 2 } : {},
+      comp_seuil_ref: isCoulissant ? '67201' : '',
       store_enabled: isStore,
       mousti_enabled: isMousti,
       gc_nb_poteaux: isGardeCorps ? 3 : undefined,
@@ -1018,25 +1097,240 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                 </div>
                               </div>
 
+                              {/* Type d'ouverture & Modèle de crémone */}
+                              {!isChassiFixe && !isStandaloneStore && !isStandaloneMousti && !item.is_garde_corps && typeDef?.options?.ouverture && typeDef.options.ouverture.length > 0 && (
+                                <div className="bg-slate-50/80 border border-slate-200/90 p-3 rounded-xl space-y-3">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <label className="block text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Type d'ouverture :</span>
+                                      </label>
+                                      {item.ouverture_type && (
+                                        <span className="text-[11px] font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md">
+                                          {getOuvertureLabel(item.ouverture_type)}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {typeDef.options.ouverture.map((ouv: string) => {
+                                        const isSelected = (item.ouverture_type || typeDef.options.ouverture[0]) === ouv;
+                                        return (
+                                          <button
+                                            key={ouv}
+                                            type="button"
+                                            onClick={() => updateItem(index, { ouverture_type: ouv })}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                                              isSelected
+                                                ? 'bg-blue-600 text-white shadow-xs'
+                                                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                          >
+                                            <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                                              isSelected ? 'border-white bg-white' : 'border-gray-400'
+                                            }`}>
+                                              {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                                            </div>
+                                            <span>{getOuvertureLabel(ouv)}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  {/* Modèle de crémone (AtelierPro Match) */}
+                                  <div className="pt-2 border-t border-slate-200/60">
+                                    <label className="block text-[11px] font-bold text-gray-700 mb-1 flex items-center gap-1.5">
+                                      <KeyRound className="w-3.5 h-3.5 text-blue-600" />
+                                      <span>Modèle de crémone :</span>
+                                    </label>
+                                    <select
+                                      value={item.cremone_id || 'simple'}
+                                      onChange={e => updateItem(index, { cremone_id: e.target.value })}
+                                      className="w-full sm:w-72 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                    >
+                                      <option value="simple">Crémone simple (défaut)</option>
+                                      <option value="cle">Crémone à clé (+32.000 DT)</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Partie Fixe & Couvre-Joint */}
+                              {!isChassiFixe && !isStandaloneStore && !isStandaloneMousti && !item.is_garde_corps && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                  {/* Box A: Partie Fixe */}
+                                  <div className="bg-slate-50/80 border border-slate-200/90 p-3 rounded-xl space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                      <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                        <Layers className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Partie Fixe (Allège / Imposte) :</span>
+                                      </label>
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                        item.partie_fixe_type && item.partie_fixe_type !== 'Sans'
+                                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                          : 'bg-gray-100 text-gray-500'
+                                      }`}>
+                                        {item.partie_fixe_type && item.partie_fixe_type !== 'Sans' ? item.partie_fixe_type : 'Sans'}
+                                      </span>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <select
+                                        value={item.partie_fixe_type || 'Sans'}
+                                        onChange={e => {
+                                          const val = e.target.value;
+                                          updateItem(index, {
+                                            partie_fixe_type: val,
+                                            pf_dim_1: val !== 'Sans' ? (item.pf_dim_1 || 40) : undefined,
+                                            pf_dim_2: ['Droite et Gauche', 'Haut et Bas', 'Tous'].includes(val) ? (item.pf_dim_2 || 40) : undefined
+                                          });
+                                        }}
+                                        className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                      >
+                                        {getPartieFixeOptions(isPorte).map(opt => (
+                                          <option key={opt.id} value={opt.id}>{opt.label}</option>
+                                        ))}
+                                      </select>
+
+                                      {item.partie_fixe_type && item.partie_fixe_type !== 'Sans' && (
+                                        <div className="space-y-2 pt-1">
+                                          {['Droite et Gauche', 'Haut et Bas', 'Tous'].includes(item.partie_fixe_type) ? (
+                                            <div className="grid grid-cols-2 gap-2">
+                                              <div>
+                                                <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Dim. 1 (cm)</label>
+                                                <input
+                                                  type="number"
+                                                  value={item.pf_dim_1 || ''}
+                                                  onChange={e => updateItem(index, { pf_dim_1: e.target.value })}
+                                                  placeholder="Ex: 40"
+                                                  min="1"
+                                                  className="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Dim. 2 (cm)</label>
+                                                <input
+                                                  type="number"
+                                                  value={item.pf_dim_2 || ''}
+                                                  onChange={e => updateItem(index, { pf_dim_2: e.target.value })}
+                                                  placeholder="Ex: 40"
+                                                  min="1"
+                                                  className="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                                                />
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div>
+                                              <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Dimension Partie Fixe (cm)</label>
+                                              <input
+                                                type="number"
+                                                value={item.pf_dim_1 || ''}
+                                                onChange={e => updateItem(index, { pf_dim_1: e.target.value })}
+                                                placeholder="Ex: 40"
+                                                min="1"
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                                              />
+                                            </div>
+                                          )}
+
+                                          <div>
+                                            <label className="block text-[10px] font-bold text-gray-600 mb-0.5">
+                                              Meneau (Profilé de séparation)
+                                            </label>
+                                            <select
+                                              value={item.comp_meneau_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40121' : '40121')}
+                                              onChange={e => updateItem(index, { comp_meneau_ref: e.target.value })}
+                                              className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                            >
+                                              {(typeDef?.composition?.meneau?.options || ['40121', '40156', 'FSQ 104', 'AE_40121']).map((r: string) => (
+                                                <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Meneau ${r}`}</option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Box B: Couvre-Joint */}
+                                  <div className="bg-slate-50/80 border border-slate-200/90 p-3 rounded-xl space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                      <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                        <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Couvre-Joint de Finition :</span>
+                                      </label>
+                                      <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={!!item.sans_couvre_joint}
+                                          onChange={e => updateItem(index, {
+                                            sans_couvre_joint: e.target.checked,
+                                            couvre_joint_type: e.target.checked ? undefined : (item.couvre_joint_type || 'Droite')
+                                          })}
+                                          className="rounded text-blue-600"
+                                        />
+                                        <span className="text-[11px] font-medium">Sans couvre-joint</span>
+                                      </label>
+                                    </div>
+
+                                    {!item.sans_couvre_joint ? (
+                                      <div className="space-y-2">
+                                        <div>
+                                          <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Position du Couvre-Joint</label>
+                                          <select
+                                            value={item.couvre_joint_type || 'Droite'}
+                                            onChange={e => updateItem(index, { couvre_joint_type: e.target.value })}
+                                            className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                          >
+                                            {getCouvreJointPositions(isPorte).map(opt => (
+                                              <option key={opt.id} value={opt.id}>{opt.label}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Profilé Couvre-Joint</label>
+                                          <select
+                                            value={item.comp_couvre_joint_ref || (fam?.group === 'ALUCO' ? 'CJ 101' : fam?.group === 'ALU ECO' ? 'AE_40103' : '40103')}
+                                            onChange={e => updateItem(index, { comp_couvre_joint_ref: e.target.value })}
+                                            className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                          >
+                                            {(typeDef?.composition?.couvre_joint?.options || ['40103', '40108', '40166', 'CJ 101', 'AE_40103']).map((r: string) => (
+                                              <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Couvre-joint ${r}`}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="p-2.5 bg-gray-100/80 rounded-lg border border-gray-200 text-center text-xs text-gray-500 font-medium">
+                                        Aucun couvre-joint configuré sur ce châssis
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Composition & Choix des Profilés (Dormant, Ouvrant, Parclose) - Accordéon Rétractable */}
                               {(() => {
                                 const isExpanded = !!expandedProfiles[index];
                                 const currentOuvrant = item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401';
-                                const isMonobloc = isFrappe && PROFILES_WITHOUT_PARCLOSE.includes(currentOuvrant);
+                                const isSansParclose = isFrappe && PROFILES_WITHOUT_PARCLOSE.includes(currentOuvrant);
 
                                 let badges: { label: string; val: string; highlight?: boolean }[] = [];
                                 if (isChassiFixe) {
                                   badges = [
-                                    { label: 'Cadre', val: item.chassi_cadre_ref || '40100' },
+                                    { label: 'Cadre', val: item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || '40100' },
                                     { label: 'Socle', val: item.chassi_socle_ref || '40154' },
-                                    { label: 'Meneau', val: item.chassi_montant_ref || '40155' },
+                                    { label: 'Meneau', val: item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || '40155' },
                                     { label: 'Traverse', val: item.chassi_traverse_ref || '40104' }
                                   ];
                                 } else if (isCoulissant) {
-                                  const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101';
-                                  const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104';
-                                  const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105';
-                                  const s = item.comp_seuil_ref;
+                                  const d = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '67101';
+                                  const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67104';
+                                  const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67105';
+                                  const s = item.comp_seuil_ref || '67201';
                                   badges = [
                                     { label: 'Dormant', val: d },
                                     { label: 'Latéral', val: lat },
@@ -1046,15 +1340,15 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     badges.push({ label: 'Seuil', val: s });
                                   }
                                 } else {
-                                  const d = item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100';
-                                  const o = currentOuvrant;
-                                  const p = isMonobloc 
+                                  const d = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '40402';
+                                  const o = currentOuvrant || typeDef?.defaultProfiles?.ouvrant || '40401';
+                                  const p = isSansParclose 
                                     ? 'Intégrée (Sans parclose)' 
-                                    : (item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110');
+                                    : (item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || '40110');
                                   badges = [
                                     { label: 'Dormant', val: d },
                                     { label: 'Ouvrant', val: o },
-                                    { label: 'Parclose', val: p, highlight: isMonobloc }
+                                    { label: 'Parclose', val: p, highlight: isSansParclose }
                                   ];
                                 }
 
@@ -1085,12 +1379,6 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               <span className="font-mono font-bold">{b.val}</span>
                                             </span>
                                           ))}
-                                          {isMonobloc && (
-                                            <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-1">
-                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                              ⭐ Monobloc
-                                            </span>
-                                          )}
                                         </div>
                                       </div>
 
@@ -1108,51 +1396,115 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Cadre Fixe (Dormant)</label>
-                                              <select
-                                                value={item.chassi_cadre_ref || '40100'}
-                                                onChange={e => updateItem(index, { chassi_cadre_ref: e.target.value, comp_dormant_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.cadre : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.cadre : CHASSI_FIX_REFS_DEFAULT.cadre).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || '40100'}
+                                                  onChange={e => updateItem(index, { chassi_cadre_ref: e.target.value, comp_dormant_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.dormants || (fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.cadre : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.cadre : CHASSI_FIX_REFS_DEFAULT.cadre)).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || null)}
+                                                    title={`Agrandir la coupe ${item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Socle / Seuil bas</label>
-                                              <select
-                                                value={item.chassi_socle_ref || '40154'}
-                                                onChange={e => updateItem(index, { chassi_socle_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.socle : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.socle : CHASSI_FIX_REFS_DEFAULT.socle).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.chassi_socle_ref || '40154'}
+                                                  onChange={e => updateItem(index, { chassi_socle_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.socle : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.socle : CHASSI_FIX_REFS_DEFAULT.socle).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.chassi_socle_ref) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.chassi_socle_ref || null)}
+                                                    title={`Agrandir la coupe ${item.chassi_socle_ref}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.chassi_socle_ref)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Meneau / Montant</label>
-                                              <select
-                                                value={item.chassi_montant_ref || '40155'}
-                                                onChange={e => updateItem(index, { chassi_montant_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.montant : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.montant : CHASSI_FIX_REFS_DEFAULT.montant).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || '40155'}
+                                                  onChange={e => updateItem(index, { chassi_montant_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.traverses || (fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.montant : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.montant : CHASSI_FIX_REFS_DEFAULT.montant)).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || null)}
+                                                    title={`Agrandir la coupe ${item.chassi_montant_ref}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Traverse fixe</label>
-                                              <select
-                                                value={item.chassi_traverse_ref || '40104'}
-                                                onChange={e => updateItem(index, { chassi_traverse_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.traverse : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.traverse : CHASSI_FIX_REFS_DEFAULT.traverse).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.chassi_traverse_ref || '40104'}
+                                                  onChange={e => updateItem(index, { chassi_traverse_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(fam?.group === 'ALUCO' ? CHASSI_FIX_REFS_ALUCO.traverse : fam?.group === 'ALU ECO' ? CHASSI_FIX_REFS_ALUECO.traverse : CHASSI_FIX_REFS_DEFAULT.traverse).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.chassi_traverse_ref) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.chassi_traverse_ref || null)}
+                                                    title={`Agrandir la coupe ${item.chassi_traverse_ref}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.chassi_traverse_ref)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                           </div>
                                         ) : isCoulissant ? (
@@ -1160,60 +1512,122 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Dormant Coulissant</label>
-                                              <select
-                                                value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '67101'}
-                                                onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(typeDef?.composition?.dormant.options || ['67101', '67103', '67110']).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '67101'}
+                                                  onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.dormants || ['67101', '67103', '67110']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || null)}
+                                                    title={`Agrandir la coupe ${item.comp_dormant_ref}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
 
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Latéral Ouvrant</label>
-                                              <select
-                                                value={Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.composition?.lateral?.default || '67104'}
-                                                onChange={e => {
-                                                  const count = typeDef?.composition?.lateral?.count || 2;
-                                                  updateItem(index, { comp_lateral_qty: { [e.target.value]: count } });
-                                                }}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(typeDef?.composition?.lateral?.options || ['67104', '67108']).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67104'}
+                                                  onChange={e => {
+                                                    updateItem(index, { comp_lateral_qty: { [e.target.value]: 2 } });
+                                                  }}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.chicanes || ['67104', '67108']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || null)}
+                                                    title="Agrandir la coupe"
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
 
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Central (Chicane)</label>
-                                              <select
-                                                value={Object.keys(item.comp_central_qty || {})[0] || typeDef?.composition?.central?.default || '67105'}
-                                                onChange={e => {
-                                                  const count = typeDef?.composition?.central?.count || 2;
-                                                  updateItem(index, { comp_central_qty: { [e.target.value]: count } });
-                                                }}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(typeDef?.composition?.central?.options || ['67105', '67107']).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67105'}
+                                                  onChange={e => {
+                                                    updateItem(index, { comp_central_qty: { [e.target.value]: 2 } });
+                                                  }}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.chicanes || ['67105', '67107']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || null)}
+                                                    title="Agrandir la coupe"
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
 
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Seuil / Rail bas</label>
-                                              <select
-                                                value={item.comp_seuil_ref || '— Sans seuil —'}
-                                                onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {((typeDef?.composition?.dormant_composite && item.comp_dormant_ref && typeDef.composition.dormant_composite[item.comp_dormant_ref]) || ['— Sans seuil —', '67201', '67202', '67203', '67205', 'CSQ 116']).map(r => (
-                                                  <option key={r} value={r}>{r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.comp_seuil_ref || '67201'}
+                                                  onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {['67201', '67202', '67203', '67205', 'CSQ 116', '— Sans seuil —'].map(r => (
+                                                    <option key={r} value={r}>{r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.comp_seuil_ref) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.comp_seuil_ref || null)}
+                                                    title={`Agrandir la coupe ${item.comp_seuil_ref}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.comp_seuil_ref)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
                                           </div>
                                         ) : (
@@ -1224,15 +1638,31 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">
                                                 Profilé Dormant (Cadre)
                                               </label>
-                                              <select
-                                                value={item.comp_dormant_ref || typeDef?.composition?.dormant.default || '40100'}
-                                                onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(typeDef?.composition?.dormant.options || ['40100', '40102', '40148', '40165', '40402']).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '40402'}
+                                                  onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.dormants || ['40402', '40100', '40102', '40148', '40165']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || null)}
+                                                    title={`Agrandir la coupe ${item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
 
                                             {/* Ouvrant */}
@@ -1240,15 +1670,31 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">
                                                 Profilé Ouvrant (Vantail)
                                               </label>
-                                              <select
-                                                value={item.comp_ouvrant_ref || typeDef?.composition?.ouvrant.default || '40401'}
-                                                onChange={e => updateItem(index, { comp_ouvrant_ref: e.target.value })}
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                              >
-                                                {(typeDef?.composition?.ouvrant.options || ['40401', '40404', '40150', '40403']).map(r => (
-                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                ))}
-                                              </select>
+                                              <div className="flex items-start gap-1.5">
+                                                <select
+                                                  value={item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || '40401'}
+                                                  onChange={e => updateItem(index, { comp_ouvrant_ref: e.target.value })}
+                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                  {(typeDef?.optionProfiles?.ouvrants || ['40401', '40404', '40150', '40403']).map(r => (
+                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                  ))}
+                                                </select>
+                                                {getProfileImageUrl(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setZoomProfil(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || null)}
+                                                    title={`Agrandir la coupe ${item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant}`}
+                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                  >
+                                                    <img
+                                                      src={getProfileImageUrl(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant)!}
+                                                      alt="Coupe"
+                                                      className="w-full h-full object-contain"
+                                                    />
+                                                  </button>
+                                                )}
+                                              </div>
                                             </div>
 
                                             {/* Parclose */}
@@ -1259,20 +1705,36 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               {PROFILES_WITHOUT_PARCLOSE.includes(item.comp_ouvrant_ref || '') ? (
                                                 <div className="flex items-center gap-1.5 bg-emerald-100/90 border border-emerald-300 text-emerald-950 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs">
                                                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                                                  <span className="truncate" title="Parclose incorporée dans l'ouvrant monobloc (aucun débit requis)">
+                                                  <span className="truncate" title="Parclose incorporée dans l'ouvrant (aucun débit requis)">
                                                     Intégrée dans {item.comp_ouvrant_ref} (sans parclose)
                                                   </span>
                                                 </div>
                                               ) : (
-                                                <select
-                                                  value={item.comp_parclose_ref || (item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.default : typeDef?.composition?.parclose.simple.default) || '40110'}
-                                                  onChange={e => updateItem(index, { comp_parclose_ref: e.target.value })}
-                                                  className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                  {((item.vitrage_type === 'double' ? typeDef?.composition?.parclose.double.options : typeDef?.composition?.parclose.simple.options) || ['40110', '40111', '40139', '40166']).map(r => (
-                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                  ))}
-                                                </select>
+                                                <div className="flex items-start gap-1.5">
+                                                  <select
+                                                    value={item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || '40110'}
+                                                    onChange={e => updateItem(index, { comp_parclose_ref: e.target.value })}
+                                                    className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                  >
+                                                    {(typeDef?.optionProfiles?.parcloses || ['40110', '40111', '40139', '40166']).map(r => (
+                                                      <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                    ))}
+                                                  </select>
+                                                  {getProfileImageUrl(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose) && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => setZoomProfil(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || null)}
+                                                      title={`Agrandir la coupe ${item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose}`}
+                                                      className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                    >
+                                                      <img
+                                                        src={getProfileImageUrl(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose)!}
+                                                        alt="Coupe"
+                                                        className="w-full h-full object-contain"
+                                                      />
+                                                    </button>
+                                                  )}
+                                                </div>
                                               )}
                                             </div>
                                           </div>
@@ -1494,7 +1956,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     <option value="Coffre alu 15">Coffre alu 15 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_15, item.store_couleur, 45).toFixed(3)} DT/ml)</option>
                                     <option value="Coffre alu 20">Coffre alu 20 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_20, item.store_couleur, 55).toFixed(3)} DT/ml)</option>
                                     <option value="Coffre alu 25">Coffre alu 25 cm ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_alu_25, item.store_couleur, 65).toFixed(3)} DT/ml)</option>
-                                    <option value="Coffre PVC">Coffre PVC Monobloc ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_pvc, item.store_couleur, 50).toFixed(3)} DT/ml)</option>
+                                    <option value="Coffre PVC">Coffre PVC ({getStoreElementPrice(settings.m2_prices?.stores?.coffre_pvc, item.store_couleur, 50).toFixed(3)} DT/ml)</option>
                                   </select>
                                 </div>
                               </div>
@@ -2080,6 +2542,51 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Cross-Section Zoom Modal */}
+      {zoomProfil && (
+        <div
+          onClick={() => setZoomProfil(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100 flex flex-col items-center"
+          >
+            <div className="w-full flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <span className="font-mono font-bold text-gray-900 text-sm">{zoomProfil}</span>
+                <span className="text-xs text-gray-500">{PROFILE_OPTION_NAMES[zoomProfil] || ''}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setZoomProfil(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="w-full h-72 p-4 bg-gray-50/60 rounded-xl flex items-center justify-center border border-gray-200/60">
+              <img
+                src={getProfileImageUrl(zoomProfil)!}
+                alt={`Coupe ${zoomProfil}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+            <div className="mt-4 w-full flex items-center justify-between">
+              <span className="text-[11px] text-gray-400">Coupe technique du profil</span>
+              <button
+                type="button"
+                onClick={() => setZoomProfil(null)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}
