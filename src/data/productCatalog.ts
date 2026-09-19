@@ -40,6 +40,7 @@ export interface ProductTypeDef {
     couvre_joint?: string;
     meneau?: string;
     traverse?: string;
+    seuil?: string;
   };
   optionProfiles?: {
     dormant?: string[];
@@ -60,6 +61,8 @@ export interface ProductTypeDef {
     meneaux?: string[];
     traverse?: string[];
     traverses?: string[];
+    seuil?: string[];
+    seuils?: string[];
   };
   options?: {
     vitrage?: string[];
@@ -179,19 +182,35 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
   let traverseDefault = '40104';
   let traverseOptions = ['40104', '40121', '40135', '40156'];
   let latDefault = '67104';
-  let latOptions = ['67104', '67108'];
+  let latOptions = ['67104', '67108', '67204', '67205'];
   let cenDefault = '67105';
   let cenOptions = ['67105', '67107'];
 
   if (isCoulissant) {
     if (isEX60) {
-      dormantDefault = 'EX60 2114';
-      dormantOptions = ['EX60 2114', 'EX60 2110'];
-      latDefault = 'EX60 2114';
-      latOptions = ['EX60 2114', 'EX60 2110'];
-      cenDefault = 'EX60 2114';
-      cenOptions = ['EX60 2114'];
-      parcloseSimple = { default: '80116', options: ['80116', '67207'] };
+      if (isAluEco) {
+        dormantDefault = 'AE_EX60 2114';
+        dormantOptions = ['AE_EX60 2114', 'AE_EX60 2115', 'AE_EX60 2116', 'AE_EX60 2117', 'AE_EX60 2118', 'AE_EX60 2119', 'AE_EX60 2121', 'AE_EX60 2122', 'AE_EX60 2125', 'AE_EX60 2126'];
+        latDefault = 'AE_Ex60 2211';
+        latOptions = ['AE_Ex60 2211', 'AE_Ex60 2214', 'AE_EX60 2218', 'AE_EX60 2221'];
+        cenDefault = 'AE_Ex60 2212';
+        cenOptions = ['AE_Ex60 2212', 'AE_Ex60 2213', 'AE_EX60 2216', 'AE_EX60 2217'];
+        traverseDefault = 'AE_Ex60 2210';
+        traverseOptions = ['AE_Ex60 2210', 'AE_Ex60 2215'];
+        parcloseSimple = { default: 'AE_Ex60 2312', options: ['AE_Ex60 2312', 'AE_80116', '67207'] };
+        parcloseDouble = { default: '67207', options: ['67207', 'AE_Ex60 2312'] };
+      } else {
+        dormantDefault = 'EX60 2114';
+        dormantOptions = ['EX60 2114', 'EX60 2115', 'EX60 2116', 'EX60 2117'];
+        latDefault = 'EX60 2211';
+        latOptions = ['EX60 2211', 'EX60 2214', 'EX60 2218', 'EX60 2221'];
+        cenDefault = 'EX60 2212';
+        cenOptions = ['EX60 2212', 'EX60 2213', 'EX60 2216', 'EX60 2217'];
+        traverseDefault = 'EX60 2210';
+        traverseOptions = ['EX60 2210', 'EX60 2215'];
+        parcloseSimple = { default: 'EX60 2312', options: ['EX60 2312', '80116', '67207'] };
+        parcloseDouble = { default: '67207', options: ['67207', 'EX60 2312'] };
+      }
     } else if (isAluco) {
       dormantDefault = 'CSQ 103';
       dormantOptions = ['CSQ 103', 'CSQ 203', 'CSQ 210'];
@@ -202,43 +221,62 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
       traverseDefault = 'CSQ 106';
       traverseOptions = ['CSQ 106'];
       parcloseSimple = { default: 'CSQ 114', options: ['CSQ 114'] };
+      parcloseDouble = { default: 'CSQ 114', options: ['CSQ 114'] };
       couvreJointDefault = 'CSQ 302';
       couvreJointOptions = ['CSQ 302', 'CSQ 301'];
     } else if (isAluEco) {
-      dormantDefault = 'AE_67103';
-      dormantOptions = ['AE_67103', 'AE_67101'];
+      dormantDefault = 'AE_67101';
+      dormantOptions = ['AE_67101', 'AE_67103'];
       latDefault = 'AE_67104';
-      latOptions = ['AE_67104'];
+      latOptions = ['AE_67104', 'AE_67108'];
       cenDefault = 'AE_67105';
-      cenOptions = ['AE_67105'];
+      cenOptions = ['AE_67105', 'AE_67107'];
+      traverseDefault = 'AE_67106';
+      traverseOptions = ['AE_67106'];
       parcloseSimple = { default: 'AE_40110', options: ['AE_40110', '80116'] };
+      parcloseDouble = { default: '80116', options: ['80116', 'AE_40110'] };
     } else {
       // TPR S67
       dormantDefault = '67103';
       dormantOptions = ['67103', '67101', '67110', '67203'];
       latDefault = '67104';
-      latOptions = ['67104', '67108'];
+      latOptions = ['67104', '67108', '67204', '67205'];
       cenDefault = '67105';
       cenOptions = ['67105', '67107'];
+      traverseDefault = '67106';
+      traverseOptions = ['67106'];
       parcloseSimple = { default: '80116', options: ['80116', '67207'] };
       parcloseDouble = { default: '67207', options: ['67207', '80116'] };
     }
   } else {
     // Frappe (À la française)
     if (isEX45) {
-      dormantDefault = 'EX45 1123';
-      dormantOptions = ['EX45 1123', 'EX45 1125', 'EX45 1120'];
-      ouvrantDefault = 'EX45 1210';
-      ouvrantOptions = ['EX45 1210', 'EX45 1212', 'EX45 1215', 'EX45 1218'];
-      parcloseSimple = { default: 'EX45 1312', options: ['EX45 1312', 'EX45 1310', 'EX45 1314'] };
-      parcloseDouble = { default: 'EX45 1320', options: ['EX45 1320', 'EX45 1310'] };
-      meneauDefault = 'EX45 1130';
-      meneauOptions = ['EX45 1130', 'EX45 1132'];
-      couvreJointDefault = '40108';
-      couvreJointOptions = ['40108', '40103', 'TW60 1314'];
+      if (isAluEco) {
+        dormantDefault = 'AE_EX45 1123';
+        dormantOptions = ['AE_EX45 1123', 'AE_EX45 1125'];
+        ouvrantDefault = 'AE_EX45 1210';
+        ouvrantOptions = ['AE_EX45 1210', 'AE_EX45 1218'];
+        parcloseSimple = { default: 'AE_EX45 1312', options: ['AE_EX45 1312', 'AE_40110'] };
+        parcloseDouble = { default: 'AE_EX45 1312', options: ['AE_EX45 1312', 'AE_40129'] };
+        meneauDefault = 'AE_EX45 1130';
+        meneauOptions = ['AE_EX45 1130'];
+        couvreJointDefault = 'AE_40103';
+        couvreJointOptions = ['AE_40103', 'AE_40108'];
+      } else {
+        dormantDefault = 'EX45 1123';
+        dormantOptions = ['EX45 1123', 'EX45 1125', 'EX45 1120'];
+        ouvrantDefault = 'EX45 1210';
+        ouvrantOptions = ['EX45 1210', 'EX45 1212', 'EX45 1215', 'EX45 1218'];
+        parcloseSimple = { default: 'EX45 1312', options: ['EX45 1312', 'EX45 1310', 'EX45 1314'] };
+        parcloseDouble = { default: 'EX45 1320', options: ['EX45 1320', 'EX45 1310'] };
+        meneauDefault = 'EX45 1130';
+        meneauOptions = ['EX45 1130', 'EX45 1132'];
+        couvreJointDefault = '40108';
+        couvreJointOptions = ['40108', '40103', 'TW60 1314'];
+      }
     } else if (isAluco) {
       dormantDefault = 'FSQ 124';
-      dormantOptions = ['FSQ 124', 'FSQ 408', 'FSQ 402', 'FSQ100', 'FSQ150'];
+      dormantOptions = ['FSQ 124', 'FSQ 408', 'FSQ 402', 'FSQ 100', 'FSQ 150'];
       ouvrantDefault = 'FSQ 104';
       ouvrantOptions = ['FSQ 104', 'FSQ 102', 'FSQ 401', 'FSQ 403', 'FSQ 407'];
       parcloseSimple = { default: 'FSQ 111', options: ['FSQ 111', 'FSQ 112', 'FSQ 139'] };
@@ -261,6 +299,9 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     }
   }
 
+  const seuilDefault = isCoulissant ? (isEX60 ? (isAluEco ? 'AE_80116' : '80116') : isAluco ? 'CSQ 116' : '67201') : '';
+  const seuilOptions = isCoulissant ? (isEX60 ? (isAluEco ? ['AE_80116', '— Sans seuil —'] : ['80116', '— Sans seuil —']) : isAluco ? ['CSQ 116', '— Sans seuil —'] : ['67201', '67202', '67203', '67205', 'CSQ 116', 'AE_80116', '— Sans seuil —']) : [];
+
   const defaultProfiles = {
     dormant: dormantDefault,
     ouvrant: ouvrantDefault,
@@ -272,6 +313,7 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     couvre_joint: couvreJointDefault,
     meneau: meneauDefault,
     traverse: traverseDefault,
+    seuil: seuilDefault,
   };
 
   const optionProfiles = {
@@ -293,6 +335,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     meneaux: meneauOptions,
     traverse: traverseOptions,
     traverses: traverseOptions,
+    seuil: seuilOptions,
+    seuils: seuilOptions,
   };
 
   const standardComposition: ProductTypeComposition = {

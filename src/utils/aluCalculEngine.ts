@@ -336,6 +336,7 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
 
   // Exact fallback prices per 6.50m extrusion bar (DT HT)
   const fallbackPrices: Record<string, number> = {
+    // S40 (TPR)
     '40100': 110.767,
     '40401': 131.300,
     '40403': 144.847,
@@ -346,17 +347,143 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
     '40155': 278.788,
     '40104': 148.967,
     '40402': 113.081,
+    '40108': 30.000,
+    '40103': 28.000,
+
+    // S67 (TPR)
     '67101': 121.182,
+    '67103': 125.000,
     '67104': 95.201,
     '67105': 74.106,
     '67106': 86.456,
+    '67107': 80.000,
+    '67108': 100.000,
+    '67201': 32.000,
+    '67202': 32.000,
+    '67203': 35.000,
+    '67204': 40.000,
+    '67205': 42.000,
     '80116': 19.067,
+
+    // EX60 (Alu Eco & TPR)
+    'AE_EX60 2114': 214.501,
+    'EX60 2114': 214.501,
+    'AE_EX60 2115': 214.501,
+    'EX60 2115': 214.501,
+    'AE_EX60 2116': 225.000,
+    'AE_EX60 2117': 225.000,
+    'AE_EX60 2118': 230.000,
+    'AE_EX60 2119': 230.000,
+    'AE_EX60 2121': 240.000,
+    'AE_EX60 2122': 240.000,
+    'AE_EX60 2125': 250.000,
+    'AE_EX60 2126': 250.000,
+    'AE_Ex60 2210': 137.804,
+    'EX60 2210': 137.804,
+    'AE_Ex60 2211': 147.430,
+    'EX60 2211': 147.430,
+    'AE_Ex60 2212': 105.983,
+    'EX60 2212': 105.983,
+    'AE_Ex60 2213': 115.000,
+    'EX60 2213': 115.000,
+    'AE_Ex60 2214': 147.430,
+    'AE_Ex60 2215': 137.804,
+    'AE_EX60 2216': 115.000,
+    'AE_EX60 2217': 115.000,
+    'AE_EX60 2218': 150.000,
+    'AE_EX60 2221': 150.000,
+    'AE_Ex60 2312': 38.407,
+    'EX60 2312': 38.407,
+    'AE_80116': 19.286,
+
+    // EX45 (Alu Eco & TPR)
+    'EX45 1123': 125.000,
+    'EX45 1125': 115.000,
+    'EX45 1120': 120.000,
+    'EX45 1210': 135.000,
+    'EX45 1212': 100.000,
+    'EX45 1215': 140.000,
+    'EX45 1218': 140.000,
+    'EX45 1312': 40.000,
+    'EX45 1310': 38.000,
+    'EX45 1314': 42.000,
+    'EX45 1320': 45.000,
+    'EX45 1130': 160.000,
+    'EX45 1132': 165.000,
+    'AE_EX45 1123': 125.000,
+    'AE_EX45 1125': 115.000,
+    'AE_EX45 1210': 135.000,
+    'AE_EX45 1218': 140.000,
+    'AE_EX45 1312': 40.000,
+    'AE_EX45 1130': 160.000,
+
+    // ALUCO (FSQ & CSQ)
+    'FSQ 124': 130.000,
+    'FSQ 408': 135.000,
+    'FSQ 402': 130.000,
+    'FSQ 100': 115.000,
+    'FSQ 150': 125.000,
+    'FSQ 104': 140.000,
+    'FSQ 102': 135.000,
+    'FSQ 401': 140.000,
+    'FSQ 403': 155.000,
+    'FSQ 407': 145.000,
+    'FSQ 111': 42.000,
+    'FSQ 112': 44.000,
+    'FSQ 139': 40.000,
+    'FSQ 121': 180.000,
+    'FSQ 107': 170.000,
+    'FSQ 108': 175.000,
+    'CJ 101': 28.000,
+    'CJ 102': 30.000,
+    'CSQ 101': 125.000,
+    'CSQ 102': 130.000,
+    'CSQ 103': 130.000,
+    'CSQ 203': 135.000,
+    'CSQ 210': 140.000,
+    'CSQ 104': 100.000,
+    'CSQ 108': 105.000,
+    'CSQ 105': 80.000,
+    'CSQ 107': 85.000,
+    'CSQ 106': 92.000,
+    'CSQ 114': 40.000,
+    'CSQ 302': 30.000,
+    'CSQ 301': 28.000,
+    'CSQ_116': 32.000,
+    'CSQ 116': 32.000,
+    'CSQ_124': 22.000,
+    'CSQ 124': 22.000,
+
+    // ALU ECO (S40 & S67)
+    'AE_40402': 113.081,
+    'AE_40100': 110.767,
+    'AE_40102': 110.767,
+    'AE_40401': 131.300,
+    'AE_40404': 125.000,
+    'AE_40150': 130.000,
+    'AE_40403': 144.847,
+    'AE_40112': 95.908,
+    'AE_40121': 227.081,
+    'AE_40110': 41.457,
+    'AE_40129': 45.000,
+    'AE_40139': 40.000,
+    'AE_40103': 28.000,
+    'AE_40108': 30.000,
+    'AE_67101': 121.182,
+    'AE_67103': 125.000,
+    'AE_67104': 95.201,
+    'AE_67105': 74.106,
+    'AE_67106': 86.456,
+    'AE_67108': 100.000,
+    'AE_67107': 80.000,
+
+    // Garde-corps
     '2984': 132.521,
     '2878': 30.325,
     '4085': 143.644,
     '4080': 128.000,
-    'CSQ_116': 32.000,
-    'CSQ_124': 22.000,
+
+    // Volets & Stores
     'CSQ_Coulisse': 48.000,
     'CSQ_Coffre': 95.000,
     'Glissière 55': 48.000,
@@ -544,323 +671,722 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     }
 
     // -------------------------------------------------------------
-    // A. COULISSANT (Série 67 ALLUCO / SQUARE 67 / Alu Eco EX60)
+    // A. COULISSANT (Série 67 ALLUCO / SQUARE 67 / Alu Eco EX60 / TPR EX60)
     // -------------------------------------------------------------
     if (isCoulissant) {
-      const dormantHautRef = item.comp_dormant_ref || '67101';
-      const ouvrantCoulRef = item.comp_ouvrant_ref || '67104';
-      const chicaneProfilRef = '67105';
-      const travOuvrRef = '67106';
-      const parcRef = item.comp_parclose_ref || '80116';
+      const isEX60 = item.family_id === '61' || item.family_id === '66' || (fam?.name || '').toLowerCase().includes('ex60') || (item.product_type_id || '').includes('61') || (item.product_type_id || '').includes('66');
+      const isAluEco = fam?.group === 'ALU ECO';
+      const isAluco = fam?.group === 'ALUCO';
 
-      // 1. Dormant Montants H
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_dorm_h`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_h',
-        profilRef: dormantHautRef,
-        profilDesignation: `Dormant Montant vertical (${dormantHautRef})`,
-        lengthCm: H,
-        quantity: 2 * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: 'Cadre dormant extérieur montant'
-      });
+      if (isEX60) {
+        const dormantHautRef = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (isAluEco ? 'AE_EX60 2114' : 'EX60 2114');
+        const latRef = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.lateral || (isAluEco ? 'AE_Ex60 2211' : 'EX60 2211');
+        const cenRef = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.central || (isAluEco ? 'AE_Ex60 2212' : 'EX60 2212');
+        const travOuvrRef = item.comp_traverse_ref || typeDef?.defaultProfiles?.traverse || (isAluEco ? 'AE_Ex60 2210' : 'EX60 2210');
+        const parcRef = item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || (isAluEco ? 'AE_Ex60 2312' : 'EX60 2312');
+        const seuilRef = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil || (isAluEco ? 'AE_80116' : '80116');
 
-      // 2. Dormant Traverses L
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_dorm_l`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_l',
-        profilRef: dormantHautRef,
-        profilDesignation: `Dormant Traverse horizontale (${dormantHautRef})`,
-        lengthCm: L,
-        quantity: 2 * qty,
-        angleLeft: '45°',
-        angleRight: '45°',
-        notes: 'Cadre dormant supérieur / inférieur'
-      });
+        const nbChicanes = item.comp_central_qty?.[cenRef] || (nbVantaux === 3 ? 4 : (nbVantaux === 4 ? 4 : 2));
 
-      // Formules officielles ALLUCO SQUARE 67:
-      // Montants ouvrant : H - 6.0 cm
-      // Traverses ouvrant : 2V -> (L - 15.6)/2, 3V -> (L - 16.1)/3, 4V -> (L - 25.4)/4
-      const hOuvrant = Math.max(10, parseFloat((H - 6.0).toFixed(1)));
-      let lOuvrant = Math.max(10, parseFloat(((L - 15.6) / 2).toFixed(1)));
-      if (nbVantaux === 3) {
-        lOuvrant = Math.max(10, parseFloat(((L - 16.1) / 3).toFixed(1)));
-      } else if (nbVantaux === 4) {
-        lOuvrant = Math.max(10, parseFloat(((L - 25.4) / 4).toFixed(1)));
+        // 1. Dormant Montants H (45°/45°)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_dorm_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_h',
+          profilRef: dormantHautRef,
+          profilDesignation: `Dormant Montant vertical (${dormantHautRef})`,
+          lengthCm: H,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Cadre dormant extérieur montant EX60'
+        });
+
+        // 2. Dormant Traverses L (45°/45°)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_dorm_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: dormantHautRef,
+          profilDesignation: `Dormant Traverse horizontale (${dormantHautRef})`,
+          lengthCm: L,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Cadre dormant supérieur / inférieur EX60'
+        });
+
+        // 3. Montants Ouvrant latéraux (H - 8.60 cm @ 90°/90°)
+        const hOuvrant = Math.max(10, parseFloat((H - 8.60).toFixed(2)));
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_ouvr_lat`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'ouvrant_h',
+          profilRef: latRef,
+          profilDesignation: `Montant Latéral Ouvrant (${latRef})`,
+          lengthCm: hOuvrant,
+          quantity: 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Montant latéral ouvrant EX60'
+        });
+
+        // 4. Montants Centraux / Chicanes (H - 8.60 cm @ 90°/90°)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_chic`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'chicane',
+          profilRef: cenRef,
+          profilDesignation: `Montant Central Chicane (${cenRef})`,
+          lengthCm: hOuvrant,
+          quantity: nbChicanes * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Chicane centrale EX60'
+        });
+
+        // 5. Traverses Ouvrant ((L - 18.50) / nbVantaux @ 90°/90°)
+        const lTrav = Math.max(10, parseFloat(((L - 18.50) / nbVantaux).toFixed(2)));
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_trav`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'traverse',
+          profilRef: travOuvrRef,
+          profilDesignation: `Traverse Ouvrant (${travOuvrRef})`,
+          lengthCm: lTrav,
+          quantity: nbVantaux * 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Traverses haute et basse ouvrant EX60'
+        });
+
+        // 6. Rail Bas Rapporté (L - 10.80 cm @ 90°/90°)
+        if (seuilRef && seuilRef !== '— Sans seuil —') {
+          const lRail = Math.max(10, parseFloat((L - 10.80).toFixed(2)));
+          const nbRails = (nbVantaux === 3 ? 3 : 2) * qty;
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_ex60_rail`,
+            itemIndex: itemIdx,
+            elementLabel,
+            pieceType: 'traverse',
+            profilRef: seuilRef,
+            profilDesignation: `Rail bas rapporté (${seuilRef})`,
+            lengthCm: lRail,
+            quantity: nbRails,
+            angleLeft: '90°',
+            angleRight: '90°',
+            notes: 'Rail de roulement bas rapporté EX60'
+          });
+        }
+
+        // 7. Parcloses Simple Vitrage (AE_Ex60 2312)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_parc_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'parclose',
+          profilRef: parcRef,
+          profilDesignation: `Parclose Traverse (${parcRef})`,
+          lengthCm: lTrav,
+          quantity: nbVantaux * 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Parclose horizontale vitrage EX60'
+        });
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_ex60_parc_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'parclose',
+          profilRef: parcRef,
+          profilDesignation: `Parclose Montant (${parcRef})`,
+          lengthCm: hOuvrant,
+          quantity: nbVantaux * 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Parclose verticale vitrage EX60'
+        });
+
+        // 8. Vitrage EX60:
+        // H_verre = H - 18.00 cm
+        // L_verre = lTrav - 1.00 cm
+        const hVerre = Math.max(5, parseFloat((H - 18.00).toFixed(2)));
+        const lVerre = Math.max(5, parseFloat((lTrav - 1.00).toFixed(2)));
+        const unitAreaM2 = parseFloat(((hVerre / 100) * (lVerre / 100)).toFixed(4));
+        const totalVerresQty = nbVantaux * qty;
+        const isDouble = item.remplissage_id?.toLowerCase().includes('double') || item.vitrage_type === 'double';
+
+        glassItems.push({
+          id: `glass_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} (${nbVantaux} vantaux)`,
+          hauteurCm: hVerre,
+          largeurCm: lVerre,
+          quantity: totalVerresQty,
+          unitAreaM2,
+          totalAreaM2: parseFloat((unitAreaM2 * totalVerresQty * (isDouble ? 2 : 1)).toFixed(3)),
+          vitrageType: item.remplissage_id || 'Simple Clair 6mm'
+        });
+
+        // 9. Joints EX60 (Ex60 N203 & Ex60 N221)
+        const n203Meters = parseFloat((8.00 * qty).toFixed(2));
+        totalJointBrosseCmGlobal += n203Meters * 100;
+        rawAccessories.push({
+          id: `acc_ex60_n203_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Ex60 N203 (Joint brosse)',
+          reference: 'Ex60 N203',
+          category: 'joint',
+          quantity: n203Meters,
+          unit: 'm',
+          unitPriceHt: 1.785,
+          totalPriceHt: parseFloat((n203Meters * 1.785).toFixed(3)),
+          details: 'Joint brosse dormant et chicanes EX60'
+        });
+
+        const n221Meters = parseFloat((14.00 * qty).toFixed(2));
+        totalJointVitrageCmGlobal += n221Meters * 100;
+        rawAccessories.push({
+          id: `acc_ex60_n221_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Ex60 N221 (Joint vitrage)',
+          reference: 'Ex60 N221',
+          category: 'joint',
+          quantity: n221Meters,
+          unit: 'm',
+          unitPriceHt: 1.785,
+          totalPriceHt: parseFloat((n221Meters * 1.785).toFixed(3)),
+          details: 'Joint calfeutrement vitrage EX60'
+        });
+
+        // 10. Accessoires EX60 (Strict AtelierPro)
+        rawAccessories.push(
+          {
+            id: `acc_ex60_a211_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A211 (Équerre dormant)',
+            reference: 'Ex60 A211',
+            category: 'equerre',
+            quantity: 8 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((8 * qty * 1.190).toFixed(3)),
+            details: '8 équerres cadre dormant EX60'
+          },
+          {
+            id: `acc_ex60_a220_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A220 (Équerre ouvrant)',
+            reference: 'Ex60 A220',
+            category: 'equerre',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+            details: 'Équerres ouvrant EX60'
+          },
+          {
+            id: `acc_ex60_a234_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A234 (Fermeture encastrée)',
+            reference: 'Ex60 A234',
+            category: 'verrou',
+            quantity: 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+            details: 'Fermeture latérale de sécurité EX60'
+          },
+          {
+            id: `acc_ex60_a238_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A238 (Gâche fermeture)',
+            reference: 'Ex60 A238',
+            category: 'verrou',
+            quantity: 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+            details: 'Gâche de verrouillage montant dormant EX60'
+          },
+          {
+            id: `acc_ex60_a250_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A250 (Galets de roulement)',
+            reference: 'Ex60 A250',
+            category: 'roulette',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+            details: 'Galets de roulement à billes EX60'
+          },
+          {
+            id: `acc_ex60_a251_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A251 (Patin de guidage)',
+            reference: 'Ex60 A251',
+            category: 'accessoire',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+            details: 'Patins de guidage supérieur EX60'
+          },
+          {
+            id: `acc_ex60_a252_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A252 (Bouchon chicane)',
+            reference: 'Ex60 A252',
+            category: 'accessoire',
+            quantity: (nbVantaux === 3 ? 4 : 2) * 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat(((nbVantaux === 3 ? 4 : 2) * 2 * qty * 1.190).toFixed(3)),
+            details: 'Bouchons d’étanchéité chicane EX60'
+          },
+          {
+            id: `acc_ex60_a253_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A253 (Butée)',
+            reference: 'Ex60 A253',
+            category: 'accessoire',
+            quantity: 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+            details: 'Butées fin de course ouvrant EX60'
+          },
+          {
+            id: `acc_ex60_a256_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A256 (Busette d’eau)',
+            reference: 'Ex60 A256',
+            category: 'accessoire',
+            quantity: 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.428,
+            totalPriceHt: parseFloat((2 * qty * 1.428).toFixed(3)),
+            details: 'Drainage eau dormant EX60'
+          },
+          {
+            id: `acc_ex60_a257_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex60 A257 (Joint étanchéité)',
+            reference: 'Ex60 A257',
+            category: 'joint',
+            quantity: 2 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((2 * qty * 1.190).toFixed(3)),
+            details: 'Kit pièces étanchéité EX60'
+          },
+          {
+            id: `acc_ex45_a112_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex45 A112 (Équerre renfort)',
+            reference: 'Ex45 A112',
+            category: 'equerre',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((4 * qty * 1.190).toFixed(3)),
+            details: 'Équerres renfort EX45/60'
+          },
+          {
+            id: `acc_ex45_a154_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Ex45 A154 (Équerre alignement)',
+            reference: 'Ex45 A154',
+            category: 'equerre',
+            quantity: 8 * qty,
+            unit: 'unité',
+            unitPriceHt: 1.190,
+            totalPriceHt: parseFloat((8 * qty * 1.190).toFixed(3)),
+            details: 'Équerres alignement onglet'
+          },
+          {
+            id: `acc_bouchon_trou_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Bouchon trou',
+            reference: 'Bouchon trou',
+            category: 'accessoire',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 0.119,
+            totalPriceHt: parseFloat((4 * qty * 0.119).toFixed(3)),
+            details: 'Obturateurs trous d’usinage'
+          },
+          {
+            id: `acc_vis_chevis_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Vis et chevis',
+            reference: 'Vis et chevis',
+            category: 'visserie',
+            quantity: 4 * qty,
+            unit: 'unité',
+            unitPriceHt: 0.190,
+            totalPriceHt: parseFloat((4 * qty * 0.190).toFixed(3)),
+            details: 'Fixation maçonnerie'
+          },
+          {
+            id: `acc_selicomne_${itemIdx}`,
+            itemIndex: itemIdx,
+            elementLabel,
+            designation: 'Selicomne',
+            reference: 'Selicomne',
+            category: 'accessoire',
+            quantity: 1 * qty,
+            unit: 'unité',
+            unitPriceHt: 8.628,
+            totalPriceHt: parseFloat((1 * qty * 8.628).toFixed(3)),
+            details: 'Mastic d’étanchéité silicone'
+          }
+        );
+      } else {
+        // S67 (TPR / Alu Eco) & ALLUCO Square 67
+        const dormantHautRef = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (isAluco ? 'CSQ 103' : isAluEco ? 'AE_67101' : '67101');
+        const ouvrantCoulRef = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.lateral || (isAluco ? 'CSQ 104' : isAluEco ? 'AE_67104' : '67104');
+        const chicaneProfilRef = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.central || (isAluco ? 'CSQ 105' : isAluEco ? 'AE_67105' : '67105');
+        const travOuvrRef = item.comp_traverse_ref || typeDef?.defaultProfiles?.traverse || (isAluco ? 'CSQ 106' : isAluEco ? 'AE_67106' : '67106');
+        const parcRef = item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || (isAluco ? 'CSQ 114' : '80116');
+        const seuilRef = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil || (isAluco ? 'CSQ 116' : '67201');
+
+        // 1. Dormant Montants H (45°/45°)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_dorm_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_h',
+          profilRef: dormantHautRef,
+          profilDesignation: `Dormant Montant vertical (${dormantHautRef})`,
+          lengthCm: H,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Cadre dormant extérieur montant'
+        });
+
+        // 2. Dormant Traverses L (45°/45°)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_dorm_l`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_l',
+          profilRef: dormantHautRef,
+          profilDesignation: `Dormant Traverse horizontale (${dormantHautRef})`,
+          lengthCm: L,
+          quantity: 2 * qty,
+          angleLeft: '45°',
+          angleRight: '45°',
+          notes: 'Cadre dormant supérieur / inférieur'
+        });
+
+        // Formules officielles ALLUCO SQUARE 67 / TPR S67:
+        // Montants ouvrant : H - 6.0 cm
+        // Traverses ouvrant : 2V -> (L - 15.6)/2, 3V -> (L - 16.1)/3, 4V -> (L - 25.4)/4
+        const hOuvrant = Math.max(10, parseFloat((H - 6.0).toFixed(1)));
+        let lOuvrant = Math.max(10, parseFloat(((L - 15.6) / 2).toFixed(1)));
+        if (nbVantaux === 3) {
+          lOuvrant = Math.max(10, parseFloat(((L - 16.1) / 3).toFixed(1)));
+        } else if (nbVantaux === 4) {
+          lOuvrant = Math.max(10, parseFloat(((L - 25.4) / 4).toFixed(1)));
+        }
+
+        // 3. Montants Ouvrant latéraux (2 barres par défaut)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_ouvr_lat`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'ouvrant_h',
+          profilRef: ouvrantCoulRef,
+          profilDesignation: `Ouvrant Montant latéral (${ouvrantCoulRef})`,
+          lengthCm: hOuvrant,
+          quantity: 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Montant latéral ouvrant coulissant'
+        });
+
+        // 4. Montants Centraux / Chicanes (3V = 4 barres, 4V = 4 barres, 2V = 2 barres)
+        const nbChicanesPerUnit = item.comp_central_qty?.[chicaneProfilRef] || (nbVantaux === 3 ? 4 : (nbVantaux === 4 ? 4 : 2));
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_chic`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'chicane',
+          profilRef: chicaneProfilRef,
+          profilDesignation: `Chicane Centrale (${chicaneProfilRef})`,
+          lengthCm: hOuvrant,
+          quantity: nbChicanesPerUnit * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Croisement et renfort central'
+        });
+
+        // 5. Traverses Ouvrant (haut et bas -> 2 x nbVantaux)
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_trav`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'traverse',
+          profilRef: travOuvrRef,
+          profilDesignation: `Ouvrant Traverse (${travOuvrRef})`,
+          lengthCm: lOuvrant,
+          quantity: nbVantaux * 2 * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Traverses haute et basse ouvrant'
+        });
+
+        // 6. Parcloses / Réducteurs
+        const hParclose = Math.max(5, parseFloat((H - 17.0).toFixed(1)));
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_coul_parc_h`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'parclose',
+          profilRef: parcRef,
+          profilDesignation: `Parclose Montant (${parcRef})`,
+          lengthCm: hParclose,
+          quantity: 2 * nbVantaux * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Maintien vitrage montant'
+        });
+
+        // 7. Rail Inox / Seuil Rapporté
+        if (seuilRef && seuilRef !== '— Sans seuil —') {
+          const nbRails = (nbVantaux === 3 ? 3 : 2) * qty;
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_coul_rail_inox`,
+            itemIndex: itemIdx,
+            elementLabel,
+            pieceType: 'traverse',
+            profilRef: seuilRef,
+            profilDesignation: `Rail rapporté / Seuil (${seuilRef})`,
+            lengthCm: Math.max(10, L - 7.5),
+            quantity: nbRails,
+            angleLeft: '90°',
+            angleRight: '90°',
+            notes: 'Rail de guidage bas'
+          });
+        }
+
+        // 8. Rejet d'eau (si ALLUCO)
+        if (isAluco) {
+          cuttingPieces.push({
+            id: `cut_${itemIdx}_coul_rejet_eau`,
+            itemIndex: itemIdx,
+            elementLabel,
+            pieceType: 'autre',
+            profilRef: 'CSQ 124',
+            profilDesignation: 'Rejet d’eau dormant CSQ 124',
+            lengthCm: L,
+            quantity: 1 * qty,
+            angleLeft: '90°',
+            angleRight: '90°',
+            notes: 'Évacuation eaux extérieures'
+          });
+        }
+
+        // Accessoires Coulissant ALLUCO 67 / TPR 67
+        const eq67Price = getAccPrice('acc_equerre_67', 1.944);
+        rawAccessories.push({
+          id: `acc_eq67_cadre_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Équerres d’assemblage cadre dormant 67 (13622CO)',
+          reference: 'Équerre 67',
+          category: 'equerre',
+          quantity: 4 * qty,
+          unit: 'unité',
+          unitPriceHt: eq67Price,
+          totalPriceHt: parseFloat((4 * qty * eq67Price).toFixed(3)),
+          details: '4 équerres à pion par cadre dormant'
+        });
+
+        rawAccessories.push({
+          id: `acc_eq67_ouvr_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Équerres d’assemblage ouvrant 67',
+          reference: 'Équerre 67',
+          category: 'equerre',
+          quantity: 4 * nbVantaux * qty,
+          unit: 'unité',
+          unitPriceHt: eq67Price,
+          totalPriceHt: parseFloat((4 * nbVantaux * qty * eq67Price).toFixed(3)),
+          details: '4 équerres par vantail coulissant'
+        });
+
+        const visPrice = getAccPrice('acc_vis_six_pans', 0.216);
+        const nbVisSIP = (nbVantaux === 2 ? 8 : (nbVantaux === 3 ? 12 : 16)) * qty;
+        rawAccessories.push({
+          id: `acc_vis_sip_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Vis d’assemblage cruciformes 4.8×25 SIP',
+          reference: 'Vis SIP 4.8×25',
+          category: 'visserie',
+          quantity: nbVisSIP,
+          unit: 'unité',
+          unitPriceHt: visPrice,
+          totalPriceHt: parseFloat((nbVisSIP * visPrice).toFixed(3)),
+          details: 'Fixation mécanique traverses et montants'
+        });
+
+        const galetPrice = getAccPrice('acc_galet', 2.700);
+        const nbGalets = 2 * nbVantaux * qty;
+        rawAccessories.push({
+          id: `acc_galets_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Galets de roulement double réglable (0312000)',
+          reference: 'Galet',
+          category: 'roulette',
+          quantity: nbGalets,
+          unit: 'unité',
+          unitPriceHt: galetPrice,
+          totalPriceHt: parseFloat((nbGalets * galetPrice).toFixed(3)),
+          details: '2 galets réglables par vantail'
+        });
+
+        const kit67Price = getAccPrice('acc_kit_67', 4.860);
+        rawAccessories.push({
+          id: `acc_kit67_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Kit complet de guidage et étanchéité série 67 (ACC67K2V)',
+          reference: 'Kit 67',
+          category: 'accessoire',
+          quantity: 1 * qty,
+          unit: 'unité',
+          unitPriceHt: kit67Price,
+          totalPriceHt: parseFloat((kit67Price * qty).toFixed(3)),
+          details: 'Bouchons chicane 252, butées 253, patins 251, busettes eau 256'
+        });
+
+        const fermPrice = getAccPrice('acc_fermeture', 10.260);
+        const gachePrice = getAccPrice('acc_gache_fermeture', 2.160);
+        const nbFerm = (nbVantaux === 4 ? 2 : 1) * qty;
+        rawAccessories.push({
+          id: `acc_ferm_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Fermetures encastrées BRIO (06004 / 04579000)',
+          reference: 'Fermeture BRIO',
+          category: 'verrou',
+          quantity: nbFerm,
+          unit: 'unité',
+          unitPriceHt: fermPrice,
+          totalPriceHt: parseFloat((nbFerm * fermPrice).toFixed(3)),
+          details: 'Condamnation latérale de sécurité'
+        });
+
+        rawAccessories.push({
+          id: `acc_gache_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Gâches de fermeture pour dormant (04694000)',
+          reference: 'Gâche',
+          category: 'verrou',
+          quantity: nbFerm,
+          unit: 'unité',
+          unitPriceHt: gachePrice,
+          totalPriceHt: parseFloat((nbFerm * gachePrice).toFixed(3)),
+          details: 'Gâche de verrouillage montant dormant'
+        });
+
+        const brosseDormant = 2 * (2 * H + 2 * L);
+        const brosseChicane = nbVantaux * 2 * hOuvrant;
+        const itemBrosseCm = (brosseDormant + brosseChicane) * qty;
+        totalJointBrosseCmGlobal += itemBrosseCm;
+
+        const itemBrosseMeters = parseFloat((itemBrosseCm / 100).toFixed(2));
+        const jBrossePrice = getAccPrice('acc_joint_brosse_76', 0.378);
+        rawAccessories.push({
+          id: `acc_jbrosse_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Joint brosse d’étanchéité 7/6 (JBR7X6 FS)',
+          reference: 'Joint brosse 7/6',
+          category: 'joint',
+          quantity: itemBrosseMeters,
+          unit: 'm',
+          unitPriceHt: jBrossePrice,
+          totalPriceHt: parseFloat((itemBrosseMeters * jBrossePrice).toFixed(3)),
+          details: 'Étanchéité rails dormant et chicanes'
+        });
+
+        // Vitrage ALLUCO 67 / TPR 67:
+        // H_verre = H - 15.2 cm
+        // L_verre = 2V: (L - 18.3)/2 cm, 3V: (L - 20.3)/3 cm, 4V: (L - 31.1)/4 cm
+        const hVerre = Math.max(5, parseFloat((H - 15.2).toFixed(1)));
+        let lVerre = Math.max(5, parseFloat(((L - 18.3) / 2).toFixed(1)));
+        if (nbVantaux === 3) {
+          lVerre = Math.max(5, parseFloat(((L - 20.3) / 3).toFixed(1)));
+        } else if (nbVantaux === 4) {
+          lVerre = Math.max(5, parseFloat(((L - 31.1) / 4).toFixed(1)));
+        }
+
+        const unitAreaM2 = parseFloat(((hVerre / 100) * (lVerre / 100)).toFixed(3));
+        const totalVerresQty = nbVantaux * qty;
+        const isDouble = item.remplissage_id?.toLowerCase().includes('double') || item.vitrage_type === 'double';
+
+        glassItems.push({
+          id: `glass_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel: `${elementLabel} (${nbVantaux} vantaux)`,
+          hauteurCm: hVerre,
+          largeurCm: lVerre,
+          quantity: totalVerresQty,
+          unitAreaM2,
+          totalAreaM2: parseFloat((unitAreaM2 * totalVerresQty * (isDouble ? 2 : 1)).toFixed(3)),
+          vitrageType: item.remplissage_id || 'Simple Clair 6mm'
+        });
+
+        const perimetreVerre = 2 * (hVerre + lVerre);
+        const itemJointVitrageCm = perimetreVerre * 2 * totalVerresQty;
+        totalJointVitrageCmGlobal += itemJointVitrageCm;
+
+        const itemJointVitrageMeters = parseFloat((itemJointVitrageCm / 100).toFixed(2));
+        const jVitPrice = getAccPrice('acc_joint_242', 0.324);
+        rawAccessories.push({
+          id: `acc_jvit_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Joint d’étanchéité vitrage (J220 / JV220)',
+          reference: 'Joint 220',
+          category: 'joint',
+          quantity: itemJointVitrageMeters,
+          unit: 'm',
+          unitPriceHt: jVitPrice,
+          totalPriceHt: parseFloat((itemJointVitrageMeters * jVitPrice).toFixed(3)),
+          details: 'Calfeutrement intérieur et extérieur du verre'
+        });
       }
-
-      // 3. Montants Ouvrant latéraux
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_ouvr_lat`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'ouvrant_h',
-        profilRef: ouvrantCoulRef,
-        profilDesignation: `Ouvrant Montant latéral CSQ 104 (${ouvrantCoulRef})`,
-        lengthCm: hOuvrant,
-        quantity: 2 * (nbVantaux === 4 ? 2 : 1) * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Montant latéral ouvrant coulissant'
-      });
-
-      // 4. Montants Centraux / Chicanes
-      const nbChicanesPerUnit = nbVantaux === 2 ? 2 : (nbVantaux === 4 ? 4 : (nbVantaux === 3 ? 2 : 2));
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_chic`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'chicane',
-        profilRef: chicaneProfilRef,
-        profilDesignation: `Chicane Centrale CSQ 105/107 (${chicaneProfilRef})`,
-        lengthCm: hOuvrant,
-        quantity: nbChicanesPerUnit * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Croisement et renfort central'
-      });
-
-      // 5. Traverses Ouvrant (haut et bas)
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_trav`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'traverse',
-        profilRef: travOuvrRef,
-        profilDesignation: `Ouvrant Traverse CSQ 106 (${travOuvrRef})`,
-        lengthCm: lOuvrant,
-        quantity: nbVantaux * 2 * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Traverses haute et basse ouvrant'
-      });
-
-      // 6. Parcloses / Réducteurs
-      const hParclose = Math.max(5, parseFloat((H - 17.0).toFixed(1)));
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_parc_h`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'parclose',
-        profilRef: parcRef,
-        profilDesignation: `Parclose CSQ 114 Montant (${parcRef})`,
-        lengthCm: hParclose,
-        quantity: 2 * nbVantaux * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Maintien vitrage montant'
-      });
-
-      // 7. Rail Inox Rapporté CSQ 116
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_rail_inox`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'traverse',
-        profilRef: 'CSQ_116',
-        profilDesignation: 'Rail Inox rapporté CSQ 116',
-        lengthCm: Math.max(10, L - 7.5),
-        quantity: 2 * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Rail de guidage bas inox'
-      });
-
-      // 8. Rejet d'eau CSQ 124
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_coul_rejet_eau`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'autre',
-        profilRef: 'CSQ_124',
-        profilDesignation: 'Rejet d’eau dormant CSQ 124',
-        lengthCm: L,
-        quantity: 1 * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Évacuation eaux extérieures'
-      });
-
-      // Accessoires Coulissant ALLUCO 67
-      const eq67Price = getAccPrice('acc_equerre_67', 1.944);
-      rawAccessories.push({
-        id: `acc_eq67_cadre_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Équerres d’assemblage cadre dormant 67 (13622CO)',
-        reference: 'Équerre 67',
-        category: 'equerre',
-        quantity: 4 * qty,
-        unit: 'unité',
-        unitPriceHt: eq67Price,
-        totalPriceHt: parseFloat((4 * qty * eq67Price).toFixed(3)),
-        details: '4 équerres à pion par cadre dormant'
-      });
-
-      rawAccessories.push({
-        id: `acc_eq67_ouvr_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Équerres d’assemblage ouvrant 67',
-        reference: 'Équerre 67',
-        category: 'equerre',
-        quantity: 4 * nbVantaux * qty,
-        unit: 'unité',
-        unitPriceHt: eq67Price,
-        totalPriceHt: parseFloat((4 * nbVantaux * qty * eq67Price).toFixed(3)),
-        details: '4 équerres par vantail coulissant'
-      });
-
-      const visPrice = getAccPrice('acc_vis_six_pans', 0.216);
-      const nbVisSIP = (nbVantaux === 2 ? 8 : (nbVantaux === 3 ? 12 : 16)) * qty;
-      rawAccessories.push({
-        id: `acc_vis_sip_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Vis d’assemblage cruciformes 4.8×25 SIP',
-        reference: 'Vis SIP 4.8×25',
-        category: 'visserie',
-        quantity: nbVisSIP,
-        unit: 'unité',
-        unitPriceHt: visPrice,
-        totalPriceHt: parseFloat((nbVisSIP * visPrice).toFixed(3)),
-        details: 'Fixation mécanique traverses et montants'
-      });
-
-      const galetPrice = getAccPrice('acc_galet', 2.700);
-      const nbGalets = 2 * nbVantaux * qty;
-      rawAccessories.push({
-        id: `acc_galets_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Galets de roulement double réglable (0312000)',
-        reference: 'Galet',
-        category: 'roulette',
-        quantity: nbGalets,
-        unit: 'unité',
-        unitPriceHt: galetPrice,
-        totalPriceHt: parseFloat((nbGalets * galetPrice).toFixed(3)),
-        details: '2 galets réglables par vantail'
-      });
-
-      const kit67Price = getAccPrice('acc_kit_67', 4.860);
-      rawAccessories.push({
-        id: `acc_kit67_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Kit complet de guidage et étanchéité série 67 (ACC67K2V)',
-        reference: 'Kit 67',
-        category: 'accessoire',
-        quantity: 1 * qty,
-        unit: 'unité',
-        unitPriceHt: kit67Price,
-        totalPriceHt: parseFloat((kit67Price * qty).toFixed(3)),
-        details: 'Bouchons chicane 252, butées 253, patins 251, busettes eau 256'
-      });
-
-      const fermPrice = getAccPrice('acc_fermeture', 10.260);
-      const gachePrice = getAccPrice('acc_gache_fermeture', 2.160);
-      const nbFerm = (nbVantaux === 4 ? 2 : 1) * qty;
-      rawAccessories.push({
-        id: `acc_ferm_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Fermetures encastrées BRIO (06004 / 04579000)',
-        reference: 'Fermeture BRIO',
-        category: 'verrou',
-        quantity: nbFerm,
-        unit: 'unité',
-        unitPriceHt: fermPrice,
-        totalPriceHt: parseFloat((nbFerm * fermPrice).toFixed(3)),
-        details: 'Condamnation latérale de sécurité'
-      });
-
-      rawAccessories.push({
-        id: `acc_gache_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Gâches de fermeture pour dormant (04694000)',
-        reference: 'Gâche',
-        category: 'verrou',
-        quantity: nbFerm,
-        unit: 'unité',
-        unitPriceHt: gachePrice,
-        totalPriceHt: parseFloat((nbFerm * gachePrice).toFixed(3)),
-        details: 'Gâche de verrouillage montant dormant'
-      });
-
-      const brosseDormant = 2 * (2 * H + 2 * L);
-      const brosseChicane = nbVantaux * 2 * hOuvrant;
-      const itemBrosseCm = (brosseDormant + brosseChicane) * qty;
-      totalJointBrosseCmGlobal += itemBrosseCm;
-
-      const itemBrosseMeters = parseFloat((itemBrosseCm / 100).toFixed(2));
-      const jBrossePrice = getAccPrice('acc_joint_brosse_76', 0.378);
-      rawAccessories.push({
-        id: `acc_jbrosse_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Joint brosse d’étanchéité 7/6 (JBR7X6 FS)',
-        reference: 'Joint brosse 7/6',
-        category: 'joint',
-        quantity: itemBrosseMeters,
-        unit: 'm',
-        unitPriceHt: jBrossePrice,
-        totalPriceHt: parseFloat((itemBrosseMeters * jBrossePrice).toFixed(3)),
-        details: 'Étanchéité rails dormant et chicanes'
-      });
-
-      // Vitrage ALLUCO 67:
-      // H_verre = H - 15.2 cm
-      // L_verre = 2V: (L - 18.3)/2 cm, 3V: (L - 20.3)/3 cm, 4V: (L - 31.1)/4 cm
-      const hVerre = Math.max(5, parseFloat((H - 15.2).toFixed(1)));
-      let lVerre = Math.max(5, parseFloat(((L - 18.3) / 2).toFixed(1)));
-      if (nbVantaux === 3) {
-        lVerre = Math.max(5, parseFloat(((L - 20.3) / 3).toFixed(1)));
-      } else if (nbVantaux === 4) {
-        lVerre = Math.max(5, parseFloat(((L - 31.1) / 4).toFixed(1)));
-      }
-
-      const unitAreaM2 = parseFloat(((hVerre / 100) * (lVerre / 100)).toFixed(3));
-      const totalVerresQty = nbVantaux * qty;
-      const isDouble = item.remplissage_id?.toLowerCase().includes('double') || item.vitrage_type === 'double';
-
-      glassItems.push({
-        id: `glass_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel: `${elementLabel} (${nbVantaux} vantaux)`,
-        hauteurCm: hVerre,
-        largeurCm: lVerre,
-        quantity: totalVerresQty,
-        unitAreaM2,
-        totalAreaM2: parseFloat((unitAreaM2 * totalVerresQty * (isDouble ? 2 : 1)).toFixed(3)),
-        vitrageType: item.remplissage_id || 'Simple Clair 6mm'
-      });
-
-      const perimetreVerre = 2 * (hVerre + lVerre);
-      const itemJointVitrageCm = perimetreVerre * 2 * totalVerresQty;
-      totalJointVitrageCmGlobal += itemJointVitrageCm;
-
-      const itemJointVitrageMeters = parseFloat((itemJointVitrageCm / 100).toFixed(2));
-      const jVitPrice = getAccPrice('acc_joint_242', 0.324);
-      rawAccessories.push({
-        id: `acc_jvit_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Joint d’étanchéité vitrage (J220 / JV220)',
-        reference: 'Joint 220',
-        category: 'joint',
-        quantity: itemJointVitrageMeters,
-        unit: 'm',
-        unitPriceHt: jVitPrice,
-        totalPriceHt: parseFloat((itemJointVitrageMeters * jVitPrice).toFixed(3)),
-        details: 'Calfeutrement intérieur et extérieur du verre'
-      });
     }
 
     // -------------------------------------------------------------
@@ -2525,15 +3051,92 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     '40155': 'Profilé Meneau Fixe (40155)',
     '40104': 'Profilé Traverse Fixe (40104)',
     '40402': 'Profilé Couvre-joint Tapée (40402)',
+    '40108': 'Profilé Couvre-joint 50mm (40108)',
+    '40103': 'Profilé Couvre-joint Plat (40103)',
 
-    // Coulissant (Série 67 / TPR / EX60)
+    // Coulissant (Série 67 / TPR)
     '67101': 'Profilé Dormant Coulissant (67101)',
-    '67104': 'Profilé Ouvrant Coulissant (67104)',
-    '67105': 'Profilé Chicane Renfort (67105)',
+    '67103': 'Profilé Dormant 3 Rails (67103)',
+    '67104': 'Profilé Ouvrant Coulissant Latéral (67104)',
+    '67105': 'Profilé Chicane Centrale (67105)',
     '67106': 'Profilé Traverse Ouvrant (67106)',
+    '67107': 'Profilé Chicane Renforcée (67107)',
+    '67108': 'Profilé Ouvrant Renforcé (67108)',
+    '67201': 'Rail Bas Rapporté / Seuil (67201)',
+    '67202': 'Rail Bas Rapporté 2 Rails (67202)',
+    '67203': 'Rail Bas Rapporté 3 Rails (67203)',
+    '67205': 'Rail Bas Inox Rapporté (67205)',
     '80116': 'Profilé Parclose Coulissant (80116)',
+
+    // EX60 (Alu Eco & TPR)
+    'AE_EX60 2114': 'Profilé Dormant EX60 (AE_EX60 2114)',
+    'EX60 2114': 'Profilé Dormant EX60 (EX60 2114)',
+    'AE_EX60 2115': 'Profilé Dormant EX60 Monobloc (AE_EX60 2115)',
+    'EX60 2115': 'Profilé Dormant EX60 Monobloc (EX60 2115)',
+    'AE_Ex60 2210': 'Profilé Traverse Ouvrant EX60 (AE_Ex60 2210)',
+    'EX60 2210': 'Profilé Traverse Ouvrant EX60 (EX60 2210)',
+    'AE_Ex60 2211': 'Profilé Montant Latéral EX60 (AE_Ex60 2211)',
+    'EX60 2211': 'Profilé Montant Latéral EX60 (EX60 2211)',
+    'AE_Ex60 2212': 'Profilé Montant Central Chicane EX60 (AE_Ex60 2212)',
+    'EX60 2212': 'Profilé Montant Central Chicane EX60 (EX60 2212)',
+    'AE_Ex60 2213': 'Profilé Chicane Renforcée EX60 (AE_Ex60 2213)',
+    'EX60 2213': 'Profilé Chicane Renforcée EX60 (EX60 2213)',
+    'AE_Ex60 2312': 'Profilé Parclose Simple Vitrage EX60 (AE_Ex60 2312)',
+    'EX60 2312': 'Profilé Parclose Simple Vitrage EX60 (EX60 2312)',
+    'AE_80116': 'Rail Rapporté Bas EX60 (AE_80116)',
+
+    // EX45 (Alu Eco & TPR)
+    'EX45 1123': 'Profilé Dormant EX45 Tapée (EX45 1123)',
+    'EX45 1125': 'Profilé Dormant EX45 Plat (EX45 1125)',
+    'EX45 1210': 'Profilé Ouvrant Battant EX45 (EX45 1210)',
+    'EX45 1212': 'Profilé Battement Central EX45 (EX45 1212)',
+    'EX45 1215': 'Profilé Socle Porte EX45 (EX45 1215)',
+    'EX45 1312': 'Profilé Parclose EX45 (EX45 1312)',
+    'EX45 1130': 'Profilé Meneau Séparation EX45 (EX45 1130)',
+    'AE_EX45 1123': 'Profilé Dormant EX45 Tapée (AE_EX45 1123)',
+    'AE_EX45 1125': 'Profilé Dormant EX45 Plat (AE_EX45 1125)',
+    'AE_EX45 1210': 'Profilé Ouvrant Battant EX45 (AE_EX45 1210)',
+    'AE_EX45 1312': 'Profilé Parclose EX45 (AE_EX45 1312)',
+    'AE_EX45 1130': 'Profilé Meneau Séparation EX45 (AE_EX45 1130)',
+
+    // ALUCO (FSQ & CSQ)
+    'FSQ 124': 'Profilé Dormant FSQ 124 (Tapée)',
+    'FSQ 100': 'Profilé Dormant FSQ 100 (Plat)',
+    'FSQ 104': 'Profilé Ouvrant Battant FSQ 104',
+    'FSQ 403': 'Profilé Ouvrant Porte FSQ 403',
+    'FSQ 112': 'Profilé Battement Central FSQ 112',
+    'FSQ 110': 'Profilé Parclose Frappe FSQ 110',
+    'FSQ 111': 'Profilé Parclose Frappe FSQ 111',
+    'FSQ 107': 'Profilé Meneau Séparation FSQ 107',
+    'FSQ 121': 'Profilé Socle FSQ 121',
+    'CJ 101': 'Profilé Couvre-joint FSQ (CJ 101)',
+    'CJ 102': 'Profilé Couvre-joint FSQ (CJ 102)',
+    'CSQ 101': 'Profilé Dormant Coulissant CSQ 101',
+    'CSQ 103': 'Profilé Dormant Coulissant CSQ 103',
+    'CSQ 104': 'Profilé Ouvrant Latéral CSQ 104',
+    'CSQ 105': 'Profilé Chicane Centrale CSQ 105',
+    'CSQ 106': 'Profilé Traverse Ouvrant CSQ 106',
+    'CSQ 107': 'Profilé Chicane Renfort CSQ 107',
+    'CSQ 108': 'Profilé Ouvrant Renforcé CSQ 108',
+    'CSQ 114': 'Profilé Parclose Coulissant CSQ 114',
+    'CSQ 116': 'Rail Inox Rapporté (CSQ 116)',
+    'CSQ 124': 'Rejet d’eau Dormant (CSQ 124)',
     'CSQ_116': 'Rail Inox Rapporté (CSQ 116)',
     'CSQ_124': 'Rejet d’eau Dormant (CSQ 124)',
+
+    // ALU ECO (S40 & S67)
+    'AE_40402': 'Profilé Dormant Tapée (AE_40402)',
+    'AE_40100': 'Profilé Dormant Plat (AE_40100)',
+    'AE_40401': 'Profilé Ouvrant Battant (AE_40401)',
+    'AE_40403': 'Profilé Ouvrant Porte (AE_40403)',
+    'AE_40112': 'Profilé Battement Central (AE_40112)',
+    'AE_40121': 'Profilé Socle Porte (AE_40121)',
+    'AE_40110': 'Profilé Parclose Frappe (AE_40110)',
+    'AE_40103': 'Profilé Couvre-joint (AE_40103)',
+    'AE_67101': 'Profilé Dormant Coulissant (AE_67101)',
+    'AE_67104': 'Profilé Ouvrant Latéral (AE_67104)',
+    'AE_67105': 'Profilé Chicane Centrale (AE_67105)',
+    'AE_67106': 'Profilé Traverse Ouvrant (AE_67106)',
 
     // Volet Roulant / Store
     'CSQ_Coulisse': 'Profilé Coulisses Volet Roulant',

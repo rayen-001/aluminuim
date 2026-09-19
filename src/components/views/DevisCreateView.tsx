@@ -143,7 +143,7 @@ const PROFILE_OPTION_NAMES: Record<string, string> = {
   'CJ 101': 'CJ 101 — Couvre-joint Aluco',
   'CJ 102': 'CJ 102 — Couvre-joint large Aluco',
 
-  // TPR EX45 & EX60
+  // TPR EX45 & EX60 & Alu Eco
   'EX45 1123': 'EX45 1123 — Dormant avec tapée 21mm (EX45 Standard)',
   'EX45 1125': 'EX45 1125 — Dormant plat sans tapée (EX45)',
   'EX45 1120': 'EX45 1120 — Dormant spécial EX45',
@@ -155,8 +155,46 @@ const PROFILE_OPTION_NAMES: Record<string, string> = {
   'EX45 1312': 'EX45 1312 — Parclose droite 18mm EX45',
   'EX45 1310': 'EX45 1310 — Parclose fine EX45',
   'EX45 1314': 'EX45 1314 — Parclose double vitrage EX45',
+  'EX45 1320': 'EX45 1320 — Parclose double vitrage large EX45',
+  'AE_EX45 1123': 'AE_EX45 1123 — Dormant avec tapée 21mm (Alu Eco)',
+  'AE_EX45 1125': 'AE_EX45 1125 — Dormant plat sans tapée (Alu Eco)',
+  'AE_EX45 1210': 'AE_EX45 1210 — Ouvrant battant fenêtre (Alu Eco)',
+  'AE_EX45 1212': 'AE_EX45 1212 — Battement central 2V (Alu Eco)',
+  'AE_EX45 1312': 'AE_EX45 1312 — Parclose droite (Alu Eco)',
+  'AE_EX45 1130': 'AE_EX45 1130 — Meneau fixe de séparation (Alu Eco)',
+
   'EX60 2114': 'EX60 2114 — Dormant 2 rails EX60 (Standard)',
-  'EX60 2110': 'EX60 2110 — Dormant 3 rails EX60'
+  'EX60 2110': 'EX60 2110 — Dormant 3 rails EX60',
+  'EX60 2210': 'EX60 2210 — Traverse haute et basse ouvrant EX60',
+  'EX60 2211': 'EX60 2211 — Montant latéral ouvrant EX60',
+  'EX60 2212': 'EX60 2212 — Montant central chicane EX60',
+  'EX60 2312': 'EX60 2312 — Parclose simple vitrage EX60',
+  'AE_EX60 2114': 'AE_EX60 2114 — Dormant 2 rails sans tapée (Alu Eco)',
+  'AE_EX60 2115': 'AE_EX60 2115 — Dormant 2 rails avec tapée intégrée',
+  'AE_EX60 2116': 'AE_EX60 2116 — Dormant 2 rails avec tapée + récupérateur',
+  'AE_EX60 2117': 'AE_EX60 2117 — Dormant 2 rails sans tapée',
+  'AE_EX60 2118': 'AE_EX60 2118 — Dormant 2 rails avec récupérateur',
+  'AE_EX60 2119': 'AE_EX60 2119 — Dormant 2 rails récupérateur droit',
+  'AE_EX60 2121': 'AE_EX60 2121 — Dormant 3 rails avec tapée',
+  'AE_EX60 2122': 'AE_EX60 2122 — Dormant 3 rails sans tapée',
+  'AE_EX60 2125': 'AE_EX60 2125 — Dormant 2 rails tapée + récup droit',
+  'AE_EX60 2126': 'AE_EX60 2126 — Dormant 3 rails tapée + récup eau',
+  'AE_Ex60 2210': 'AE_Ex60 2210 — Traverse haute et basse ouvrant',
+  'AE_Ex60 2211': 'AE_Ex60 2211 — Montant latéral ouvrant standard',
+  'AE_Ex60 2212': 'AE_Ex60 2212 — Montant central chicane standard',
+  'AE_Ex60 2213': 'AE_Ex60 2213 — Montant central renforcé',
+  'AE_Ex60 2214': 'AE_Ex60 2214 — Montant latéral renforcé',
+  'AE_Ex60 2215': 'AE_Ex60 2215 — Traverse intermédiaire 74 mm',
+  'AE_EX60 2216': 'AE_EX60 2216 — Montant central fenêtre LD',
+  'AE_EX60 2217': 'AE_EX60 2217 — Montant central porte fenêtre LD',
+  'AE_EX60 2218': 'AE_EX60 2218 — Montant latéral ouvrant LD',
+  'AE_EX60 2221': 'AE_EX60 2221 — Montant latéral renforcé Slim Line',
+  'AE_Ex60 2312': 'AE_Ex60 2312 — Parclose simple vitrage EX60',
+  'AE_80116': 'AE_80116 — Rail bas de guidage rapporté',
+  '67204': '67204 — Montant ouvrant spécial 67',
+  '67205': '67205 — Montant ouvrant profilé 67',
+  '67106': '67106 — Traverse haute et basse ouvrant 67',
+  'AE_67106': 'AE_67106 — Traverse haute et basse Alu Eco 67'
 };
 
 const getOuvertureLabel = (ouv: string): string => {
@@ -426,13 +464,17 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     const defProfiles = typeDef.defaultProfiles;
 
     // Profilés configurés par défaut pour le type de produit
-    const defaultDormant = defProfiles?.dormant || (isCoulissant ? (isAluco ? 'FSQ 201' : isAluEco ? 'AE_67101' : '67101') : (isAluco ? 'FSQ 124' : isAluEco ? 'AE_40402' : '40402'));
+    const defaultDormant = defProfiles?.dormant || (isCoulissant ? (isAluco ? 'CSQ 103' : isAluEco ? 'AE_67101' : '67101') : (isAluco ? 'FSQ 124' : isAluEco ? 'AE_40402' : '40402'));
     const defaultOuvrant = defProfiles?.ouvrant || (isPorte ? (isAluco ? 'FSQ 403' : isAluEco ? 'AE_40403' : '40403') : (isAluco ? 'FSQ 104' : isAluEco ? 'AE_40401' : '40401'));
     const defaultParclose = defProfiles?.parclose || (isAluco ? 'FSQ 110' : isAluEco ? 'AE_40110' : '40110');
-    const defaultLateral = defProfiles?.chicane || (isAluco ? 'FSQ 204' : isAluEco ? 'AE_67104' : '67104');
-    const defaultCentral = defProfiles?.chicane || (isAluco ? 'FSQ 205' : isAluEco ? 'AE_67105' : '67105');
-    const defaultTraverse = defProfiles?.traverse || (isAluco ? 'FSQ 107' : isAluEco ? 'AE_40121' : '40121');
+    const defaultLateral = defProfiles?.lateral || defProfiles?.ouvrant || (isAluco ? 'CSQ 104' : isAluEco ? 'AE_67104' : '67104');
+    const defaultCentral = defProfiles?.central || defProfiles?.chicane || (isAluco ? 'CSQ 105' : isAluEco ? 'AE_67105' : '67105');
+    const defaultTraverse = defProfiles?.traverse || (isCoulissant ? (isAluco ? 'CSQ 106' : isAluEco ? 'AE_67106' : '67106') : (isAluco ? 'FSQ 108' : isAluEco ? 'AE_40121' : '40121'));
     const defaultCouvreJoint = defProfiles?.couvre_joint || (isAluco ? 'CJ 101' : '40108');
+    const defaultSeuil = isCoulissant ? (familyId === '66' ? 'AE_80116' : (familyId === '61' ? '80116' : (isAluco ? 'CSQ 116' : '67201'))) : '';
+
+    const nbV = typeDef.name.includes('3') ? 3 : (typeDef.name.includes('4') ? 4 : 2);
+    const defaultCentralCount = nbV === 3 ? 4 : (nbV === 4 ? 4 : 2);
 
     const defaultFixCadre = defProfiles?.dormant || chassiRefs.cadre[0];
     const defaultFixSocle = chassiRefs.socle[0];
@@ -451,8 +493,8 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       comp_traverse_ref: defaultTraverse,
       comp_couvre_joint_ref: defaultCouvreJoint,
       comp_lateral_qty: isCoulissant ? { [defaultLateral]: 2 } : {},
-      comp_central_qty: isCoulissant ? { [defaultCentral]: 2 } : {},
-      comp_seuil_ref: isCoulissant ? '67201' : '',
+      comp_central_qty: isCoulissant ? { [defaultCentral]: defaultCentralCount } : {},
+      comp_seuil_ref: defaultSeuil,
       store_enabled: isStore,
       mousti_enabled: isMousti,
       gc_nb_poteaux: isGardeCorps ? 3 : undefined,
@@ -1327,10 +1369,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                     { label: 'Traverse', val: item.chassi_traverse_ref || '40104' }
                                   ];
                                 } else if (isCoulissant) {
-                                  const d = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '67101';
-                                  const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67104';
-                                  const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67105';
-                                  const s = item.comp_seuil_ref || '67201';
+                                  const d = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALU ECO' ? 'AE_EX60 2114' : '67101');
+                                  const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.lateral || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2211' : '67104');
+                                  const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.central || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2212' : '67105');
+                                  const s = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil || (fam?.group === 'ALU ECO' ? 'AE_80116' : '67201');
                                   badges = [
                                     { label: 'Dormant', val: d },
                                     { label: 'Latéral', val: lat },
@@ -1508,128 +1550,154 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                             </div>
                                           </div>
                                         ) : isCoulissant ? (
-                                          /* Cas 2 : Coulissant (Série 67, etc.) */
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
-                                            <div>
-                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Dormant Coulissant</label>
-                                              <div className="flex items-start gap-1.5">
-                                                <select
-                                                  value={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '67101'}
-                                                  onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
-                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                  {(typeDef?.optionProfiles?.dormants || ['67101', '67103', '67110']).map(r => (
-                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                  ))}
-                                                </select>
-                                                {getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || null)}
-                                                    title={`Agrandir la coupe ${item.comp_dormant_ref}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
-                                              </div>
-                                            </div>
+                                          /* Cas 2 : Coulissant (Série 67, EX60, Square 67, etc.) */
+                                          (() => {
+                                            const nbVants = typeDef?.name.includes('3') ? 3 : (typeDef?.name.includes('4') ? 4 : 2);
+                                            const latCount = 2;
+                                            const centralCount = typeDef?.composition?.central?.count || (nbVants === 3 ? 4 : (nbVants === 4 ? 4 : 2));
+                                            const defaultLat = typeDef?.defaultProfiles?.lateral || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2211' : '67104');
+                                            const defaultCen = typeDef?.defaultProfiles?.central || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2212' : '67105');
+                                            const defaultDorm = typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALU ECO' ? 'AE_EX60 2114' : '67101');
+                                            const defaultSeuil = typeDef?.defaultProfiles?.seuil || (fam?.group === 'ALU ECO' ? 'AE_80116' : '67201');
 
-                                            <div>
-                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Latéral Ouvrant</label>
-                                              <div className="flex items-start gap-1.5">
-                                                <select
-                                                  value={Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67104'}
-                                                  onChange={e => {
-                                                    updateItem(index, { comp_lateral_qty: { [e.target.value]: 2 } });
-                                                  }}
-                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                  {(typeDef?.optionProfiles?.chicanes || ['67104', '67108']).map(r => (
-                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                  ))}
-                                                </select>
-                                                {getProfileImageUrl(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane || null)}
-                                                    title="Agrandir la coupe"
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.chicane)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
-                                              </div>
-                                            </div>
+                                            const currentLat = Object.keys(item.comp_lateral_qty || {})[0] || defaultLat;
+                                            const currentCen = Object.keys(item.comp_central_qty || {})[0] || defaultCen;
+                                            const currentDorm = item.comp_dormant_ref || defaultDorm;
+                                            const currentSeuil = item.comp_seuil_ref || defaultSeuil;
 
-                                            <div>
-                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Montant Central (Chicane)</label>
-                                              <div className="flex items-start gap-1.5">
-                                                <select
-                                                  value={Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || '67105'}
-                                                  onChange={e => {
-                                                    updateItem(index, { comp_central_qty: { [e.target.value]: 2 } });
-                                                  }}
-                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                  {(typeDef?.optionProfiles?.chicanes || ['67105', '67107']).map(r => (
-                                                    <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
-                                                  ))}
-                                                </select>
-                                                {getProfileImageUrl(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane || null)}
-                                                    title="Agrandir la coupe"
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.chicane)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
-                                              </div>
-                                            </div>
+                                            const dormOptions = typeDef?.optionProfiles?.dormants || typeDef?.optionProfiles?.dormant || ['67101', '67103', '67110'];
+                                            const latOptions = typeDef?.optionProfiles?.lateraux || typeDef?.optionProfiles?.lateral || typeDef?.optionProfiles?.chicanes || ['67104', '67108'];
+                                            const cenOptions = typeDef?.optionProfiles?.centraux || typeDef?.optionProfiles?.central || typeDef?.optionProfiles?.chicanes || ['67105', '67107'];
+                                            const seuilOptions = typeDef?.optionProfiles?.seuils || (fam?.group === 'ALU ECO' ? ['AE_80116', '67201', '67202', '67203', '67205', '— Sans seuil —'] : ['67201', '67202', '67203', '67205', 'CSQ 116', 'AE_80116', '— Sans seuil —']);
 
-                                            <div>
-                                              <label className="block text-[10px] font-bold text-gray-600 mb-1">Seuil / Rail bas</label>
-                                              <div className="flex items-start gap-1.5">
-                                                <select
-                                                  value={item.comp_seuil_ref || '67201'}
-                                                  onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
-                                                  className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                  {['67201', '67202', '67203', '67205', 'CSQ 116', '— Sans seuil —'].map(r => (
-                                                    <option key={r} value={r}>{r}</option>
-                                                  ))}
-                                                </select>
-                                                {getProfileImageUrl(item.comp_seuil_ref) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.comp_seuil_ref || null)}
-                                                    title={`Agrandir la coupe ${item.comp_seuil_ref}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.comp_seuil_ref)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                            return (
+                                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
+                                                <div>
+                                                  <label className="block text-[10px] font-bold text-gray-600 mb-1">Dormant Coulissant</label>
+                                                  <div className="flex items-start gap-1.5">
+                                                    <select
+                                                      value={currentDorm}
+                                                      onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
+                                                      className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                      {dormOptions.map(r => (
+                                                        <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                      ))}
+                                                    </select>
+                                                    {getProfileImageUrl(currentDorm) && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => setZoomProfil(currentDorm || null)}
+                                                        title={`Agrandir la coupe ${currentDorm}`}
+                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                      >
+                                                        <img
+                                                          src={getProfileImageUrl(currentDorm)!}
+                                                          alt="Coupe"
+                                                          className="w-full h-full object-contain"
+                                                        />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                <div>
+                                                  <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                    Montant Latéral Ouvrant ({latCount} barres)
+                                                  </label>
+                                                  <div className="flex items-start gap-1.5">
+                                                    <select
+                                                      value={currentLat}
+                                                      onChange={e => {
+                                                        updateItem(index, { comp_lateral_qty: { [e.target.value]: latCount } });
+                                                      }}
+                                                      className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                      {latOptions.map(r => (
+                                                        <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                      ))}
+                                                    </select>
+                                                    {getProfileImageUrl(currentLat) && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => setZoomProfil(currentLat || null)}
+                                                        title="Agrandir la coupe"
+                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                      >
+                                                        <img
+                                                          src={getProfileImageUrl(currentLat)!}
+                                                          alt="Coupe"
+                                                          className="w-full h-full object-contain"
+                                                        />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                <div>
+                                                  <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                    Montant Central (Chicane) ({centralCount} barres)
+                                                  </label>
+                                                  <div className="flex items-start gap-1.5">
+                                                    <select
+                                                      value={currentCen}
+                                                      onChange={e => {
+                                                        updateItem(index, { comp_central_qty: { [e.target.value]: centralCount } });
+                                                      }}
+                                                      className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                      {cenOptions.map(r => (
+                                                        <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                      ))}
+                                                    </select>
+                                                    {getProfileImageUrl(currentCen) && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => setZoomProfil(currentCen || null)}
+                                                        title="Agrandir la coupe"
+                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                      >
+                                                        <img
+                                                          src={getProfileImageUrl(currentCen)!}
+                                                          alt="Coupe"
+                                                          className="w-full h-full object-contain"
+                                                        />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                <div>
+                                                  <label className="block text-[10px] font-bold text-gray-600 mb-1">Seuil / Rail bas</label>
+                                                  <div className="flex items-start gap-1.5">
+                                                    <select
+                                                      value={currentSeuil}
+                                                      onChange={e => updateItem(index, { comp_seuil_ref: e.target.value })}
+                                                      className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                      {seuilOptions.map(r => (
+                                                        <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
+                                                      ))}
+                                                    </select>
+                                                    {getProfileImageUrl(currentSeuil) && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => setZoomProfil(currentSeuil || null)}
+                                                        title={`Agrandir la coupe ${currentSeuil}`}
+                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
+                                                      >
+                                                        <img
+                                                          src={getProfileImageUrl(currentSeuil)!}
+                                                          alt="Coupe"
+                                                          className="w-full h-full object-contain"
+                                                        />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
                                               </div>
-                                            </div>
-                                          </div>
+                                            );
+                                          })()
                                         ) : (
                                           /* Cas 3 : Frappe / Porte / Fenêtre (Série 40 / EX45) */
                                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
