@@ -9426,62 +9426,6 @@ export const INITIAL_ARTICLES: ArticleItem[] = [
     }
   },
   {
-    "id": 409205,
-    "reference": "EX45 1210",
-    "description": "Ouvrant battant standard EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 172.956, "ttc": 205.818 },
-      "gris": { "ht": 182.000, "ttc": 216.580 },
-      "noir": { "ht": 190.000, "ttc": 226.100 },
-      "couleur_mat": { "ht": 198.000, "ttc": 235.620 },
-      "couleur_givre": { "ht": 205.000, "ttc": 243.950 }
-    }
-  },
-  {
-    "id": 409206,
-    "reference": "EX45 1212",
-    "description": "Ouvrant battant lourd EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 188.000, "ttc": 223.720 },
-      "gris": { "ht": 198.000, "ttc": 235.620 },
-      "noir": { "ht": 208.000, "ttc": 247.520 },
-      "couleur_mat": { "ht": 218.000, "ttc": 259.420 },
-      "couleur_givre": { "ht": 228.000, "ttc": 271.320 }
-    }
-  },
-  {
-    "id": 409207,
-    "reference": "EX45 1215",
-    "description": "Ouvrant porte EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 210.000, "ttc": 249.900 },
-      "gris": { "ht": 220.000, "ttc": 261.800 },
-      "noir": { "ht": 230.000, "ttc": 273.700 },
-      "couleur_mat": { "ht": 240.000, "ttc": 285.600 },
-      "couleur_givre": { "ht": 250.000, "ttc": 297.500 }
-    }
-  },
-  {
-    "id": 409208,
-    "reference": "EX45 1218",
-    "description": "Ouvrant double vitrage EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 195.000, "ttc": 232.050 },
-      "gris": { "ht": 205.000, "ttc": 243.950 },
-      "noir": { "ht": 215.000, "ttc": 255.850 },
-      "couleur_mat": { "ht": 225.000, "ttc": 267.750 },
-      "couleur_givre": { "ht": 235.000, "ttc": 279.650 }
-    }
-  },
-  {
     "id": 409209,
     "reference": "EX45 1312",
     "description": "Parclose droite 18mm EX45",
@@ -9493,34 +9437,6 @@ export const INITIAL_ARTICLES: ArticleItem[] = [
       "noir": { "ht": 68.000, "ttc": 80.920 },
       "couleur_mat": { "ht": 72.000, "ttc": 85.680 },
       "couleur_givre": { "ht": 75.000, "ttc": 89.250 }
-    }
-  },
-  {
-    "id": 409210,
-    "reference": "EX45 1310",
-    "description": "Parclose droite 24mm EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 64.000, "ttc": 76.160 },
-      "gris": { "ht": 68.000, "ttc": 80.920 },
-      "noir": { "ht": 72.000, "ttc": 85.680 },
-      "couleur_mat": { "ht": 76.000, "ttc": 90.440 },
-      "couleur_givre": { "ht": 80.000, "ttc": 95.200 }
-    }
-  },
-  {
-    "id": 409211,
-    "reference": "EX45 1314",
-    "description": "Parclose droite 12mm EX45",
-    "family": "TPR",
-    "category": "barre",
-    "prix": {
-      "blanc": { "ht": 58.000, "ttc": 69.020 },
-      "gris": { "ht": 62.000, "ttc": 73.780 },
-      "noir": { "ht": 66.000, "ttc": 78.540 },
-      "couleur_mat": { "ht": 70.000, "ttc": 83.300 },
-      "couleur_givre": { "ht": 74.000, "ttc": 88.060 }
     }
   },
   {

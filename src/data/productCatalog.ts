@@ -267,8 +267,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
         dormantOptions = ['EX45 1123', 'EX45 1125', 'EX45 1120'];
         ouvrantDefault = 'EX45 1210';
         ouvrantOptions = ['EX45 1210', 'EX45 1212', 'EX45 1215', 'EX45 1218'];
-        parcloseSimple = { default: 'EX45 1312', options: ['EX45 1312', 'EX45 1310', 'EX45 1314'] };
-        parcloseDouble = { default: 'EX45 1320', options: ['EX45 1320', 'EX45 1310'] };
+        parcloseSimple = { default: 'EX45 1312', options: ['EX45 1312', 'Ex45 1310', 'EX45 1314'] };
+        parcloseDouble = { default: 'EX45 1320', options: ['EX45 1320', 'Ex45 1310'] };
         meneauDefault = 'EX45 1130';
         meneauOptions = ['EX45 1130', 'EX45 1132'];
         couvreJointDefault = '40108';

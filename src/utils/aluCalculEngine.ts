@@ -400,22 +400,22 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
     'EX45 1123': 125.000,
     'EX45 1125': 115.000,
     'EX45 1120': 120.000,
-    'EX45 1210': 135.000,
-    'EX45 1212': 100.000,
-    'EX45 1215': 140.000,
-    'EX45 1218': 140.000,
-    'EX45 1312': 40.000,
-    'EX45 1310': 38.000,
-    'EX45 1314': 42.000,
-    'EX45 1320': 45.000,
-    'EX45 1130': 160.000,
-    'EX45 1132': 165.000,
-    'AE_EX45 1123': 125.000,
-    'AE_EX45 1125': 115.000,
-    'AE_EX45 1210': 135.000,
-    'AE_EX45 1218': 140.000,
-    'AE_EX45 1312': 40.000,
-    'AE_EX45 1130': 160.000,
+    'Ex45 1210': 145.341,
+    'EX45 1212': 161.680,
+    'EX45 1215': 150.873,
+    'EX45 1218': 145.491,
+    'EX45 1312': 50.906,
+    'Ex45 1310': 40.286,
+    'EX45 1314': 34.016,
+    'EX45 1320': 58.424,
+    'EX45 1130': 167.794,
+    'EX45 1132': 261.788,
+    'AE_EX45 1123': 123.414,
+    'AE_EX45 1125': 112.090,
+    'AE_Ex45 1210': 123.540,
+    'AE_EX45 1218': 133.491,
+    'AE_EX45 1312': 43.270,
+    'AE_EX45 1130': 142.625,
 
     // ALUCO (FSQ & CSQ)
     'FSQ 124': 130.000,
@@ -1868,7 +1868,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         dormantTapeeRef = item.comp_dormant_ref && item.comp_dormant_ref.includes('1123') ? item.comp_dormant_ref : 'EX45 1123';
         dormantFlatRef = 'EX45 1125';
         tapeeExtensionCm = 2.1; // +21mm par côté -> +4.2cm L et H
-        ouvrantFrappeRef = item.comp_ouvrant_ref || 'EX45 1210';
+        ouvrantFrappeRef = item.comp_ouvrant_ref || 'Ex45 1210';
         battementRef = 'EX45 1212';
         parcloseFrappeRef = item.comp_parclose_ref || 'EX45 1312';
         meneauDefaultRef = 'EX45 1130';
@@ -3088,14 +3088,16 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     // EX45 (Alu Eco & TPR)
     'EX45 1123': 'Profilé Dormant EX45 Tapée (EX45 1123)',
     'EX45 1125': 'Profilé Dormant EX45 Plat (EX45 1125)',
-    'EX45 1210': 'Profilé Ouvrant Battant EX45 (EX45 1210)',
-    'EX45 1212': 'Profilé Battement Central EX45 (EX45 1212)',
-    'EX45 1215': 'Profilé Socle Porte EX45 (EX45 1215)',
-    'EX45 1312': 'Profilé Parclose EX45 (EX45 1312)',
+    'Ex45 1210': 'Profilé Ouvrant Battant EX45 (Ex45 1210)',
+    'EX45 1212': 'Profilé Ouvrant Porte Fenêtre EX45 (EX45 1212)',
+    'EX45 1215': 'Profilé Ouvrant Fenêtre Porte-Feuille EX45 (EX45 1215)',
+    'EX45 1218': 'Profilé Ouvrant Fenêtre Ligne Droite EX45 (EX45 1218)',
+    'EX45 1312': 'Profilé Parclose Droite F=15mm EX45 (EX45 1312)',
+    'Ex45 1310': 'Profilé Parclose Arrondie F=15mm EX45 (Ex45 1310)',
     'EX45 1130': 'Profilé Meneau Séparation EX45 (EX45 1130)',
     'AE_EX45 1123': 'Profilé Dormant EX45 Tapée (AE_EX45 1123)',
     'AE_EX45 1125': 'Profilé Dormant EX45 Plat (AE_EX45 1125)',
-    'AE_EX45 1210': 'Profilé Ouvrant Battant EX45 (AE_EX45 1210)',
+    'AE_Ex45 1210': 'Profilé Ouvrant Battant EX45 (AE_Ex45 1210)',
     'AE_EX45 1312': 'Profilé Parclose EX45 (AE_EX45 1312)',
     'AE_EX45 1130': 'Profilé Meneau Séparation EX45 (AE_EX45 1130)',
 
