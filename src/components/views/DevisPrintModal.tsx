@@ -206,6 +206,7 @@ export const DevisPrintModal: React.FC<DevisPrintModalProps> = ({ devis, onClose
                     nbVantaux,
                     couleur: (drawType === 'store') ? (it.store_couleur || it.couleur || 'blanc') : (it.couleur || 'blanc'),
                     estPorte: typeDef?.category === 'porte',
+                    typeOuverture: /oscillo|osilo/i.test(it.ouverture_type || '') ? 'oscillo' : (/bascul|soufflet/i.test(it.ouverture_type || '') ? 'basculante' : 'francaise'),
                     partieFixeType: it.partie_fixe_type,
                     pfDim1: parseFloat(String(it.pf_dim_1)) || 0,
                     pfDim2: parseFloat(String(it.pf_dim_2)) || 0,

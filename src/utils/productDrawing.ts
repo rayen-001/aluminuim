@@ -390,18 +390,27 @@ export function renderAlumDrawing(params: DrawingParams): string {
         s += `<rect x="${gx + 3}" y="${gy + glassH + sashThick + 3}" width="${gw - 6}" height="${panelH - 6}" fill="none" stroke="${strokeColor}" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.5"/>`;
       }
 
-      // Opening lines (Française / Oscillo)
+      // Opening lines (Française / Oscillo / Basculante)
       if (!isCoulissant && !estPorte) {
         s += `<g opacity="0.45" stroke="${strokeColor}" stroke-width="0.8" stroke-dasharray="4,3">`;
         if (typeOuverture === 'oscillo') {
-          // Oscillo-battant triangle
+          // 1. Oscillo (Soufflet / Tilt) triangle (from bottom corners to top center)
           s += `<line x1="${gx}" y1="${gy + glassH}" x2="${gx + gw / 2}" y2="${gy}"/>`;
           s += `<line x1="${gx + gw}" y1="${gy + glassH}" x2="${gx + gw / 2}" y2="${gy}"/>`;
+          // 2. Battant (Turn) triangle (from hinges side to meeting handle side)
+          if (idx === 0) {
+            s += `<line x1="${gx}" y1="${gy}" x2="${gx + gw}" y2="${gy + glassH / 2}"/>`;
+            s += `<line x1="${gx}" y1="${gy + glassH}" x2="${gx + gw}" y2="${gy + glassH / 2}"/>`;
+          } else {
+            s += `<line x1="${gx + gw}" y1="${gy}" x2="${gx}" y2="${gy + glassH / 2}"/>`;
+            s += `<line x1="${gx + gw}" y1="${gy + glassH}" x2="${gx}" y2="${gy + glassH / 2}"/>`;
+          }
         } else if (typeOuverture === 'basculante') {
-          s += `<line x1="${gx}" y1="${gy}" x2="${gx + gw / 2}" y2="${gy + glassH}"/>`;
-          s += `<line x1="${gx + gw}" y1="${gy}" x2="${gx + gw / 2}" y2="${gy + glassH}"/>`;
+          // Soufflet: tilt triangle from bottom corners to top center
+          s += `<line x1="${gx}" y1="${gy + glassH}" x2="${gx + gw / 2}" y2="${gy}"/>`;
+          s += `<line x1="${gx + gw}" y1="${gy + glassH}" x2="${gx + gw / 2}" y2="${gy}"/>`;
         } else {
-          // Standard Casement
+          // Standard Casement (À la française)
           if (idx === 0) {
             s += `<line x1="${gx}" y1="${gy}" x2="${gx + gw}" y2="${gy + glassH / 2}"/>`;
             s += `<line x1="${gx}" y1="${gy + glassH}" x2="${gx + gw}" y2="${gy + glassH / 2}"/>`;
@@ -424,29 +433,52 @@ export function renderAlumDrawing(params: DrawingParams): string {
         s += `</g>`;
       }
 
-      // Handles
+      // Handles / Crémones
       const handleY = sy + sh * 0.52;
       if (isCoulissant) {
         const handleX = idx === 0 ? sx + sashThick * 0.5 : sx + sw - sashThick * 0.5;
         s += `<rect x="${handleX - 1.5}" y="${handleY - 9}" width="3" height="18" rx="1.5" fill="#1e293b" stroke="#ffffff" stroke-width="0.5"/>`;
+      } else if (typeOuverture === 'basculante') {
+        // Handle at top center for Basculante / Soufflet
+        const bHandleX = sx + sw / 2;
+        const bHandleY = sy + sashThick * 0.5;
+        s += `<g>`;
+        s += `<rect x="${bHandleX - 7}" y="${bHandleY - 2.5}" width="14" height="5" rx="1.5" fill="#334155" stroke="#ffffff" stroke-width="0.6"/>`;
+        s += `<rect x="${bHandleX - 2}" y="${bHandleY}" width="4" height="10" rx="2" fill="#1e293b" stroke="#ffffff" stroke-width="0.6"/>`;
+        s += `<circle cx="${bHandleX}" cy="${bHandleY}" r="1.8" fill="#cbd5e1"/>`;
+        s += `</g>`;
       } else {
+        // Battant & Oscillo-battant: Handle on right stile (for 1V or 2V sash 0)
         if (nbVantaux === 1 || idx === 0) {
-          const handleX = idx === 0 && nbVantaux > 1 ? sx + sw - sashThick * 0.5 : sx + sashThick * 0.5;
+          const handleX = sx + sw - sashThick * 0.5;
           s += `<g>`;
           s += `<rect x="${handleX - 2.5}" y="${handleY - 7}" width="5" height="14" rx="1.5" fill="#334155" stroke="#ffffff" stroke-width="0.6"/>`;
           s += `<rect x="${handleX - 10}" y="${handleY - 2.5}" width="10" height="4" rx="2" fill="#1e293b" stroke="#ffffff" stroke-width="0.6"/>`;
           s += `<circle cx="${handleX}" cy="${handleY}" r="1.8" fill="#cbd5e1"/>`;
+          if (estPorte) {
+            // Keyhole cylinder for doors
+            s += `<circle cx="${handleX}" cy="${handleY + 11}" r="1.6" fill="#0f172a"/>`;
+            s += `<rect x="${handleX - 0.9}" y="${handleY + 11}" width="1.8" height="3.5" fill="#0f172a"/>`;
+          }
           s += `</g>`;
         }
       }
 
-      // Hinges for Battants
+      // Hinges for Battants & Soufflets
       if (!isCoulissant) {
-        const hingeX = idx === 0 ? sx - 1.5 : sx + sw - 1.5;
-        s += `<rect x="${hingeX}" y="${sy + sh * 0.18}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
-        s += `<rect x="${hingeX}" y="${sy + sh * 0.78}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
-        if (estPorte) {
-          s += `<rect x="${hingeX}" y="${sy + sh * 0.48}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+        if (typeOuverture === 'basculante') {
+          // Bottom hinges for Basculante / Soufflet
+          const hY = sy + sh - 2.5;
+          s += `<rect x="${sx + sw * 0.2 - 5}" y="${hY}" width="10" height="3" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+          s += `<rect x="${sx + sw * 0.8 - 5}" y="${hY}" width="10" height="3" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+        } else {
+          // Side hinges: Left for sash 0 / 1V, Right for sash 1 in 2V
+          const hingeX = idx === 0 ? sx - 1.5 : sx + sw - 1.5;
+          s += `<rect x="${hingeX}" y="${sy + sh * 0.18}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+          s += `<rect x="${hingeX}" y="${sy + sh * 0.78}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+          if (estPorte) {
+            s += `<rect x="${hingeX}" y="${sy + sh * 0.48}" width="3" height="10" rx="1" fill="#475569" stroke="#ffffff" stroke-width="0.4"/>`;
+          }
         }
       }
     }

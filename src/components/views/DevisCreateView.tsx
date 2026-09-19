@@ -499,7 +499,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
       chassiTraverses: item.chassi_traverse_enabled ? (item.chassi_traverse_qty || 1) : 0,
       chassiSocleWide: ['40121', '40154', 'AE_40121', 'AE_40154'].includes(item.chassi_socle_ref || ''),
       serrureTraverse: item.supplements?.some(s => s.toLowerCase().includes('traverse')),
-      typeOuverture: item.ouverture_type === 'Basculante' ? 'basculante' : (item.ouverture_type === 'Osilobattante' ? 'oscillo' : 'francaise'),
+      typeOuverture: /oscillo|osilo/i.test(item.ouverture_type || '') ? 'oscillo' : (/bascul|soufflet/i.test(item.ouverture_type || '') ? 'basculante' : 'francaise'),
       
       // Store Rideau
       store_enabled: item.store_enabled || false,
