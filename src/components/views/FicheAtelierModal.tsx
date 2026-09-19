@@ -699,8 +699,8 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <table className="w-full min-w-[650px] text-xs">
                   <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
                       <th className="px-4 py-2.5 text-left w-12">N°</th>
@@ -842,7 +842,8 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <table className="w-full min-w-[780px] text-left text-xs sm:text-sm">
                 <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-200 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-4 py-3">Ouvrage / Repère</th>
@@ -911,6 +912,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
               </table>
             </div>
           </div>
+        </div>
 
           {/* TAB 2: DÉBITAGE & OPTIMISATION DES BARRES */}
           <div className={`space-y-4 ${activeTab !== 'debitage' ? 'hidden print:block' : 'block'}`}>
@@ -1087,7 +1089,8 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
                 <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-200 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3">Composant / Article</th>
@@ -1143,6 +1146,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
               </table>
             </div>
           </div>
+        </div>
 
           {/* TAB 1: BON DE COMMANDE FOURNISSEUR & APPROVISIONNEMENT GLOBAL (5 Catégories avec Prix HT) */}
           <div className={`space-y-5 ${activeTab !== 'fournisseur' ? 'hidden print:block' : 'block'}`}>
@@ -1248,7 +1252,8 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                       </div>
                     </div>
 
-                    <table className="w-full text-left text-xs sm:text-sm">
+                    <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                      <table className="w-full min-w-[750px] text-left text-xs sm:text-sm">
                       <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200 text-xs uppercase tracking-wider">
                         <tr>
                           <th className="px-4 sm:px-5 py-2.5 w-28">Référence</th>
@@ -1302,10 +1307,11 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
                       </tfoot>
                     </table>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
           {/* TAB 5: VITRAGE (MIROITERIE) */}
           <div className={`space-y-3 ${activeTab !== 'vitrage' ? 'hidden print:block' : 'block'}`}>
@@ -1320,7 +1326,8 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <table className="w-full min-w-[680px] text-left text-xs sm:text-sm">
                 <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-200 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3">Ouvrage</th>
@@ -1353,6 +1360,7 @@ export const FicheAtelierModal: React.FC<FicheAtelierModalProps> = ({ devis, onC
               </table>
             </div>
           </div>
+        </div>
 
           {/* Footer Notes for Workshop */}
           <div className="text-xs text-slate-500 border-t border-slate-200 pt-3 flex flex-col sm:flex-row justify-between items-center gap-2">

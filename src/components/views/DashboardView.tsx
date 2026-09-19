@@ -321,8 +321,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ setCurrentTab }) =
             <p className="text-sm">Aucun mouvement de caisse</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+          <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+            <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
               <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Date</th>

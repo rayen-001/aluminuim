@@ -318,8 +318,8 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+          <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+            <table className="w-full min-w-[850px] text-left text-xs sm:text-sm">
               <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                 <tr>
                   <th className="w-10 px-3 py-3 text-center"></th>
@@ -947,7 +947,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({ setCurrent
                   <span className="text-[10px] text-gray-400 font-normal">Cotes en centimètres</span>
                 </h4>
 
-                <div className="overflow-x-auto w-full">
+                <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
                   <table className="w-full min-w-[560px] text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
                     <thead className="bg-purple-950 text-white font-bold">
                       <tr>

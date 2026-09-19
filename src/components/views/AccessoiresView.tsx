@@ -333,8 +333,8 @@ export const AccessoiresView: React.FC = () => {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+          <table className="w-full min-w-[750px] text-left text-xs sm:text-sm">
             <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
               <tr>
                 <th className="px-5 py-3.5">Désignation</th>
@@ -557,8 +557,8 @@ export const AccessoiresView: React.FC = () => {
 
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-gray-700">Exemples d'articles modifiés :</h4>
-              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                <table className="w-full text-left text-xs font-mono">
+              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[450px] text-left text-xs font-mono">
                   <thead className="bg-gray-100 text-gray-600 font-sans font-semibold sticky top-0">
                     <tr>
                       <th className="px-3 py-2">Désignation</th>

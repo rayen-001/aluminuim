@@ -1130,8 +1130,8 @@ export const ArticlesView: React.FC = () => {
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+          <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+            <table className="w-full min-w-[850px] text-left text-xs sm:text-sm">
               <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                 <tr>
                   <th className="px-4 py-3">Référence</th>
@@ -1261,8 +1261,8 @@ export const ArticlesView: React.FC = () => {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[850px] text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
                     <th className="px-4 py-3">Type de Lame / Élément</th>
@@ -1339,8 +1339,8 @@ export const ArticlesView: React.FC = () => {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
                     <th className="px-4 py-3">Modèle de Moustiquaire</th>
@@ -1396,8 +1396,8 @@ export const ArticlesView: React.FC = () => {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
                     <th className="px-4 py-3">Type de Vitrage / Remplissage</th>
@@ -1453,8 +1453,8 @@ export const ArticlesView: React.FC = () => {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
                     <th className="px-4 py-3">Type de Finition / Motif</th>
@@ -1544,8 +1544,8 @@ export const ArticlesView: React.FC = () => {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[800px] text-left text-xs sm:text-sm">
                 <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                   <tr>
                     <th className="px-4 py-3">Code / Réf</th>
@@ -1684,8 +1684,8 @@ export const ArticlesView: React.FC = () => {
             {/* Live Sample Previews */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-gray-700">Aperçu direct sur quelques exemples :</h4>
-              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
-                <table className="w-full text-left text-xs font-mono">
+              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[500px] text-left text-xs font-mono">
                   <thead className="bg-gray-100 text-gray-600 font-sans font-semibold sticky top-0">
                     <tr>
                       <th className="px-3 py-2">Réf & Famille</th>
@@ -2097,8 +2097,8 @@ export const ArticlesView: React.FC = () => {
             {/* Live Sample Previews */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-gray-700">Aperçu direct sur quelques exemples :</h4>
-              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
-                <table className="w-full text-left text-xs font-mono">
+              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[500px] text-left text-xs font-mono">
                   <thead className="bg-gray-100 text-gray-600 font-sans font-semibold sticky top-0">
                     <tr>
                       <th className="px-3 py-2">Code & Nom</th>

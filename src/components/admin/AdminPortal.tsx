@@ -368,8 +368,8 @@ export const AdminPortal: React.FC = () => {
 
         {/* 3. WORKSHOPS TABLE */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+          <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+            <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-950/80 text-slate-400 border-b border-slate-800 font-bold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="px-6 py-4">Nom de l'Atelier Client</th>

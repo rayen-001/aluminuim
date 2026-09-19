@@ -229,8 +229,8 @@ export const AdminSuperView: React.FC = () => {
 
       {/* Table of Workshops */}
       <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+          <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200 font-bold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-5 py-3.5">Atelier & Contact</th>

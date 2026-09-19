@@ -209,7 +209,7 @@ export const FacturePrintModal: React.FC<FacturePrintModalProps> = ({ facture, o
               <span className="text-[10px] text-gray-400 font-normal">Montants en Dinars Tunisiens (DT)</span>
             </h4>
 
-            <div className="overflow-x-auto w-full">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
               <table className="w-full min-w-[560px] text-left text-xs border border-gray-200 rounded-xl overflow-hidden">
                 <thead className="bg-cyan-900 text-white font-bold">
                   <tr>

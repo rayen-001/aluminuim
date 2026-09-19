@@ -546,8 +546,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   <p className="text-xs font-semibold text-gray-600">Aucune avance pour cet employé</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                  <table className="w-full text-left text-xs sm:text-sm">
+                <div className="overflow-x-auto w-full border border-gray-100 rounded-xl [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                  <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
                     <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
                       <tr>
                         <th className="px-4 py-3">Date</th>
@@ -619,8 +619,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   <p className="text-xs font-semibold text-gray-600">Aucun congé enregistré pour cet employé</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                  <table className="w-full text-left text-xs sm:text-sm">
+                <div className="overflow-x-auto w-full border border-gray-100 rounded-xl [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                  <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                     <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
                       <tr>
                         <th className="px-4 py-3">Période (Du / Au)</th>
@@ -699,8 +699,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                   <p className="text-xs font-semibold text-gray-600">Aucun bulletin de paie généré pour cet employé</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                  <table className="w-full text-left text-xs sm:text-sm">
+                <div className="overflow-x-auto w-full border border-gray-100 rounded-xl [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                  <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                     <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
                       <tr>
                         <th className="px-4 py-3">Mois</th>
@@ -897,8 +897,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <p className="text-xs text-gray-400">Commencez par ajouter vos collaborateurs.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[850px] text-left text-xs sm:text-sm">
                   <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                     <tr>
                       <th className="px-5 py-3">Employé</th>
@@ -1035,8 +1035,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <p className="text-xs text-gray-400">Les avances accordées aux employés s'afficheront ici.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                   <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                     <tr>
                       <th className="px-5 py-3">Date Décaissement</th>
@@ -1100,8 +1100,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <p className="text-xs text-gray-400">Les demandes de congé s'afficheront ici.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[650px] text-left text-xs sm:text-sm">
                   <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                     <tr>
                       <th className="px-5 py-3">Employé</th>
@@ -1175,8 +1175,8 @@ export const RHView: React.FC<RHViewProps> = ({ subTab }) => {
                 <p className="text-xs text-gray-400">Cliquez sur "Générer Bulletin" pour créer un bulletin mensuel.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                <table className="w-full min-w-[750px] text-left text-xs sm:text-sm">
                   <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                     <tr>
                       <th className="px-5 py-3">Mois</th>

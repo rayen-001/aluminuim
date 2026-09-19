@@ -220,8 +220,8 @@ export const FournisseursView: React.FC = () => {
           {achats.length === 0 ? (
             <div className="py-8 text-center text-gray-400 text-sm">Aucun achat enregistré</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[650px] text-xs sm:text-sm text-left">
                 <thead className="bg-gray-50 text-gray-600 font-semibold">
                   <tr>
                     <th className="px-5 py-2.5">Date</th>
@@ -291,8 +291,8 @@ export const FournisseursView: React.FC = () => {
           {paiements.length === 0 ? (
             <div className="py-8 text-center text-gray-400 text-sm">Aucun règlement enregistré</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+              <table className="w-full min-w-[550px] text-xs sm:text-sm text-left">
                 <thead className="bg-gray-50 text-gray-600 font-semibold">
                   <tr>
                     <th className="px-5 py-2.5">Date</th>
@@ -598,8 +598,8 @@ export const FournisseursView: React.FC = () => {
             <p className="text-sm">Aucun fournisseur trouvé</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+          <div className="overflow-x-auto w-full [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+            <table className="w-full min-w-[750px] text-left text-xs sm:text-sm">
               <thead className="bg-gray-50 text-gray-600 border-b border-gray-200 font-semibold">
                 <tr>
                   <th className="px-5 py-3">Fournisseur</th>
