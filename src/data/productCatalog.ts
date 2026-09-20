@@ -124,9 +124,9 @@ export const CHASSI_FIX_REFS_DEFAULT = {
 };
 
 export const CHASSI_FIX_REFS_ALUCO = {
-  cadre: ['FSQ 102', 'FSQ 104', 'CSQ 103'],
-  socle: ['FSQ 104', 'CSQ 103'],
-  montant: ['FSQ 104', 'FSQ 107'],
+  cadre: ['FSQ 100', 'FSQ 102', 'FSQ 124', 'FSQ 402', 'FSQ 408'],
+  socle: ['FSQ 121', 'FSQ 104'],
+  montant: ['FSQ 104', 'FSQ 108'],
   traverse: ['FSQ 104', 'FSQ 108']
 };
 
@@ -202,28 +202,28 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
       } else {
         dormantDefault = 'EX60 2114';
         dormantOptions = ['EX60 2114', 'EX60 2115', 'EX60 2116', 'EX60 2117'];
-        latDefault = 'EX60 2211';
-        latOptions = ['EX60 2211', 'EX60 2214', 'EX60 2218', 'EX60 2221'];
-        cenDefault = 'EX60 2212';
-        cenOptions = ['EX60 2212', 'EX60 2213', 'EX60 2216', 'EX60 2217'];
-        traverseDefault = 'EX60 2210';
-        traverseOptions = ['EX60 2210', 'EX60 2215'];
-        parcloseSimple = { default: 'EX60 2312', options: ['EX60 2312', '80116', '67207'] };
-        parcloseDouble = { default: '67207', options: ['67207', 'EX60 2312'] };
+        latDefault = 'Ex60 2211';
+        latOptions = ['Ex60 2211', 'Ex60 2214', 'AE_EX60 2218', 'AE_EX60 2221'];
+        cenDefault = 'Ex60 2212';
+        cenOptions = ['Ex60 2212', 'Ex60 2213', 'AE_EX60 2216', 'AE_EX60 2217'];
+        traverseDefault = 'Ex60 2210';
+        traverseOptions = ['Ex60 2210', 'Ex60 2215'];
+        parcloseSimple = { default: 'Ex60 2312', options: ['Ex60 2312', '80116', '67207'] };
+        parcloseDouble = { default: '67207', options: ['67207', 'Ex60 2312'] };
       }
     } else if (isAluco) {
       dormantDefault = 'CSQ 103';
-      dormantOptions = ['CSQ 103', 'CSQ 203', 'CSQ 210'];
+      dormantOptions = ['CSQ 103', 'CSQ 101', 'CSQ 102', 'CSQ 203', 'CSQ 201', 'CSQ 202', 'CSQ 210'];
       latDefault = 'CSQ 104';
       latOptions = ['CSQ 104', 'CSQ 108'];
       cenDefault = 'CSQ 105';
       cenOptions = ['CSQ 105', 'CSQ 107'];
       traverseDefault = 'CSQ 106';
-      traverseOptions = ['CSQ 106'];
+      traverseOptions = ['CSQ 106', 'CSQ 109'];
       parcloseSimple = { default: 'CSQ 114', options: ['CSQ 114'] };
       parcloseDouble = { default: 'CSQ 114', options: ['CSQ 114'] };
-      couvreJointDefault = 'CSQ 302';
-      couvreJointOptions = ['CSQ 302', 'CSQ 301'];
+      couvreJointDefault = 'CSQ 301';
+      couvreJointOptions = ['CSQ 300', 'CSQ 301', 'CSQ 302', 'CSQ 303', 'CSQ 304', 'CSQ 460', 'CJ 101', 'CJ 102'];
     } else if (isAluEco) {
       dormantDefault = 'AE_67101';
       dormantOptions = ['AE_67101', 'AE_67103'];
@@ -254,8 +254,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
       if (isAluEco) {
         dormantDefault = 'AE_EX45 1123';
         dormantOptions = ['AE_EX45 1123', 'AE_EX45 1125'];
-        ouvrantDefault = 'AE_EX45 1210';
-        ouvrantOptions = ['AE_EX45 1210', 'AE_EX45 1218'];
+        ouvrantDefault = 'AE_Ex45 1210';
+        ouvrantOptions = ['AE_Ex45 1210', 'AE_EX45 1218'];
         parcloseSimple = { default: 'AE_EX45 1312', options: ['AE_EX45 1312', 'AE_40110'] };
         parcloseDouble = { default: 'AE_EX45 1312', options: ['AE_EX45 1312', 'AE_40129'] };
         meneauDefault = 'AE_EX45 1130';
@@ -265,8 +265,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
       } else {
         dormantDefault = 'EX45 1123';
         dormantOptions = ['EX45 1123', 'EX45 1125', 'EX45 1120'];
-        ouvrantDefault = 'EX45 1210';
-        ouvrantOptions = ['EX45 1210', 'EX45 1212', 'EX45 1215', 'EX45 1218'];
+        ouvrantDefault = 'Ex45 1210';
+        ouvrantOptions = ['Ex45 1210', 'EX45 1212', 'EX45 1215', 'EX45 1218'];
         parcloseSimple = { default: 'EX45 1312', options: ['EX45 1312', 'Ex45 1310', 'EX45 1314'] };
         parcloseDouble = { default: 'EX45 1320', options: ['EX45 1320', 'Ex45 1310'] };
         meneauDefault = 'EX45 1130';
@@ -277,14 +277,14 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     } else if (isAluco) {
       dormantDefault = 'FSQ 124';
       dormantOptions = ['FSQ 124', 'FSQ 408', 'FSQ 402', 'FSQ 100', 'FSQ 150'];
-      ouvrantDefault = 'FSQ 104';
-      ouvrantOptions = ['FSQ 104', 'FSQ 102', 'FSQ 401', 'FSQ 403', 'FSQ 407'];
-      parcloseSimple = { default: 'FSQ 111', options: ['FSQ 111', 'FSQ 112', 'FSQ 139'] };
-      parcloseDouble = { default: 'FSQ 112', options: ['FSQ 112', 'FSQ 111'] };
-      meneauDefault = 'FSQ 121';
-      meneauOptions = ['FSQ 121', 'FSQ 107', 'FSQ 108'];
-      couvreJointDefault = 'CJ 101';
-      couvreJointOptions = ['CJ 101', 'CJ 102'];
+      ouvrantDefault = 'FSQ 401';
+      ouvrantOptions = ['FSQ 401', 'FSQ 403', 'FSQ 404', 'FSQ 405', 'FSQ 406'];
+      parcloseSimple = { default: 'FSQ 110', options: ['FSQ 110', 'FSQ 111', 'FSQ 139'] };
+      parcloseDouble = { default: 'FSQ 111', options: ['FSQ 111', 'FSQ 110', 'FSQ 139'] };
+      meneauDefault = 'FSQ 104';
+      meneauOptions = ['FSQ 104', 'FSQ 108'];
+      couvreJointDefault = 'CSQ 301';
+      couvreJointOptions = ['CSQ 300', 'CSQ 301', 'CSQ 302', 'CSQ 303', 'CSQ 304', 'CSQ 460', 'CJ 101', 'CJ 102'];
     } else if (isAluEco) {
       dormantDefault = 'AE_40402';
       dormantOptions = ['AE_40402', 'AE_40100', 'AE_40102'];
@@ -299,8 +299,8 @@ export function getProductTypesForFamily(familyId: string): ProductTypeDef[] {
     }
   }
 
-  const seuilDefault = isCoulissant ? (isEX60 ? (isAluEco ? 'AE_80116' : '80116') : isAluco ? 'CSQ 116' : '67201') : '';
-  const seuilOptions = isCoulissant ? (isEX60 ? (isAluEco ? ['AE_80116', '— Sans seuil —'] : ['80116', '— Sans seuil —']) : isAluco ? ['CSQ 116', '— Sans seuil —'] : ['67201', '67202', '67203', '67205', 'CSQ 116', 'AE_80116', '— Sans seuil —']) : [];
+  const seuilDefault = isCoulissant ? '— Sans seuil —' : '';
+  const seuilOptions = isCoulissant ? (isEX60 ? (isAluEco ? ['— Sans seuil —', 'AE_80116'] : ['— Sans seuil —', '80116']) : isAluco ? ['— Sans seuil —', 'CSQ 116'] : ['— Sans seuil —', '67201', '67202', '67203', '67205']) : [];
 
   const defaultProfiles = {
     dormant: dormantDefault,

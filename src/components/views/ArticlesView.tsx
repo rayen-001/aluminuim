@@ -2323,11 +2323,19 @@ export const ArticlesView: React.FC = () => {
               </button>
             </div>
             <div className="w-full h-72 p-4 bg-gray-50/60 rounded-xl flex items-center justify-center border border-gray-200/60">
-              <img
-                src={getProfileImageUrl(zoomProfil)!}
-                alt={`Coupe ${zoomProfil}`}
-                className="max-w-full max-h-full object-contain"
-              />
+              {getProfileImageUrl(zoomProfil) ? (
+                <img
+                  src={getProfileImageUrl(zoomProfil)!}
+                  alt={`Coupe ${zoomProfil}`}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center p-6 text-gray-400">
+                  <span className="text-3xl mb-2">📐</span>
+                  <p className="text-xs font-semibold text-gray-600">Schéma technique non disponible</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Ce profilé est commandé sur référence catalogue ({zoomProfil})</p>
+                </div>
+              )}
             </div>
             <div className="mt-4 w-full flex items-center justify-between">
               <span className="text-[11px] text-gray-400">Coupe technique du profil</span>

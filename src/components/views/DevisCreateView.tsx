@@ -13,6 +13,7 @@ import {
 import { renderAlumDrawing, DrawingParams } from '../../utils/productDrawing';
 import { DevisItemState, calculateDevisTotals, STORE_MOTORS, PROFILES_WITHOUT_PARCLOSE, getStoreElementPrice } from '../../utils/devisCalculator';
 import { getProfileImageUrl, hasProfileImage } from '../../data/profileImages';
+import { INITIAL_ARTICLES } from '../../data/initialArticles';
 import { FicheAtelierModal } from './FicheAtelierModal';
 import { 
   Plus, 
@@ -194,7 +195,34 @@ const PROFILE_OPTION_NAMES: Record<string, string> = {
   '67204': '67204 — Montant ouvrant spécial 67',
   '67205': '67205 — Montant ouvrant profilé 67',
   '67106': '67106 — Traverse haute et basse ouvrant 67',
-  'AE_67106': 'AE_67106 — Traverse haute et basse Alu Eco 67'
+};
+
+const ProfileThumbnailButton: React.FC<{
+  profileRef?: string | null;
+  onZoom: (ref: string) => void;
+}> = ({ profileRef, onZoom }) => {
+  if (!profileRef || profileRef.startsWith('—') || profileRef.trim() === '') return null;
+  const imgUrl = getProfileImageUrl(profileRef);
+  return (
+    <button
+      type="button"
+      onClick={() => onZoom(profileRef)}
+      title={imgUrl ? `Agrandir la coupe ${profileRef}` : `Fiche technique ${profileRef}`}
+      className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs group"
+    >
+      {imgUrl ? (
+        <img
+          src={imgUrl}
+          alt={`Coupe ${profileRef}`}
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <span className="text-xs text-gray-400 group-hover:text-blue-600 font-mono font-bold" title={`Fiche catalogue ${profileRef}`}>
+          📐
+        </span>
+      )}
+    </button>
+  );
 };
 
 const getOuvertureLabel = (ouv: string): string => {
@@ -471,7 +499,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
     const defaultCentral = defProfiles?.central || defProfiles?.chicane || (isAluco ? 'CSQ 105' : isAluEco ? 'AE_67105' : '67105');
     const defaultTraverse = defProfiles?.traverse || (isCoulissant ? (isAluco ? 'CSQ 106' : isAluEco ? 'AE_67106' : '67106') : (isAluco ? 'FSQ 108' : isAluEco ? 'AE_40121' : '40121'));
     const defaultCouvreJoint = defProfiles?.couvre_joint || (isAluco ? 'CJ 101' : '40108');
-    const defaultSeuil = isCoulissant ? (familyId === '66' ? 'AE_80116' : (familyId === '61' ? '80116' : (isAluco ? 'CSQ 116' : '67201'))) : '';
+    const defaultSeuil = defProfiles?.seuil || (isCoulissant ? '— Sans seuil —' : '');
 
     const nbV = typeDef.name.includes('3') ? 3 : (typeDef.name.includes('4') ? 4 : 2);
     const defaultCentralCount = nbV === 3 ? 4 : (nbV === 4 ? 4 : 2);
@@ -1272,7 +1300,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                 onChange={e => updateItem(index, { pf_dim_1: e.target.value })}
                                                 placeholder="Ex: 40"
                                                 min="1"
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                                                className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500"
                                               />
                                             </div>
                                           )}
@@ -1281,15 +1309,21 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                             <label className="block text-[10px] font-bold text-gray-600 mb-0.5">
                                               Meneau (Profilé de séparation)
                                             </label>
-                                            <select
-                                              value={item.comp_meneau_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40121' : '40121')}
-                                              onChange={e => updateItem(index, { comp_meneau_ref: e.target.value })}
-                                              className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                                            >
-                                              {(typeDef?.composition?.meneau?.options || ['40121', '40156', 'FSQ 104', 'AE_40121']).map((r: string) => (
-                                                <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Meneau ${r}`}</option>
-                                              ))}
-                                            </select>
+                                            <div className="flex items-start gap-1.5">
+                                              <select
+                                                value={item.comp_meneau_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40121' : '40121')}
+                                                onChange={e => updateItem(index, { comp_meneau_ref: e.target.value })}
+                                                className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                              >
+                                                {(typeDef?.composition?.meneau?.options || ['40121', '40156', 'FSQ 104', 'AE_40121']).map((r: string) => (
+                                                  <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Meneau ${r}`}</option>
+                                                ))}
+                                              </select>
+                                              <ProfileThumbnailButton
+                                                profileRef={item.comp_meneau_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40121' : '40121')}
+                                                onZoom={setZoomProfil}
+                                              />
+                                            </div>
                                           </div>
                                         </div>
                                       )}
@@ -1334,15 +1368,21 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
 
                                         <div>
                                           <label className="block text-[10px] font-bold text-gray-600 mb-0.5">Profilé Couvre-Joint</label>
-                                          <select
-                                            value={item.comp_couvre_joint_ref || (fam?.group === 'ALUCO' ? 'CJ 101' : fam?.group === 'ALU ECO' ? 'AE_40103' : '40103')}
-                                            onChange={e => updateItem(index, { comp_couvre_joint_ref: e.target.value })}
-                                            className="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                                          >
-                                            {(typeDef?.composition?.couvre_joint?.options || ['40103', '40108', '40166', 'CJ 101', 'AE_40103']).map((r: string) => (
-                                              <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Couvre-joint ${r}`}</option>
-                                            ))}
-                                          </select>
+                                          <div className="flex items-start gap-1.5">
+                                            <select
+                                              value={item.comp_couvre_joint_ref || (fam?.group === 'ALUCO' ? 'CJ 101' : fam?.group === 'ALU ECO' ? 'AE_40103' : '40103')}
+                                              onChange={e => updateItem(index, { comp_couvre_joint_ref: e.target.value })}
+                                              className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                            >
+                                              {(typeDef?.composition?.couvre_joint?.options || ['40103', '40108', '40166', 'CJ 101', 'AE_40103']).map((r: string) => (
+                                                <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || `Couvre-joint ${r}`}</option>
+                                              ))}
+                                            </select>
+                                            <ProfileThumbnailButton
+                                              profileRef={item.comp_couvre_joint_ref || (fam?.group === 'ALUCO' ? 'CJ 101' : fam?.group === 'ALU ECO' ? 'AE_40103' : '40103')}
+                                              onZoom={setZoomProfil}
+                                            />
+                                          </div>
                                         </div>
                                       </div>
                                     ) : (
@@ -1372,7 +1412,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                   const d = item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALU ECO' ? 'AE_EX60 2114' : '67101');
                                   const lat = Object.keys(item.comp_lateral_qty || {})[0] || typeDef?.defaultProfiles?.lateral || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2211' : '67104');
                                   const cen = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.central || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2212' : '67105');
-                                  const s = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil || (fam?.group === 'ALU ECO' ? 'AE_80116' : '67201');
+                                  const s = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil;
                                   badges = [
                                     { label: 'Dormant', val: d },
                                     { label: 'Latéral', val: lat },
@@ -1440,7 +1480,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Cadre Fixe (Dormant)</label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || '40100'}
+                                                  value={item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALUCO' ? 'FSQ 102' : fam?.group === 'ALU ECO' ? 'AE_40100' : '40100')}
                                                   onChange={e => updateItem(index, { chassi_cadre_ref: e.target.value, comp_dormant_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1448,27 +1488,17 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || null)}
-                                                    title={`Agrandir la coupe ${item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.chassi_cadre_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALUCO' ? 'FSQ 102' : fam?.group === 'ALU ECO' ? 'AE_40100' : '40100')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Socle / Seuil bas</label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.chassi_socle_ref || '40154'}
+                                                  value={item.chassi_socle_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40154' : '40154')}
                                                   onChange={e => updateItem(index, { chassi_socle_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1476,27 +1506,17 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.chassi_socle_ref) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.chassi_socle_ref || null)}
-                                                    title={`Agrandir la coupe ${item.chassi_socle_ref}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.chassi_socle_ref)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.chassi_socle_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40154' : '40154')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Meneau / Montant</label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || '40155'}
+                                                  value={item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40155' : '40155')}
                                                   onChange={e => updateItem(index, { chassi_montant_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1504,27 +1524,17 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || null)}
-                                                    title={`Agrandir la coupe ${item.chassi_montant_ref}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.chassi_montant_ref || typeDef?.defaultProfiles?.traverse || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40155' : '40155')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
                                             <div>
                                               <label className="block text-[10px] font-bold text-gray-600 mb-1">Traverse fixe</label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.chassi_traverse_ref || '40104'}
+                                                  value={item.chassi_traverse_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40104' : '40104')}
                                                   onChange={e => updateItem(index, { chassi_traverse_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1532,20 +1542,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.chassi_traverse_ref) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.chassi_traverse_ref || null)}
-                                                    title={`Agrandir la coupe ${item.chassi_traverse_ref}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.chassi_traverse_ref)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.chassi_traverse_ref || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40104' : '40104')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
                                           </div>
@@ -1558,7 +1558,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                             const defaultLat = typeDef?.defaultProfiles?.lateral || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2211' : '67104');
                                             const defaultCen = typeDef?.defaultProfiles?.central || typeDef?.defaultProfiles?.chicane || (fam?.group === 'ALU ECO' ? 'AE_Ex60 2212' : '67105');
                                             const defaultDorm = typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALU ECO' ? 'AE_EX60 2114' : '67101');
-                                            const defaultSeuil = typeDef?.defaultProfiles?.seuil || (fam?.group === 'ALU ECO' ? 'AE_80116' : '67201');
+                                            const defaultSeuil = typeDef?.defaultProfiles?.seuil || '— Sans seuil —';
 
                                             const currentLat = Object.keys(item.comp_lateral_qty || {})[0] || defaultLat;
                                             const currentCen = Object.keys(item.comp_central_qty || {})[0] || defaultCen;
@@ -1568,7 +1568,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                             const dormOptions = typeDef?.optionProfiles?.dormants || typeDef?.optionProfiles?.dormant || ['67101', '67103', '67110'];
                                             const latOptions = typeDef?.optionProfiles?.lateraux || typeDef?.optionProfiles?.lateral || typeDef?.optionProfiles?.chicanes || ['67104', '67108'];
                                             const cenOptions = typeDef?.optionProfiles?.centraux || typeDef?.optionProfiles?.central || typeDef?.optionProfiles?.chicanes || ['67105', '67107'];
-                                            const seuilOptions = typeDef?.optionProfiles?.seuils || (fam?.group === 'ALU ECO' ? ['AE_80116', '67201', '67202', '67203', '67205', '— Sans seuil —'] : ['67201', '67202', '67203', '67205', 'CSQ 116', 'AE_80116', '— Sans seuil —']);
+                                            const seuilOptions = typeDef?.optionProfiles?.seuils || typeDef?.optionProfiles?.seuil || (fam?.group === 'ALU ECO' ? ['AE_80116', '67201', '67202', '67203', '67205', '— Sans seuil —'] : ['67201', '67202', '67203', '67205', 'CSQ 116', 'AE_80116', '— Sans seuil —']);
 
                                             return (
                                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 bg-blue-50/40 border border-blue-100 p-3 rounded-xl">
@@ -1584,20 +1584,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                         <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                       ))}
                                                     </select>
-                                                    {getProfileImageUrl(currentDorm) && (
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => setZoomProfil(currentDorm || null)}
-                                                        title={`Agrandir la coupe ${currentDorm}`}
-                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                      >
-                                                        <img
-                                                          src={getProfileImageUrl(currentDorm)!}
-                                                          alt="Coupe"
-                                                          className="w-full h-full object-contain"
-                                                        />
-                                                      </button>
-                                                    )}
+                                                    <ProfileThumbnailButton
+                                                      profileRef={currentDorm}
+                                                      onZoom={setZoomProfil}
+                                                    />
                                                   </div>
                                                 </div>
 
@@ -1617,20 +1607,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                         <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                       ))}
                                                     </select>
-                                                    {getProfileImageUrl(currentLat) && (
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => setZoomProfil(currentLat || null)}
-                                                        title="Agrandir la coupe"
-                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                      >
-                                                        <img
-                                                          src={getProfileImageUrl(currentLat)!}
-                                                          alt="Coupe"
-                                                          className="w-full h-full object-contain"
-                                                        />
-                                                      </button>
-                                                    )}
+                                                    <ProfileThumbnailButton
+                                                      profileRef={currentLat}
+                                                      onZoom={setZoomProfil}
+                                                    />
                                                   </div>
                                                 </div>
 
@@ -1650,20 +1630,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                         <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                       ))}
                                                     </select>
-                                                    {getProfileImageUrl(currentCen) && (
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => setZoomProfil(currentCen || null)}
-                                                        title="Agrandir la coupe"
-                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                      >
-                                                        <img
-                                                          src={getProfileImageUrl(currentCen)!}
-                                                          alt="Coupe"
-                                                          className="w-full h-full object-contain"
-                                                        />
-                                                      </button>
-                                                    )}
+                                                    <ProfileThumbnailButton
+                                                      profileRef={currentCen}
+                                                      onZoom={setZoomProfil}
+                                                    />
                                                   </div>
                                                 </div>
 
@@ -1679,20 +1649,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                         <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                       ))}
                                                     </select>
-                                                    {getProfileImageUrl(currentSeuil) && (
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => setZoomProfil(currentSeuil || null)}
-                                                        title={`Agrandir la coupe ${currentSeuil}`}
-                                                        className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                      >
-                                                        <img
-                                                          src={getProfileImageUrl(currentSeuil)!}
-                                                          alt="Coupe"
-                                                          className="w-full h-full object-contain"
-                                                        />
-                                                      </button>
-                                                    )}
+                                                    <ProfileThumbnailButton
+                                                      profileRef={currentSeuil}
+                                                      onZoom={setZoomProfil}
+                                                    />
                                                   </div>
                                                 </div>
                                               </div>
@@ -1708,7 +1668,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               </label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || '40402'}
+                                                  value={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALUCO' ? 'FSQ 124' : fam?.group === 'ALU ECO' ? 'AE_40402' : '40402')}
                                                   onChange={e => updateItem(index, { comp_dormant_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1716,20 +1676,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || null)}
-                                                    title={`Agrandir la coupe ${item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.comp_dormant_ref || typeDef?.defaultProfiles?.dormant || (fam?.group === 'ALUCO' ? 'FSQ 124' : fam?.group === 'ALU ECO' ? 'AE_40402' : '40402')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
 
@@ -1740,7 +1690,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               </label>
                                               <div className="flex items-start gap-1.5">
                                                 <select
-                                                  value={item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || '40401'}
+                                                  value={item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40401' : '40401')}
                                                   onChange={e => updateItem(index, { comp_ouvrant_ref: e.target.value })}
                                                   className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                 >
@@ -1748,20 +1698,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                     <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                   ))}
                                                 </select>
-                                                {getProfileImageUrl(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant) && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => setZoomProfil(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || null)}
-                                                    title={`Agrandir la coupe ${item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant}`}
-                                                    className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                  >
-                                                    <img
-                                                      src={getProfileImageUrl(item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant)!}
-                                                      alt="Coupe"
-                                                      className="w-full h-full object-contain"
-                                                    />
-                                                  </button>
-                                                )}
+                                                <ProfileThumbnailButton
+                                                  profileRef={item.comp_ouvrant_ref || typeDef?.defaultProfiles?.ouvrant || (fam?.group === 'ALUCO' ? 'FSQ 104' : fam?.group === 'ALU ECO' ? 'AE_40401' : '40401')}
+                                                  onZoom={setZoomProfil}
+                                                />
                                               </div>
                                             </div>
 
@@ -1780,7 +1720,7 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                               ) : (
                                                 <div className="flex items-start gap-1.5">
                                                   <select
-                                                    value={item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || '40110'}
+                                                    value={item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || (fam?.group === 'ALUCO' ? 'FSQ 111' : fam?.group === 'ALU ECO' ? 'AE_40110' : '40110')}
                                                     onChange={e => updateItem(index, { comp_parclose_ref: e.target.value })}
                                                     className="grow min-w-0 bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-blue-500"
                                                   >
@@ -1788,20 +1728,10 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
                                                       <option key={r} value={r}>{PROFILE_OPTION_NAMES[r] || r}</option>
                                                     ))}
                                                   </select>
-                                                  {getProfileImageUrl(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose) && (
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => setZoomProfil(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || null)}
-                                                      title={`Agrandir la coupe ${item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose}`}
-                                                      className="shrink-0 w-[34px] h-[34px] p-0.5 bg-white border border-gray-300 rounded-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-200 cursor-zoom-in flex items-center justify-center transition-all shadow-2xs"
-                                                    >
-                                                      <img
-                                                        src={getProfileImageUrl(item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose)!}
-                                                        alt="Coupe"
-                                                        className="w-full h-full object-contain"
-                                                      />
-                                                    </button>
-                                                  )}
+                                                  <ProfileThumbnailButton
+                                                    profileRef={item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || (fam?.group === 'ALUCO' ? 'FSQ 111' : fam?.group === 'ALU ECO' ? 'AE_40110' : '40110')}
+                                                    onZoom={setZoomProfil}
+                                                  />
                                                 </div>
                                               )}
                                             </div>
@@ -2639,11 +2569,19 @@ export const DevisCreateView: React.FC<DevisCreateViewProps> = ({
               </button>
             </div>
             <div className="w-full h-72 p-4 bg-gray-50/60 rounded-xl flex items-center justify-center border border-gray-200/60">
-              <img
-                src={getProfileImageUrl(zoomProfil)!}
-                alt={`Coupe ${zoomProfil}`}
-                className="max-w-full max-h-full object-contain"
-              />
+              {getProfileImageUrl(zoomProfil) ? (
+                <img
+                  src={getProfileImageUrl(zoomProfil)!}
+                  alt={`Coupe ${zoomProfil}`}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center p-6 text-gray-400">
+                  <span className="text-3xl mb-2">📐</span>
+                  <p className="text-xs font-semibold text-gray-600">Schéma technique non disponible</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Ce profilé est commandé sur référence catalogue ({zoomProfil})</p>
+                </div>
+              )}
             </div>
             <div className="mt-4 w-full flex items-center justify-between">
               <span className="text-[11px] text-gray-400">Coupe technique du profil</span>

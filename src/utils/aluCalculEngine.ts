@@ -276,14 +276,17 @@ function optimizeCuttingStock(
     }
 
     if (!placed) {
+      if (cut.lengthCm > barLengthCm) {
+        console.warn(`optimizeCuttingStock: piece ${profilRef} (${cut.lengthCm}cm) exceeds standard bar length (${barLengthCm}cm) — needs splicing, not representable as a single bar.`);
+      }
       const newBar: BarCutAllocation = {
         barIndex: bars.length + 1,
         profilRef,
         barLengthCm,
         cuts: [cut],
         usedLengthCm: cut.lengthCm,
-        scrapCm: barLengthCm - cut.lengthCm,
-        scrapPercent: ((barLengthCm - cut.lengthCm) / barLengthCm) * 100
+        scrapCm: Math.max(0, barLengthCm - cut.lengthCm),
+        scrapPercent: Math.max(0, ((barLengthCm - cut.lengthCm) / barLengthCm) * 100)
       };
       bars.push(newBar);
     }
@@ -422,37 +425,69 @@ export function getProfileBarUnitPrice(ref: string, customArticles?: ArticleItem
     'FSQ 408': 135.000,
     'FSQ 402': 130.000,
     'FSQ 100': 115.000,
-    'FSQ 150': 125.000,
-    'FSQ 104': 140.000,
     'FSQ 102': 135.000,
+    'FSQ 150': 125.000,
+    'FSQ 151': 135.000,
+    'FSQ 153': 145.000,
+    'FSQ 156': 155.000,
+    'FSQ 148': 120.000,
+    'FSQ 149': 125.000,
+    'FSQ 163': 145.000,
+    'FSQ 164': 95.000,
+    'FSQ 165': 110.000,
     'FSQ 401': 140.000,
     'FSQ 403': 155.000,
+    'FSQ 404': 135.000,
+    'FSQ 405': 130.000,
+    'FSQ 406': 145.000,
     'FSQ 407': 145.000,
+    'FSQ 104': 140.000,
+    'FSQ 107': 19.811,
+    'FSQ 108': 20.728,
+    'FSQ 110': 42.000,
     'FSQ 111': 42.000,
-    'FSQ 112': 44.000,
+    'FSQ 112': 75.000,
+    'FSQ 130': 55.000,
+    'FSQ 131': 65.000,
+    'FSQ 132': 50.000,
     'FSQ 139': 40.000,
     'FSQ 121': 180.000,
-    'FSQ 107': 170.000,
-    'FSQ 108': 175.000,
+    'FSQ 122': 45.000,
+    'FSQ 534': 125.000,
+    'FSQ 535': 48.000,
+    'FSQ 536': 52.000,
     'CJ 101': 28.000,
     'CJ 102': 30.000,
     'CSQ 101': 125.000,
     'CSQ 102': 130.000,
     'CSQ 103': 130.000,
-    'CSQ 203': 135.000,
-    'CSQ 210': 140.000,
     'CSQ 104': 100.000,
-    'CSQ 108': 105.000,
     'CSQ 105': 80.000,
-    'CSQ 107': 85.000,
     'CSQ 106': 92.000,
+    'CSQ 107': 85.000,
+    'CSQ 108': 105.000,
+    'CSQ 109': 95.000,
+    'CSQ 110': 48.000,
+    'CSQ 112': 55.000,
     'CSQ 114': 40.000,
-    'CSQ 302': 30.000,
-    'CSQ 301': 28.000,
-    'CSQ_116': 32.000,
+    'CSQ 115': 25.000,
     'CSQ 116': 32.000,
-    'CSQ_124': 22.000,
     'CSQ 124': 22.000,
+    'CSQ 125': 38.000,
+    'CSQ 201': 155.000,
+    'CSQ 202': 165.000,
+    'CSQ 203': 160.000,
+    'CSQ 210': 140.000,
+    'CSQ 300': 22.000,
+    'CSQ 301': 28.000,
+    'CSQ 302': 30.000,
+    'CSQ 303': 35.000,
+    'CSQ 304': 45.000,
+    'CSQ 305': 32.000,
+    'CSQ 306': 28.000,
+    'CSQ 460': 38.000,
+    'CSQ_116': 32.000,
+    'CSQ_124': 22.000,
 
     // ALU ECO (S40 & S67)
     'AE_40402': 113.081,
@@ -684,7 +719,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         const cenRef = Object.keys(item.comp_central_qty || {})[0] || typeDef?.defaultProfiles?.central || (isAluEco ? 'AE_Ex60 2212' : 'EX60 2212');
         const travOuvrRef = item.comp_traverse_ref || typeDef?.defaultProfiles?.traverse || (isAluEco ? 'AE_Ex60 2210' : 'EX60 2210');
         const parcRef = item.comp_parclose_ref || typeDef?.defaultProfiles?.parclose || (isAluEco ? 'AE_Ex60 2312' : 'EX60 2312');
-        const seuilRef = item.comp_seuil_ref || typeDef?.defaultProfiles?.seuil || (isAluEco ? 'AE_80116' : '80116');
+        const seuilRef = item.comp_seuil_ref !== undefined ? item.comp_seuil_ref : (typeDef?.defaultProfiles?.seuil || '');
 
         const nbChicanes = item.comp_central_qty?.[cenRef] || (nbVantaux === 3 ? 4 : (nbVantaux === 4 ? 4 : 2));
 
@@ -1203,7 +1238,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
             pieceType: 'autre',
             profilRef: 'CSQ 124',
             profilDesignation: 'Rejet d’eau dormant CSQ 124',
-            lengthCm: L,
+            lengthCm: L - 0.4,
             quantity: 1 * qty,
             angleLeft: '90°',
             angleRight: '90°',
@@ -1342,11 +1377,11 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
 
         // Vitrage ALLUCO 67 / TPR 67:
         // H_verre = H - 15.2 cm
-        // L_verre = 2V: (L - 18.3)/2 cm, 3V: (L - 20.3)/3 cm, 4V: (L - 31.1)/4 cm
+        // L_verre = 2V: (L - 18.3)/2 cm, 3V (sur 2 rails, config par défaut): (L - 20.3)/2 cm, 4V: (L - 31.1)/4 cm
         const hVerre = Math.max(5, parseFloat((H - 15.2).toFixed(1)));
         let lVerre = Math.max(5, parseFloat(((L - 18.3) / 2).toFixed(1)));
         if (nbVantaux === 3) {
-          lVerre = Math.max(5, parseFloat(((L - 20.3) / 3).toFixed(1)));
+          lVerre = Math.max(5, parseFloat(((L - 20.3) / 2).toFixed(1)));
         } else if (nbVantaux === 4) {
           lVerre = Math.max(5, parseFloat(((L - 31.1) / 4).toFixed(1)));
         }
@@ -1402,7 +1437,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
       const lGlissiere = isEncastre ? parseFloat((H + 15.0).toFixed(2)) : H;
       const lAxe = Math.max(10, isEncastre ? parseFloat((L + 9.0).toFixed(2)) : parseFloat((L - 7.0).toFixed(2)));
       const debitageJointBrosse = isEncastre ? parseFloat((H + 15.0 + L / 4.0).toFixed(2)) : H;
-      const nbLames = Math.round(H / 5.0) + 1;
+      const nbLames = Math.round(H / slatCfg.stepCm) + 1;
 
       // 1. Coulisses / Glissières H
       const glissRef = isExtrude ? 'Glissière 55' : (slatCfg.lameRef.includes('55') ? 'Glissière 55' : (slatCfg.lameRef.includes('45') ? 'Glissière 45' : 'Glissière 55'));
@@ -1621,63 +1656,180 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     else if (isGardeCorps) {
       const nbPoteaux = item.gc_nb_poteaux || Math.max(2, Math.ceil(L / 100) + 1);
       const nbLignes = item.gc_nb_lignes || 4;
+      const gcSubType = item.product_type_id || 'gc_1';
+      const isGcVitré = gcSubType === 'gc_2';
+      const isCorpsen = gcSubType === 'gc_3';
+      const isCorpsenSabot = gcSubType === 'gc_4';
+      const isPassMain = gcSubType === 'gc_5';
+
+      // --- Main courante ---
+      const mainCouranteRef = (isCorpsen || isCorpsenSabot) ? '4723' : '2984';
+      const mainCouranteDes = (isCorpsen || isCorpsenSabot)
+        ? 'Main courante Corpsen (4723)'
+        : 'Main courante tubulaire supérieure (2984)';
 
       cuttingPieces.push({
         id: `cut_${itemIdx}_gc_main`,
         itemIndex: itemIdx,
         elementLabel,
         pieceType: 'dormant_l',
-        profilRef: '2984',
-        profilDesignation: 'Main courante tubulaire supérieure (2984)',
+        profilRef: mainCouranteRef,
+        profilDesignation: mainCouranteDes,
         lengthCm: L,
         quantity: 1 * qty,
         angleLeft: '90°',
         angleRight: '90°',
-        notes: 'Main courante tubulaire'
+        notes: 'Main courante supérieure garde-corps'
       });
 
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_gc_pot`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'dormant_h',
-        profilRef: '4085',
-        profilDesignation: 'Poteau vertical de fixation (4085)',
-        lengthCm: H > 0 ? H : 100,
-        quantity: nbPoteaux * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Fixation au sol / sabots'
-      });
+      // --- Poteaux (pas pour Pass-Main) ---
+      if (!isPassMain) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_gc_pot`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'dormant_h',
+          profilRef: '4085',
+          profilDesignation: 'Poteau vertical de fixation (4085)',
+          lengthCm: H > 0 ? H : 100,
+          quantity: nbPoteaux * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Poteaux verticaux garde-corps'
+        });
+      }
 
-      cuttingPieces.push({
-        id: `cut_${itemIdx}_gc_lisse`,
-        itemIndex: itemIdx,
-        elementLabel,
-        pieceType: 'traverse',
-        profilRef: '2878',
-        profilDesignation: 'Lisse intermédiaire de sécurité (2878)',
-        lengthCm: L,
-        quantity: nbLignes * qty,
-        angleLeft: '90°',
-        angleRight: '90°',
-        notes: 'Barreaudage horizontal'
-      });
+      // --- Barreaux (seulement pour gc_1 Linéaire et gc_3 Corpsen) ---
+      if (!isGcVitré && !isPassMain) {
+        cuttingPieces.push({
+          id: `cut_${itemIdx}_gc_lisse`,
+          itemIndex: itemIdx,
+          elementLabel,
+          pieceType: 'traverse',
+          profilRef: '2878',
+          profilDesignation: 'Barreau de sécurité Ø16mm (2878)',
+          lengthCm: L,
+          quantity: nbLignes * qty,
+          angleLeft: '90°',
+          angleRight: '90°',
+          notes: 'Barreaux horizontaux garde-corps'
+        });
+      }
 
-      // Sabots & accessoires garde-corps
-      rawAccessories.push({
-        id: `acc_gc_sabot_${itemIdx}`,
-        itemIndex: itemIdx,
-        elementLabel,
-        designation: 'Sabots de fixation au sol pour poteaux garde-corps',
-        reference: 'Sabot GC',
-        category: 'accessoire',
-        quantity: nbPoteaux * qty,
-        unit: 'unité',
-        unitPriceHt: 12.500,
-        totalPriceHt: parseFloat((12.500 * nbPoteaux * qty).toFixed(3)),
-        details: 'Ancrage sol haute résistance'
-      });
+      // --- Vitrage (gc_2 seulement) ---
+      if (isGcVitré) {
+        const hVerre = Math.max(10, parseFloat((H - 10).toFixed(1)));
+        const lVerre = Math.max(10, parseFloat((L / Math.max(1, nbPoteaux - 1)).toFixed(1)));
+        const unitAreaM2 = parseFloat(((hVerre / 100) * (lVerre / 100)).toFixed(3));
+        glassItems.push({
+          id: `glass_gc_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          hauteurCm: hVerre,
+          largeurCm: lVerre,
+          quantity: Math.max(1, nbPoteaux - 1) * qty,
+          unitAreaM2,
+          totalAreaM2: parseFloat((unitAreaM2 * Math.max(1, nbPoteaux - 1) * qty).toFixed(3)),
+          vitrageType: item.remplissage_id || 'Simple Clair 6mm'
+        });
+
+        // Support vitrage EKS 21-07
+        rawAccessories.push({
+          id: `acc_gc_vitrage_fix_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Fixation vitrage garde-corps (EKS 21-07)',
+          reference: 'EKS 21-07',
+          category: 'accessoire',
+          quantity: Math.max(1, nbPoteaux - 1) * 2 * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_eks_21_07', 3.000),
+          totalPriceHt: parseFloat((Math.max(1, nbPoteaux - 1) * 2 * qty * getAccPrice('acc_eks_21_07', 3.000)).toFixed(3)),
+          details: 'Fixation latérale vitrage entre poteaux'
+        });
+      }
+
+      // --- Accessoires fixes selon type ---
+      // Sabots (gc_1 et gc_2)
+      if (!isCorpsen && !isCorpsenSabot && !isPassMain) {
+        rawAccessories.push({
+          id: `acc_gc_sabot_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Sabots de fixation au sol pour poteaux garde-corps',
+          reference: 'Sabot GC',
+          category: 'accessoire',
+          quantity: nbPoteaux * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_sabot_gc', 12.500),
+          totalPriceHt: parseFloat((12.500 * nbPoteaux * qty).toFixed(3)),
+          details: 'Ancrage sol haute résistance'
+        });
+      }
+
+      // Corpsen Sabot — fixation sur dalle (EKS 10-03 + EKS 20-05)
+      if (isCorpsenSabot) {
+        rawAccessories.push({
+          id: `acc_gc_eks1003_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Cache fixation poteau sur dalle 40 (EKS 10-03)',
+          reference: 'EKS 10-03',
+          category: 'accessoire',
+          quantity: nbPoteaux * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_eks_10_03', 3.224),
+          totalPriceHt: parseFloat((nbPoteaux * qty * getAccPrice('acc_eks_10_03', 3.224)).toFixed(3)),
+          details: 'Sabot dalle pour poteau 40'
+        });
+        rawAccessories.push({
+          id: `acc_gc_eks2005_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Fixation au sol ⌀40 L=20cm (EKS 20-05)',
+          reference: 'EKS 20-05',
+          category: 'accessoire',
+          quantity: nbPoteaux * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_eks_20_05', 4.500),
+          totalPriceHt: parseFloat((nbPoteaux * qty * getAccPrice('acc_eks_20_05', 4.500)).toFixed(3)),
+          details: 'Cheville haute résistance pour fixation dalle'
+        });
+      }
+
+      // Support mural main courante (gc_3, gc_4, gc_5)
+      if (isCorpsen || isCorpsenSabot || isPassMain) {
+        rawAccessories.push({
+          id: `acc_gc_eks1019_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Support mural main courante 50 (EKS 10-19)',
+          reference: 'EKS 10-19',
+          category: 'accessoire',
+          quantity: nbPoteaux * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_eks_10_19', 11.750),
+          totalPriceHt: parseFloat((nbPoteaux * qty * getAccPrice('acc_eks_10_19', 11.750)).toFixed(3)),
+          details: 'Fixation murale main courante Corpsen'
+        });
+      }
+
+      // Jonctions main courante (tous sauf gc_1)
+      if (!gcSubType.endsWith('1')) {
+        rawAccessories.push({
+          id: `acc_gc_jonction_${itemIdx}`,
+          itemIndex: itemIdx,
+          elementLabel,
+          designation: 'Jonction réglable main courante 50 (EKS 15-14)',
+          reference: 'EKS 15-14',
+          category: 'accessoire',
+          quantity: Math.max(1, nbPoteaux - 1) * qty,
+          unit: 'unité',
+          unitPriceHt: getAccPrice('acc_eks_15_14', 32.755),
+          totalPriceHt: parseFloat((Math.max(1, nbPoteaux - 1) * qty * getAccPrice('acc_eks_15_14', 32.755)).toFixed(3)),
+          details: 'Raccord entre segments de main courante'
+        });
+      }
     }
 
     // -------------------------------------------------------------
@@ -1876,10 +2028,10 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
         dormantTapeeRef = item.comp_dormant_ref || 'FSQ 124';
         dormantFlatRef = 'FSQ 100';
         tapeeExtensionCm = 2.5;
-        ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? 'FSQ 403' : 'FSQ 104');
+        ouvrantFrappeRef = item.comp_ouvrant_ref || (isPorte ? 'FSQ 403' : 'FSQ 401');
         battementRef = 'FSQ 112';
         parcloseFrappeRef = item.comp_parclose_ref || 'FSQ 110';
-        meneauDefaultRef = 'FSQ 107';
+        meneauDefaultRef = 'FSQ 104';
       } else if (isAluEco) {
         dormantTapeeRef = item.comp_dormant_ref || 'AE_40402';
         dormantFlatRef = 'AE_40100';
@@ -2045,7 +2197,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           lOuvrant = Math.max(10, parseFloat(((L - 4.90) / 2).toFixed(2)));
         }
       } else {
-        hOuvrant = Math.max(10, parseFloat((H - (isPorte ? 4.6 : 4.4)).toFixed(1)));
+        hOuvrant = Math.max(10, parseFloat((H - (isPorte ? (isAluco ? 4.6 : 4.6) : 4.4)).toFixed(1)));
         lOuvrant = Math.max(10, parseFloat((isPorte 
           ? (nbVantaux === 1 ? L - 7.8 : (L - 8.3) / 2) 
           : (nbVantaux === 1 ? L - 4.4 : (L - 4.9) / 2)
@@ -2103,18 +2255,21 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
       // 5. Socle bas pour portes
       if (isPorte) {
         const lSocle = Math.max(10, parseFloat((nbVantaux === 1 ? L - 21.5 : (L - 35.7) / 2).toFixed(1)));
+        // AtelierPro: Ex45 1115 = Socle porte 150mm EX45, 40154 = Socle 142mm S40
+        const socleRef = isEX45 ? 'Ex45 1115' : isAluco ? 'FSQ 121' : '40154';
+        const socleDes = isEX45 ? 'Socle bas porte EX45 150mm (Ex45 1115)' : isAluco ? 'Socle bas porte FSQ 130mm (FSQ 121)' : 'Socle bas porte S40 142mm (40154)';
         cuttingPieces.push({
           id: `cut_${itemIdx}_porte_socle`,
           itemIndex: itemIdx,
           elementLabel,
           pieceType: 'traverse',
-          profilRef: isEX45 ? 'EX45 1215' : '40121',
-          profilDesignation: 'Socle bas de porte (130mm)',
+          profilRef: socleRef,
+          profilDesignation: socleDes,
           lengthCm: lSocle,
           quantity: (nbVantaux === 1 ? 2 : 4) * qty,
           angleLeft: '90°',
           angleRight: '90°',
-          notes: 'Socle inférieur renforcé'
+          notes: 'Socle inférieur renforcé porte'
         });
       }
 
@@ -2130,7 +2285,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           lParc = Math.max(5, parseFloat((lOuvrant - 9.50).toFixed(2)));
           angleParc = '90°';
         } else {
-          hParc = Math.max(5, parseFloat((isPorte ? H - 26.6 : H - 17.8).toFixed(1)));
+          hParc = Math.max(5, parseFloat((isPorte ? (isAluco && nbVantaux > 1 ? H - 20.2 : H - 26.6) : H - 17.8).toFixed(1)));
           lParc = Math.max(5, parseFloat((isPorte 
             ? (nbVantaux === 1 ? L - 21.5 : (L - 35.5) / 2) 
             : (nbVantaux === 1 ? L - 13.4 : (L - 22.9) / 2)
@@ -2528,24 +2683,24 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
           details: `${isPorte ? '3 à 4' : '2 à 3'} paumelles par vantail`
         });
 
-        const isOscillo = item.type_ouverture?.toLowerCase().includes('oscillo') || item.ouverture_type?.toLowerCase().includes('oscillo');
+        const isOscillo = item.type_ouverture?.toLowerCase().includes('oscillo') || item.ouverture_type?.toLowerCase().includes('oscillo') || item.ouverture_type === 'Osilobattante';
         const isSoufflet = item.type_ouverture?.toLowerCase().includes('soufflet') || item.ouverture_type?.toLowerCase().includes('soufflet');
         const isCremoneCle = item.cremone_type === 'cle' || item.supplements?.some(s => s.toLowerCase().includes('clé') || s.toLowerCase().includes('cle'));
 
-        if (isOscillo) {
-          const oscilloPrice = getAccPrice('acc_kit_oscillo_battant', 65.000);
+        if (isCremoneCle) {
+          const cremClePrice = getAccPrice('acc_cremone_cle', 32.000);
           rawAccessories.push({
-            id: `acc_oscillo_${itemIdx}`,
+            id: `acc_cremone_cle_${itemIdx}`,
             itemIndex: itemIdx,
             elementLabel,
-            designation: 'Kit Oscillo-battant complet (compas, tringles, gâches)',
-            reference: 'Kit Oscillo-battant',
+            designation: 'Crémone à clé de sécurité (Barillet intégré)',
+            reference: 'Crémone à clé',
             category: 'verrou',
             quantity: 1 * qty,
             unit: 'unité',
-            unitPriceHt: oscilloPrice,
-            totalPriceHt: parseFloat((oscilloPrice * qty).toFixed(3)),
-            details: 'Mécanisme oscillo-battant complet'
+            unitPriceHt: cremClePrice,
+            totalPriceHt: parseFloat((cremClePrice * qty).toFixed(3)),
+            details: 'Crémone avec verrouillage par clé'
           });
         } else if (isSoufflet) {
           const loqPrice = getAccPrice('acc_loqueteau', 3.780);
@@ -2562,22 +2717,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
             totalPriceHt: parseFloat((loqPrice * qty).toFixed(3)),
             details: 'Fermeture et compas vasistas'
           });
-        } else if (isCremoneCle) {
-          const cremClePrice = getAccPrice('acc_cremone_cle', 32.000);
-          rawAccessories.push({
-            id: `acc_cremone_cle_${itemIdx}`,
-            itemIndex: itemIdx,
-            elementLabel,
-            designation: 'Crémone à clé de sécurité (Barillet intégré)',
-            reference: 'Crémone à clé',
-            category: 'verrou',
-            quantity: 1 * qty,
-            unit: 'unité',
-            unitPriceHt: cremClePrice,
-            totalPriceHt: parseFloat((cremClePrice * qty).toFixed(3)),
-            details: 'Crémone avec verrouillage par clé'
-          });
-        } else {
+        } else if (!isOscillo) {
           const cremonePrice = getAccPrice('acc_cremone', 15.876);
           rawAccessories.push({
             id: `acc_cremone_${itemIdx}`,
@@ -2751,13 +2891,16 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     if (includeMenuiserie) {
       // Kit Oscillo-battant
       if (item.ouverture_type === 'Osilobattante' || item.ouverture_type === 'Oscillo-battante' || item.ouverture_type === 'oscillo_battant') {
-        const obPrice = getAccPrice('acc_kit_ob', 105.000);
+        const isObUnVantail = nbVantaux === 1;
+        const obPrice = isObUnVantail
+          ? getAccPrice('acc_kit_ob_classic_1v', 160.000)
+          : getAccPrice('acc_kit_ob_classic_2v', 180.000);
         rawAccessories.push({
           id: `acc_kit_ob_${itemIdx}`,
           itemIndex: itemIdx,
           elementLabel,
-          designation: 'Kit mécanisme Oscillo-battant complet (OB Roto/Master)',
-          reference: 'Kit Oscillo-battant',
+          designation: isObUnVantail ? 'Kit OB Classic 1V' : 'Kit OB Classic 2V',
+          reference: isObUnVantail ? 'Kit OB Classic 1V' : 'Kit OB Classic 2V',
           category: 'verrou',
           quantity: 1 * qty,
           unit: 'unité',
@@ -2796,7 +2939,7 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
       const lGlissiere = isEncastre ? parseFloat((H + 15.0).toFixed(2)) : H;
       const lAxe = Math.max(10, isEncastre ? parseFloat((L + 9.0).toFixed(2)) : parseFloat((L - 7.0).toFixed(2)));
       const debitageJointBrosse = isEncastre ? parseFloat((H + 15.0 + L / 4.0).toFixed(2)) : H;
-      const nbLames = Math.round(H / 5.0) + 1;
+      const nbLames = Math.round(H / slatCfg.stepCm) + 1;
 
       const glissRef = isExtrude ? 'Glissière 55' : (slatCfg.lameRef.includes('55') ? 'Glissière 55' : 'Glissière 45');
       cuttingPieces.push({
@@ -3102,29 +3245,58 @@ export function calculateAluFabrication(items: DevisItemState[], customArticles?
     'AE_EX45 1130': 'Profilé Meneau Séparation EX45 (AE_EX45 1130)',
 
     // ALUCO (FSQ & CSQ)
-    'FSQ 124': 'Profilé Dormant FSQ 124 (Tapée)',
-    'FSQ 100': 'Profilé Dormant FSQ 100 (Plat)',
-    'FSQ 104': 'Profilé Ouvrant Battant FSQ 104',
-    'FSQ 403': 'Profilé Ouvrant Porte FSQ 403',
-    'FSQ 112': 'Profilé Battement Central FSQ 112',
-    'FSQ 110': 'Profilé Parclose Frappe FSQ 110',
-    'FSQ 111': 'Profilé Parclose Frappe FSQ 111',
-    'FSQ 107': 'Profilé Meneau Séparation FSQ 107',
-    'FSQ 121': 'Profilé Socle FSQ 121',
-    'CJ 101': 'Profilé Couvre-joint FSQ (CJ 101)',
-    'CJ 102': 'Profilé Couvre-joint FSQ (CJ 102)',
-    'CSQ 101': 'Profilé Dormant Coulissant CSQ 101',
-    'CSQ 103': 'Profilé Dormant Coulissant CSQ 103',
-    'CSQ 104': 'Profilé Ouvrant Latéral CSQ 104',
-    'CSQ 105': 'Profilé Chicane Centrale CSQ 105',
-    'CSQ 106': 'Profilé Traverse Ouvrant CSQ 106',
-    'CSQ 107': 'Profilé Chicane Renfort CSQ 107',
-    'CSQ 108': 'Profilé Ouvrant Renforcé CSQ 108',
-    'CSQ 114': 'Profilé Parclose Coulissant CSQ 114',
+    'FSQ 124': 'Profilé Dormant Tapée 60mm (FSQ 124)',
+    'FSQ 100': 'Profilé Dormant Plat (FSQ 100)',
+    'FSQ 102': 'Profilé Dormant Porte (FSQ 102)',
+    'FSQ 401': 'Profilé Ouvrant Fenêtre Tubulaire 40mm (FSQ 401)',
+    'FSQ 402': 'Profilé Dormant "Z" Tubulaire (FSQ 402)',
+    'FSQ 403': 'Profilé Ouvrant Porte Tubulaire 40mm (FSQ 403)',
+    'FSQ 404': 'Profilé Ouvrant Soufflet / Italienne (FSQ 404)',
+    'FSQ 408': 'Profilé Dormant Tapée Double Tubulaire (FSQ 408)',
+    'FSQ 150': 'Profilé Dormant Tapée 100mm (FSQ 150)',
+    'FSQ 151': 'Profilé Dormant Tapée 120mm (FSQ 151)',
+    'FSQ 156': 'Profilé Dormant Tapée 160mm (FSQ 156)',
+    'FSQ 104': 'Profilé Traverse Intermédiaire / Meneau 89mm (FSQ 104)',
+    'FSQ 107': 'Tringle Crémone (FSQ 107)',
+    'FSQ 108': 'Profilé Traverse Intermédiaire 65mm (FSQ 108)',
+    'FSQ 112': 'Profilé Battement Central 2 Vantaux (FSQ 112)',
+    'FSQ 110': 'Profilé Parclose 18mm (FSQ 110)',
+    'FSQ 111': 'Profilé Parclose 24mm (FSQ 111)',
+    'FSQ 139': 'Profilé Parclose 12mm (FSQ 139)',
+    'FSQ 121': 'Profilé Socle Bas Porte 130mm (FSQ 121)',
+    'FSQ 122': 'Profilé Adaptateur Socle (FSQ 122)',
+    'CSQ 300': 'Profilé Couvre-joint Clip 30mm (CSQ 300)',
+    'CSQ 301': 'Profilé Couvre-joint Clip 40mm (CSQ 301)',
+    'CSQ 302': 'Profilé Couvre-joint Déporté 50mm (CSQ 302)',
+    'CSQ 303': 'Profilé Couvre-joint Déporté 60mm (CSQ 303)',
+    'CSQ 304': 'Profilé Couvre-joint 80mm (CSQ 304)',
+    'CSQ 305': 'Profilé Couvre-joint Aile (CSQ 305)',
+    'CSQ 306': 'Profilé Couvre-joint Plat (CSQ 306)',
+    'CSQ 460': 'Profilé Couvre-joint Grand Modèle (CSQ 460)',
+    'CJ 101': 'Profilé Couvre-joint (CJ 101)',
+    'CJ 102': 'Profilé Couvre-joint Large (CJ 102)',
+    'CSQ 101': 'Profilé Dormant Coulissant 2 Rails Plat (CSQ 101)',
+    'CSQ 102': 'Profilé Dormant Coulissant 2 Rails Couvre-joint (CSQ 102)',
+    'CSQ 103': 'Profilé Dormant Coulissant 2 Rails Clipsable (CSQ 103)',
+    'CSQ 104': 'Profilé Montant Latéral Ouvrant Standard (CSQ 104)',
+    'CSQ 105': 'Profilé Montant Central / Chicane Standard (CSQ 105)',
+    'CSQ 106': 'Profilé Traverse Haute et Basse Ouvrant (CSQ 106)',
+    'CSQ 107': 'Profilé Montant Central / Chicane Renforcée (CSQ 107)',
+    'CSQ 108': 'Profilé Montant Latéral Ouvrant Renforcé (CSQ 108)',
+    'CSQ 109': 'Profilé Traverse Intermédiaire Ouvrant (CSQ 109)',
+    'CSQ 110': 'Profilé Battue / Finition Galandage (CSQ 110)',
+    'CSQ 112': 'Profilé Adaptateur Galandage (CSQ 112)',
+    'CSQ 114': 'Profilé Réducteur Feuillure Vitrage (CSQ 114)',
+    'CSQ 115': 'Profilé Joint / Guide Chicane (CSQ 115)',
     'CSQ 116': 'Rail Inox Rapporté (CSQ 116)',
-    'CSQ 124': 'Rejet d’eau Dormant (CSQ 124)',
+    'CSQ 124': 'Rejet d’eau Dormant Coulissant (CSQ 124)',
+    'CSQ 125': 'Profilé Cache Rejet d\'Eau (CSQ 125)',
+    'CSQ 201': 'Profilé Dormant Coulissant 2 Rails Haut Plat (CSQ 201)',
+    'CSQ 202': 'Profilé Dormant Coulissant 2 Rails Haut Couvre-joint (CSQ 202)',
+    'CSQ 203': 'Profilé Dormant Coulissant 2 Rails Haut Clipsable (CSQ 203)',
+    'CSQ 210': 'Profilé Dormant Coulissant 3 Rails (CSQ 210)',
     'CSQ_116': 'Rail Inox Rapporté (CSQ 116)',
-    'CSQ_124': 'Rejet d’eau Dormant (CSQ 124)',
+    'CSQ_124': 'Rejet d’eau Dormant Coulissant (CSQ 124)',
 
     // ALU ECO (S40 & S67)
     'AE_40402': 'Profilé Dormant Tapée (AE_40402)',
